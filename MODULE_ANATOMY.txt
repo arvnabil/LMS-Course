@@ -1,0 +1,52 @@
+ANALISA ANATOMI MODUL - dewafilament-1.11.0
+
+Dokumen ini menjelaskan komponen-komponen file yang diperlukan untuk membuat satu modul fungsional dalam sistem modular proyek ini.
+
+========================================================================
+STRUKTUR FILE MODUL (Contoh: Modules/Blog)
+========================================================================
+
+Setiap modul biasanya terdiri dari komponen berikut:
+
+1. [ModuleName]ServiceProvider.php
+   - Lokasi: Root folder modul (contoh: Modules/Blog/BlogServiceProvider.php)
+   - Fungsi: File terpenting yang mendaftarkan konfigurasi, migrasi, views, dan resource modul ke sistem Laravel. Tanpa file ini, modul tidak akan dikenali.
+
+2. Database/
+   - Migrations/: Berisi file skema tabel database (contoh: create_posts_table.php).
+   - Seeders/: Berisi file untuk mengisi data awal ke database.
+   - Factories/: Berisi definisi data palsu untuk keperluan testing.
+
+3. Models/
+   - Lokasi: Modules/Blog/Models/
+   - Fungsi: Berisi file Eloquent Model (contoh: Post.php) yang menghubungkan kode dengan tabel di database.
+
+4. Filament/
+   Ini adalah folder untuk integrasi dengan Admin Panel:
+   - Resources/: Definisi utama fitur di admin (contoh: PostResource.php). Di sini diatur menu apa yang muncul, siapa yang bisa akses, dll.
+   - Resources/Pages/: Mengatur tampilan halaman List (daftar), Create (buat), dan Edit data.
+   - Resources/Schemas/: Definisi struktur form input (misal: field teks, upload gambar).
+   - Resources/Tables/: Definisi struktur kolom tabel yang tampil di dashboard.
+
+5. resources/
+   - views/: File template Blade PHP (.blade.php) untuk tampilan frontend atau kustomisasi UI di admin.
+
+6. README.md
+   - Berisi penjelasan spesifik mengenai kegunaan modul tersebut.
+
+========================================================================
+ALUR PEMBUATAN MODUL BARU
+========================================================================
+
+Jika Anda ingin membuat modul baru dari nol, urutan file yang biasanya dibuat adalah:
+
+Step 1: Buat Folder Modul & ServiceProvider.
+Step 2: Buat Migration di folder Database/ untuk tabel yang dibutuhkan.
+Step 3: Buat Model di folder Models/ untuk akses data.
+Step 4: Buat Filament Resource di folder Filament/ agar bisa dikelola lewat dashboard admin.
+Step 5: Daftarkan ServiceProvider di config/app.php atau modules.json (jika menggunakan otomatisasi).
+
+========================================================================
+KESIMPULAN
+========================================================================
+Satu modul di dewafilament bukan hanya sekadar folder, tapi paket lengkap yang berisi database (Migration), logika data (Model), tampilan (Views), dan antarmuka admin (Filament Resource), yang semuanya diikat oleh satu ServiceProvider.

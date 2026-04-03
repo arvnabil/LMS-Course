@@ -1,0 +1,63 @@
+ANALISA IMPLEMENTASI LMS-COURSE - dewafilament-1.11.0
+
+Dokumen ini menganalisa kondisi saat ini dari fitur Learning Management System (LMS) dan Course dalam modul dewafilament-1.11.0 serta mengidentifikasi apa yang belum dilakukan (gap).
+
+========================================================================
+IMPLEMENTASI SAAT INI (EXISTING)
+========================================================================
+
+Saat ini, fungsi LMS tersebar di 3 modul berbeda yang belum terintegrasi satu sama lain secara penuh:
+
+1. Modul "Tutorial":
+   - Video Course (berbasis YouTube link).
+   - Deskripsi materi (Rich Editor).
+   - Progress Tracking: Mencatat video mana yang sudah selesai ditonton per user.
+   - Progress Percentage: Menghitung persentase penyelesaian tutorial.
+
+2. Modul "TryoutOnline":
+   - Quiz/Examination system.
+   - Manajemen soal (Multiple Choice) & Jawaban.
+   - Scoring system & Ranking (Papan peringkat).
+   - Batasan durasi waktu pengerjaan.
+
+3. Modul "GuruLes":
+   - Directory pengajar/tutor.
+   - Informasi mata pelajaran & Kontak WhatsApp.
+   - Lokasi geografis pengajar (Latitude/Longitude).
+
+========================================================================
+ANALISA YANG BELUM DILAKUKAN (GAP ANALYSIS)
+========================================================================
+
+Berikut adalah fitur-fitur kritikal untuk sebuah LMS-Course yang BELUM ada di sistem saat ini:
+
+1. Integrasi Tutorial & Quiz:
+   - Belum ada cara untuk menghubungkan materi video (Tutorial) dengan ujian akhir (Tryout). Idealnya, quiz muncul setelah video tertentu selesai.
+
+2. Manajemen Konten yang Beragam:
+   - Saat ini hanya mendukung video YouTube. Belum ada dukungan untuk materi teks (artikel panjang), upload PDF, atau download resource materi.
+
+3. Enrolment & Purchase System:
+   - Tidak ada tabel 'Enrolment' untuk mencatata siapa saja yang memiliki akses ke course tertentu.
+   - Belum ada integrasi komersial (pembayaran) khusus untuk "Membeli" akses ke sebuah Course/Tutorial.
+
+4. Sertifikasi Otomatis:
+   - Belum ada fitur generate Sertifikat (PDF) saat user menyelesaikan 100% tutorial atau lulus passing grade tryout.
+
+5. Instructor/Teacher Dashboard:
+   - GuruLes hanya bersifat direktori statis. Belum ada panel khusus bagi pengajar untuk melihat statistik siswa mereka atau mengupload materi sendiri secara mandiri.
+
+6. Prerequisites (Syarat Materi):
+   - Belum ada fitur untuk mengunci materi video ke-2 sebelum video ke-1 selesai ditonton (Linear Learning Path).
+
+7. Diskusi & Feedback:
+   - Belum ada sistem komentar, forum diskusi antar siswa, atau rating/review untuk sebuah Course.
+
+========================================================================
+REKOMENDASI PENGEMBANGAN SELANJUTNYA
+========================================================================
+
+- Membuat modul "CourseManagement" sebagai parent yang membungkus "Tutorial" dan "Tryout".
+- Implementasi sistem Enrolment (gratis maupun berbayar via Midtrans/Xendit).
+- Menambahkan fitur PDF Generator untuk sertifikat kelulusan.
+- Memperluas tipe konten (Lesson types: Text, Video, Quiz, Attachment).
