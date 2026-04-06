@@ -120,7 +120,9 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
         itemStates[itemKey] = {
             isCompleted,
             // Re-enabling sequential lock logic as requested by user
-            isLocked: index > 0 && previousIncomplete
+            isLocked: index > 0 && 
+                      previousIncomplete && 
+                      !(item.id === currentLesson?.id && item.itemType === currentItemType)
         };
 
         if (!isCompleted) {
