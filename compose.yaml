@@ -1,5 +1,5 @@
 services:
-  app-dashboard:
+  course-dashboard:
     build:
       context: "./vendor/laravel/sail/runtimes/8.5"
       dockerfile: Dockerfile
@@ -112,9 +112,23 @@ services:
     networks:
       - sail
     depends_on:
-      - app-dashboard
+      - course-dashboard
     ports:
       - "${VITE_PORT:-5173}:${VITE_PORT:-5173}"
+  phpmyadmin:
+    image: 'phpmyadmin:latest'
+    ports:
+      - '${FORWARD_PHPMYADMIN_PORT:-8080}:80'
+    networks:
+      - sail
+    environment:
+      PMA_ARBITRARY: 1
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_USER: "${DB_USERNAME}"
+      PMA_PASSWORD: "${DB_PASSWORD}"
+    depends_on:
+      - mysql
 networks:
   sail:
     driver: bridge
