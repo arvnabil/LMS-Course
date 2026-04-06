@@ -5,7 +5,7 @@ import ThemeStyleInjector from '@/Components/ThemeStyleInjector';
 import Modal from '@/Components/Modal';
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 
-const CourseCard = ({ course, isEnrolled, onPlayClick, auth }) => (
+const CourseCard = ({ course, isEnrolled, onPlayClick, auth, orgPricing }) => (
     <div className="bg-surface rounded-[28px] p-5 shadow-2xl shadow-black/10 border border-border overflow-hidden flex flex-col group max-w-xs mx-auto">
         <div className="aspect-video bg-muted rounded-[20px] mb-5 overflow-hidden relative border border-border/50">
             {course.thumbnail ? (
@@ -31,12 +31,25 @@ const CourseCard = ({ course, isEnrolled, onPlayClick, auth }) => (
         <div className="space-y-4">
             <div className="flex items-center justify-between px-2">
                 <p className="text-xl sm:text-2xl font-black text-foreground tracking-tight italic">
-                    {course.price > 0 ? (
+                    {orgPricing?.is_org_sponsored ? (
                         <span className="flex flex-col">
-                            <span className="text-[9px] text-muted-foreground uppercase tracking-[0.2em] font-extrabold not-italic mb-1">Lifetime Access</span>
-                            IDR {Number(course.price).toLocaleString('id-ID')}
+                            <span className="text-[10px] text-primary uppercase tracking-[0.2em] font-extrabold not-italic mb-1 flex items-center gap-1.5">
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                Sponsored by {orgPricing.org_name}
+                            </span>
+                            <span className="flex items-baseline gap-2">
+                                <span className="text-primary">FREE</span>
+                                <span className="text-sm text-muted-foreground line-through font-bold opacity-60">IDR {Number(orgPricing.original_price).toLocaleString('id-ID')}</span>
+                            </span>
                         </span>
-                    ) : 'FREE'}
+                    ) : (
+                        course.price > 0 ? (
+                            <span className="flex flex-col">
+                                <span className="text-[9px] text-muted-foreground uppercase tracking-[0.2em] font-extrabold not-italic mb-1">Lifetime Access</span>
+                                IDR {Number(course.price).toLocaleString('id-ID')}
+                            </span>
+                        ) : 'FREE'
+                    )}
                 </p>
             </div>
             
@@ -55,7 +68,7 @@ const CourseCard = ({ course, isEnrolled, onPlayClick, auth }) => (
                         as={auth?.user ? "button" : "a"}
                         className="w-full bg-primary text-white py-4 rounded-[20px] font-extrabold text-[13px] uppercase tracking-[0.15em] shadow-xl shadow-primary/20 hover:bg-primary-hover transition-all translate-y-0 hover:-translate-y-1 block text-center"
                     >
-                        {Number(course.price) === 0 ? 'Enroll for Free' : 'Buy Course Now'}
+                        {orgPricing?.is_org_sponsored ? 'Enroll Now' : (Number(course.price) === 0 ? 'Enroll for Free' : 'Buy Course Now')}
                     </Link>
                 )}
             </div>
@@ -84,7 +97,7 @@ const CourseCard = ({ course, isEnrolled, onPlayClick, auth }) => (
     </div>
 );
 
-export default function CourseDetail({ course = {}, isDashboard = false, isEnrolled = false, enrollment = null }) {
+export default function CourseDetail({ course = {}, isDashboard = false, isEnrolled = false, enrollment = null, orgPricing = null }) {
     const { auth } = usePage().props;
     const Layout = isDashboard ? DashboardLayout : GuestLayout;
 
@@ -387,6 +400,7 @@ export default function CourseDetail({ course = {}, isDashboard = false, isEnrol
                                 isEnrolled={isEnrolled} 
                                 onPlayClick={firstPreviewVideo ? handleCardPlayClick : null} 
                                 auth={auth} 
+                                orgPricing={orgPricing}
                             />
                         </div>
                     </div>
@@ -509,6 +523,7 @@ export default function CourseDetail({ course = {}, isDashboard = false, isEnrol
                                     isEnrolled={isEnrolled} 
                                     onPlayClick={firstPreviewVideo ? handleCardPlayClick : null} 
                                     auth={auth} 
+                                    orgPricing={orgPricing}
                                 />
                             </div>
 

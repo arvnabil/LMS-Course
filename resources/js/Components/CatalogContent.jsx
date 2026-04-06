@@ -154,9 +154,19 @@ export default function CatalogContent({ categories = [], courses = { data: [] }
                                             <div className="flex items-center gap-1.5">
                                                 <span className="text-sm font-extrabold text-foreground capitalize">{course.level}</span>
                                             </div>
-                                            <p className="text-lg font-extrabold text-primary">
-                                                {course.price > 0 ? `IDR ${Number(course.price).toLocaleString('id-ID')}` : 'FREE'}
-                                            </p>
+                                            {course.is_org_sponsored ? (
+                                                <div className="flex flex-col items-end">
+                                                    <span className="text-[9px] font-black text-primary uppercase tracking-wider mb-0.5">Sponsored by {course.org_name}</span>
+                                                    <div className="flex items-center gap-2">
+                                                        <p className="text-lg font-extrabold text-primary">FREE</p>
+                                                        <p className="text-xs text-muted-foreground line-through font-bold opacity-60 italic">IDR {Number(course.price).toLocaleString('id-ID')}</p>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <p className="text-lg font-extrabold text-primary">
+                                                    {course.price > 0 ? `IDR ${Number(course.price).toLocaleString('id-ID')}` : 'FREE'}
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
