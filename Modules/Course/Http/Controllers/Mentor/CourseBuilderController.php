@@ -24,7 +24,7 @@ class CourseBuilderController extends Controller
     {
         $query = Course::query();
         
-        if (auth()->user()->role !== 'admin') {
+        if (auth()->user()->role != 'admin') {
             $query->where('mentor_id', auth()->id());
         }
 
@@ -87,7 +87,7 @@ class CourseBuilderController extends Controller
      */
     public function update(Request $request, Course $course)
     {
-        if ($course->mentor_id !== auth()->id() && auth()->user()->role !== 'admin') abort(403);
+        if ($course->mentor_id != auth()->id() && auth()->user()->role != 'admin') abort(403);
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -140,7 +140,7 @@ class CourseBuilderController extends Controller
      */
     public function destroy(Course $course)
     {
-        if ($course->mentor_id !== auth()->id() && auth()->user()->role !== 'admin') abort(403);
+        if ($course->mentor_id != auth()->id() && auth()->user()->role != 'admin') abort(403);
 
         $course->delete();
 
@@ -150,7 +150,7 @@ class CourseBuilderController extends Controller
     public function edit(Course $course)
     {
         // Ensure mentor owns the course or user is an admin
-        if ($course->mentor_id !== auth()->id() && auth()->user()->role !== 'admin') {
+        if ($course->mentor_id != auth()->id() && auth()->user()->role != 'admin') {
             abort(403);
         }
 
@@ -168,7 +168,7 @@ class CourseBuilderController extends Controller
      */
     public function storeSection(Request $request, Course $course)
     {
-        if ($course->mentor_id !== auth()->id() && auth()->user()->role !== 'admin') abort(403);
+        if ($course->mentor_id != auth()->id() && auth()->user()->role != 'admin') abort(403);
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -187,7 +187,7 @@ class CourseBuilderController extends Controller
      */
     public function updateSection(Request $request, Section $section)
     {
-        if ($section->course->mentor_id !== auth()->id() && auth()->user()->role !== 'admin') abort(403);
+        if ($section->course->mentor_id != auth()->id() && auth()->user()->role != 'admin') abort(403);
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -203,7 +203,7 @@ class CourseBuilderController extends Controller
      */
     public function destroySection(Section $section)
     {
-        if ($section->course->mentor_id !== auth()->id() && auth()->user()->role !== 'admin') abort(403);
+        if ($section->course->mentor_id != auth()->id() && auth()->user()->role != 'admin') abort(403);
 
         $section->delete();
 
@@ -215,7 +215,7 @@ class CourseBuilderController extends Controller
      */
     public function storeLesson(Request $request, Section $section)
     {
-        if ($section->course->mentor_id !== auth()->id() && auth()->user()->role !== 'admin') abort(403);
+        if ($section->course->mentor_id != auth()->id() && auth()->user()->role != 'admin') abort(403);
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -236,7 +236,7 @@ class CourseBuilderController extends Controller
      */
     public function destroyLesson(Lesson $lesson)
     {
-        if ($lesson->section->course->mentor_id !== auth()->id() && auth()->user()->role !== 'admin') abort(403);
+        if ($lesson->section->course->mentor_id != auth()->id() && auth()->user()->role != 'admin') abort(403);
 
         $lesson->delete();
 
@@ -248,7 +248,7 @@ class CourseBuilderController extends Controller
      */
     public function storeQuiz(Request $request, Section $section)
     {
-        if ($section->course->mentor_id !== auth()->id() && auth()->user()->role !== 'admin') abort(403);
+        if ($section->course->mentor_id != auth()->id() && auth()->user()->role != 'admin') abort(403);
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -270,7 +270,7 @@ class CourseBuilderController extends Controller
      */
     public function updateQuiz(Request $request, Quiz $quiz)
     {
-        if ($quiz->course->mentor_id !== auth()->id() && auth()->user()->role !== 'admin') abort(403);
+        if ($quiz->course->mentor_id != auth()->id() && auth()->user()->role != 'admin') abort(403);
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -289,7 +289,7 @@ class CourseBuilderController extends Controller
      */
     public function destroyQuiz(Quiz $quiz)
     {
-        if ($quiz->course->mentor_id !== auth()->id() && auth()->user()->role !== 'admin') abort(403);
+        if ($quiz->course->mentor_id != auth()->id() && auth()->user()->role != 'admin') abort(403);
 
         $quiz->delete();
 
@@ -301,7 +301,7 @@ class CourseBuilderController extends Controller
      */
     public function editLesson(Lesson $lesson)
     {
-        if ($lesson->section->course->mentor_id !== auth()->id() && auth()->user()->role !== 'admin') abort(403);
+        if ($lesson->section->course->mentor_id != auth()->id() && auth()->user()->role != 'admin') abort(403);
 
         return Inertia::render('Mentor/CourseBuilder/LessonEditor', [
             'lesson' => $lesson->load('section.course'),
@@ -313,7 +313,7 @@ class CourseBuilderController extends Controller
      */
     public function updateLesson(Request $request, Lesson $lesson)
     {
-        if ($lesson->section->course->mentor_id !== auth()->id() && auth()->user()->role !== 'admin') abort(403);
+        if ($lesson->section->course->mentor_id != auth()->id() && auth()->user()->role != 'admin') abort(403);
 
         $validated = $request->validate([
             'title' => 'nullable|string|max:255',
@@ -342,7 +342,7 @@ class CourseBuilderController extends Controller
 
     public function toggleLessonPreview(Lesson $lesson)
     {
-        if ($lesson->section->course->mentor_id !== auth()->id() && auth()->user()->role !== 'admin') abort(403);
+        if ($lesson->section->course->mentor_id != auth()->id() && auth()->user()->role != 'admin') abort(403);
 
         $lesson->update([
             'is_preview' => !$lesson->is_preview
@@ -356,7 +356,7 @@ class CourseBuilderController extends Controller
      */
     public function editQuiz(Quiz $quiz)
     {
-        if ($quiz->course->mentor_id !== auth()->id() && auth()->user()->role !== 'admin') abort(403);
+        if ($quiz->course->mentor_id != auth()->id() && auth()->user()->role != 'admin') abort(403);
 
         return Inertia::render('Mentor/CourseBuilder/QuizEditor', [
             'quiz' => $quiz->load(['questions.options', 'course']),
@@ -368,7 +368,7 @@ class CourseBuilderController extends Controller
      */
     public function storeQuestion(Request $request, Quiz $quiz)
     {
-        if ($quiz->course->mentor_id !== auth()->id() && auth()->user()->role !== 'admin') abort(403);
+        if ($quiz->course->mentor_id != auth()->id() && auth()->user()->role != 'admin') abort(403);
 
         $validated = $request->validate([
             'question' => 'required|string',
@@ -387,7 +387,7 @@ class CourseBuilderController extends Controller
      */
     public function updateQuestion(Request $request, QuizQuestion $question)
     {
-        if ($question->quiz->course->mentor_id !== auth()->id() && auth()->user()->role !== 'admin') abort(403);
+        if ($question->quiz->course->mentor_id != auth()->id() && auth()->user()->role != 'admin') abort(403);
 
         $validated = $request->validate([
             'question' => 'required|string',
@@ -405,7 +405,7 @@ class CourseBuilderController extends Controller
      */
     public function deleteQuestion(QuizQuestion $question)
     {
-        if ($question->quiz->course->mentor_id !== auth()->id() && auth()->user()->role !== 'admin') abort(403);
+        if ($question->quiz->course->mentor_id != auth()->id() && auth()->user()->role != 'admin') abort(403);
 
         $question->delete();
 
@@ -417,7 +417,7 @@ class CourseBuilderController extends Controller
      */
     public function storeOption(Request $request, QuizQuestion $question)
     {
-        if ($question->quiz->course->mentor_id !== auth()->id() && auth()->user()->role !== 'admin') abort(403);
+        if ($question->quiz->course->mentor_id != auth()->id() && auth()->user()->role != 'admin') abort(403);
 
         $validated = $request->validate([
             'option_text' => 'required|string',
@@ -434,7 +434,7 @@ class CourseBuilderController extends Controller
      */
     public function updateOption(Request $request, QuizOption $option)
     {
-        if ($option->question->quiz->course->mentor_id !== auth()->id() && auth()->user()->role !== 'admin') abort(403);
+        if ($option->question->quiz->course->mentor_id != auth()->id() && auth()->user()->role != 'admin') abort(403);
 
         $validated = $request->validate([
             'option_text' => 'required|string',
@@ -451,7 +451,7 @@ class CourseBuilderController extends Controller
      */
     public function destroyOption(QuizOption $option)
     {
-        if ($option->question->quiz->course->mentor_id !== auth()->id() && auth()->user()->role !== 'admin') abort(403);
+        if ($option->question->quiz->course->mentor_id != auth()->id() && auth()->user()->role != 'admin') abort(403);
 
         $option->delete();
 
@@ -463,7 +463,7 @@ class CourseBuilderController extends Controller
      */
     public function editCertificateTemplate(Course $course)
     {
-        if ($course->mentor_id !== auth()->id() && auth()->user()->role !== 'admin') abort(403);
+        if ($course->mentor_id != auth()->id() && auth()->user()->role != 'admin') abort(403);
 
         $template = $course->certificateTemplate;
 
@@ -495,7 +495,7 @@ class CourseBuilderController extends Controller
      */
     public function updateCertificateTemplate(Request $request, Course $course)
     {
-        if ($course->mentor_id !== auth()->id() && auth()->user()->role !== 'admin') abort(403);
+        if ($course->mentor_id != auth()->id() && auth()->user()->role != 'admin') abort(403);
 
         $validated = $request->validate([
             'background_image' => 'nullable|image|max:10240',
