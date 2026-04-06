@@ -297,13 +297,6 @@ export default function DashboardLayout({ header, children }) {
                     <div className="p-4 mt-auto">
                         <div className="bg-surface rounded-2xl p-4 shadow-md border border-border">
                             <div className="flex items-center gap-3">
-                                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center overflow-hidden shrink-0 border-2 border-primary/20">
-                                    {user.avatar ? (
-                                        <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
-                                    ) : (
-                                        <Icon name="user" className="text-gray-400 w-6 h-6" />
-                                    )}
-                                </div>
                                 <div className="min-w-0 flex-1 flex flex-col justify-center">
                                     <h3 className="text-sm font-extrabold text-foreground truncate leading-tight">
                                         {user.name || 'User'}
@@ -436,7 +429,7 @@ export default function DashboardLayout({ header, children }) {
                                     <div className="relative">
                                         <button
                                             onClick={() => setProfileDropdown(!profileDropdown)}
-                                            className="flex items-center gap-2 hover:bg-gray-50 pr-3 pl-1 py-1 rounded-full transition-all"
+                                            className="flex items-center gap-2 hover:bg-gray-50 pr-2 pl-1 py-1 rounded-full transition-all"
                                         >
                                             <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden border border-gray-200">
                                                 {user.avatar ? (
@@ -445,8 +438,7 @@ export default function DashboardLayout({ header, children }) {
                                                     <Icon name="user" className="text-gray-500" />
                                                 )}
                                             </div>
-                                            <span className="hidden sm:block text-sm font-medium text-foreground">{user.name}</span>
-                                            <Icon name="chevron-down" className="text-gray-400 hidden sm:block" />
+                                            <Icon name="chevron-down" className="text-gray-400 w-4 h-4" />
                                         </button>
 
                                         {profileDropdown && (
