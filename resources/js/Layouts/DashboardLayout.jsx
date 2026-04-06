@@ -295,26 +295,34 @@ export default function DashboardLayout({ header, children }) {
 
                     {/* User Profile Card (Bottom) */}
                     <div className="p-4 mt-auto">
-                        <div className="bg-surface rounded-[20px] p-3 shadow-sm border border-border">
+                        <div className="bg-surface rounded-2xl p-4 shadow-md border border-border">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden shrink-0">
+                                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center overflow-hidden shrink-0 border-2 border-primary/20">
                                     {user.avatar ? (
                                         <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
                                     ) : (
-                                        <Icon name="user" className="text-gray-500" />
+                                        <Icon name="user" className="text-gray-400 w-6 h-6" />
                                     )}
                                 </div>
-                                <div className="min-w-0 flex-1">
-                                    <p className="text-sm font-bold text-foreground truncate">{user.name}</p>
-                                    <span className={`inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize ${roleBadgeColors[user.role] || ''}`}>
-                                        {user.role}
-                                    </span>
+                                <div className="min-w-0 flex-1 flex flex-col justify-center">
+                                    <h3 className="text-sm font-extrabold text-foreground truncate leading-tight">
+                                        {user.name || 'User'}
+                                    </h3>
+                                    <p className="text-xs font-semibold text-foreground/60 truncate mb-1">
+                                        {user.email || 'user@example.com'}
+                                    </p>
+                                    <div className="flex items-center">
+                                        <span className={`inline-flex py-0.5 px-2 rounded-md text-[10px] font-black uppercase tracking-wider ${roleBadgeColors[user.role] || 'bg-muted text-foreground'}`}>
+                                            {user.role}
+                                        </span>
+                                    </div>
                                 </div>
                                 <Link
                                     href={route('logout')}
                                     method="post"
                                     as="button"
-                                    className="text-gray-400 hover:text-primary transition-colors"
+                                    className="w-8 h-8 rounded-full bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-colors shrink-0"
+                                    title="Log Out"
                                 >
                                     <Icon name="log-out" />
                                 </Link>
