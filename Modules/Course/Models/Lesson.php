@@ -19,6 +19,10 @@ class Lesson extends Model
         'thumbnail',
     ];
 
+    protected $casts = [
+        'is_preview' => 'boolean',
+    ];
+
     public function section(): BelongsTo
     {
         return $this->belongsTo(Section::class);

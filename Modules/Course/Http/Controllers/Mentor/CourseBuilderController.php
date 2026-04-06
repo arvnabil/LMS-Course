@@ -339,9 +339,8 @@ class CourseBuilderController extends Controller
     {
         if ($lesson->section->course->mentor_id != auth()->id()) abort(403);
 
-        $lesson->update([
-            'is_preview' => !$lesson->is_preview
-        ]);
+        $lesson->is_preview = !$lesson->is_preview;
+        $lesson->save();
 
         return back()->with('success', 'Lesson preview status updated.');
     }
