@@ -16,7 +16,7 @@ class RoleMiddleware
      */
     public function handle(Request $request, Closure $next, string ...$roles): Response
     {
-        if (!$request->user() || !$request->user()->hasAnyRole(...$roles)) {
+        if (!$request->user() || (!$request->user()->hasAnyRole(...$roles) && !in_array($request->user()->role, $roles))) {
             abort(403, 'Unauthorized. You do not have permission to access this page.');
         }
 
