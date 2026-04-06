@@ -105,24 +105,26 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
         const isLesson = item.itemType === 'lesson';
         
         // Use either snake_case or camelCase to be safe
-        const progress = enrollment.lesson_progress || enrollment.lessonProgress || [];
+        const progressArray = enrollment.lesson_progress || enrollment.lessonProgress || [];
         const isCompleted = isLesson 
-            ? progress.some(lp => lp.lesson_id === item.id && (lp.is_completed || lp.completed_at))
+            ? progressArray.some(lp => lp.lesson_id == item.id && (lp.is_completed || lp.completed_at))
             : (
-                (enrollment.quiz_attempts || enrollment.quizAttempts)?.some(a => a.quiz_id === item.id && a.is_passed) || 
-                enrollment.submissions?.some(s => 
-                    s.quiz_id === item.id && 
+                (enrollment.quiz_attempts || enrollment.quizAttempts)?.some(a => a.quiz_id == item.id && a.is_passed) || 
+                (enrollment.submissions || [])?.some(s => 
+                    s.quiz_id == item.id && 
                     s.status === 'approved' && 
                     (!item.passing_score || s.score >= item.passing_score)
                 )
             );
         
+        const isCurrentlyActive = item.id == currentLesson?.id && item.itemType === currentItemType;
+
         itemStates[itemKey] = {
             isCompleted,
-            // Re-enabling sequential lock logic as requested by user
+            // item is locked if it's not the first one, previous wasn't completed, and it's NOT the current lesson
             isLocked: index > 0 && 
                       previousIncomplete && 
-                      !(item.id === currentLesson?.id && item.itemType === currentItemType)
+                      !isCurrentlyActive
         };
 
         if (!isCompleted) {
