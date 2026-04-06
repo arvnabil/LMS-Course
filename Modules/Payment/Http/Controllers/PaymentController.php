@@ -25,6 +25,43 @@ class PaymentController extends Controller
                 ->with('info', 'You are already enrolled in this course.');
         }
 
+        // 1.5 Organization-sponsored Course Bypass
+        $orgService = app(\Modules\Organization\Services\OrganizationService::class);
+        if ($orgService->isCourseFreeForUser($user, $course)) {
+            $pricing = $orgService->getEffectivePrice($user, $course);
+
+            // Create successful transaction with organization source
+            $transaction = Transaction::create([
+                'student_id' => $user->id,
+                'course_id' => $course->id,
+                'order_id' => 'ORG-' . strtoupper(Str::random(10)),
+                'amount' => 0,
+                'status' => 'success',
+                'payment_type' => 'organization',
+                'payment_gateway_response' => ['org_name' => $pricing['org_name'], 'original_price' => $pricing['original_price']],
+            ]);
+
+            // Auto enroll
+            Enrollment::create([
+                'student_id' => $user->id,
+                'course_id' => $course->id,
+                'status' => 'active',
+                'enrolled_at' => now(),
+            ]);
+
+            // Notify user
+            Notification::create([
+                'user_id' => $user->id,
+                'title' => 'Enrollment Successful',
+                'message' => 'You have been enrolled in "' . $course->title . '" for free via ' . $pricing['org_name'] . '.',
+                'type' => 'success',
+                'data' => ['course_id' => $course->id],
+            ]);
+
+            return redirect()->route('student.enrollment.success', $course->slug)
+                ->with('success', 'Enrolled for free via ' . $pricing['org_name'] . '!');
+        }
+
         // 2. Free Course Bypass Logic
         if ((float) $course->price === 0.0) {
             // Create successful transaction
@@ -54,7 +91,7 @@ class PaymentController extends Controller
                 'data' => ['course_id' => $course->id],
             ]);
 
-            return redirect()->route('student.learn', $course->slug)
+            return redirect()->route('student.enrollment.success', $course->slug)
                 ->with('success', 'Successfully enrolled for free!');
         }
 
@@ -119,6 +156,9 @@ class PaymentController extends Controller
 
     public function callback(Request $request)
     {
+        if ($request->has('course_slug')) {
+            return redirect()->route('student.enrollment.success', $request->query('course_slug'));
+        }
         return redirect()->route('student.courses.index')
             ->with('info', 'Payment status is being processed. You can check your courses soon.');
     }

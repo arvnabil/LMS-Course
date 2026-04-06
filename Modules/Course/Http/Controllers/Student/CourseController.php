@@ -50,6 +50,36 @@ class CourseController extends Controller
     }
 
     /**
+     * Show the enrollment success page with the reason questionnaire.
+     */
+    public function enrollmentSuccess(Course $course)
+    {
+        $user = auth()->user();
+        $enrollment = Enrollment::where('student_id', $user?->id)->where('course_id', $course->id)->first();
+
+        // If not enrolled somehow, abort
+        if (!$enrollment) {
+            return redirect()->route('student.courses.index')->with('error', 'You must be enrolled to view this page.');
+        }
+
+        return Inertia::render('Student/EnrollmentSuccess', [
+            'course' => $course,
+        ]);
+    }
+
+    /**
+     * Handle the submission of the enrollment reason snippet.
+     */
+    public function submitEnrollmentReason(Request $request, Course $course)
+    {
+        // For now, this is a dummy endpoint. In the future, reasons could be saved to a database table.
+        // It simply redirects the user to start learning.
+        
+        return redirect()->route('student.learn', $course->slug)
+            ->with('success', 'Thank you! You can now start learning.');
+    }
+
+    /**
      * Show the course player.
      */
     public function learn(Course $course, Lesson $lesson = null)

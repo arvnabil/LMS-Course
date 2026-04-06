@@ -5,7 +5,7 @@ const ThemeContext = createContext();
 export function ThemeProvider({ children }) {
     const [theme, setTheme] = useState(() => {
         if (typeof window !== 'undefined') {
-            return localStorage.getItem('educore-theme') || 'light';
+            return localStorage.getItem('app-theme') || 'light';
         }
         return 'light';
     });
@@ -17,7 +17,7 @@ export function ThemeProvider({ children }) {
         } else {
             root.classList.remove('dark');
         }
-        localStorage.setItem('educore-theme', theme);
+        localStorage.setItem('app-theme', theme);
     }, [theme]);
 
     const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');

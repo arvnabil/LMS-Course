@@ -22,7 +22,7 @@ export default function GuestLayout({ children }) {
                                 )}
                             </div>
                             <span className="text-foreground text-2xl font-extrabold tracking-tight">
-                                {global_settings?.platform_name || 'EduCore'}
+                                {global_settings?.platform_name || 'LMS'}
                             </span>
                         </Link>
 
@@ -67,17 +67,25 @@ export default function GuestLayout({ children }) {
                                     )}
                                 </div>
                                 <span className="text-white text-2xl font-bold">
-                                    {global_settings?.platform_name || 'EduCore'}
+                                    {global_settings?.platform_name || 'LMS'}
                                 </span>
                             </div>
                             <p className="text-gray-400 text-sm leading-loose">
                                 Build your future with the most professional online learning platform in Indonesia.
                             </p>
                             <div className="flex gap-4">
-                                {/* Social placeholders */}
-                                <div className="w-10 h-10 rounded-full border border-gray-700 flex items-center justify-center hover:bg-primary hover:border-primary transition-colors cursor-pointer">IG</div>
-                                <div className="w-10 h-10 rounded-full border border-gray-700 flex items-center justify-center hover:bg-primary hover:border-primary transition-colors cursor-pointer">TW</div>
-                                <div className="w-10 h-10 rounded-full border border-gray-700 flex items-center justify-center hover:bg-primary hover:border-primary transition-colors cursor-pointer">FB</div>
+                                {/* Instagram */}
+                                <a href="#" className="w-10 h-10 rounded-full border border-gray-700 flex items-center justify-center hover:bg-primary hover:border-primary transition-all text-gray-400 hover:text-white cursor-pointer group">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
+                                </a>
+                                {/* LinkedIn */}
+                                <a href="#" className="w-10 h-10 rounded-full border border-gray-700 flex items-center justify-center hover:bg-primary hover:border-primary transition-all text-gray-400 hover:text-white cursor-pointer group">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg>
+                                </a>
+                                {/* YouTube */}
+                                <a href="#" className="w-10 h-10 rounded-full border border-gray-700 flex items-center justify-center hover:bg-primary hover:border-primary transition-all text-gray-400 hover:text-white cursor-pointer group">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 2-2 68.4 68.4 0 0 1 15 0 2 2 0 0 1 2 2 24.12 24.12 0 0 1 0 10 2 2 0 0 1-2 2 68.4 68.4 0 0 1-15 0 2 2 0 0 1-2-2z"/><path d="m10 15 5-3-5-3z"/></svg>
+                                </a>
                             </div>
                         </div>
 
@@ -112,7 +120,7 @@ export default function GuestLayout({ children }) {
                     </div>
 
                     <div className="pt-10 border-t border-gray-800 text-center text-gray-500 text-xs font-medium">
-                        © {new Date().getFullYear()} {global_settings?.platform_name || 'EduCore'}. All rights reserved.
+                        © {new Date().getFullYear()} {global_settings?.platform_name || 'LMS'}. All rights reserved.
                     </div>
                 </div>
             </footer>

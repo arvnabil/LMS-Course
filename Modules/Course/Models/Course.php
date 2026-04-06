@@ -71,4 +71,14 @@ class Course extends Model
     {
         return $this->hasOne(\Modules\Certificate\Models\CertificateTemplate::class);
     }
+
+    /**
+     * Organizations that have access to this course.
+     */
+    public function organizations(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(\Modules\Organization\Models\Organization::class, 'organization_courses')
+            ->withPivot('assigned_at')
+            ->withTimestamps();
+    }
 }

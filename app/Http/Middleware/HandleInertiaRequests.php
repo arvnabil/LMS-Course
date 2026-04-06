@@ -51,6 +51,9 @@ class HandleInertiaRequests extends Middleware
                 'error' => $request->session()->get('error'),
             ],
             'global_settings' => Setting::all()->pluck('value', 'key')->toArray(),
+            'user_organization' => $request->user()
+                ? app(\Modules\Organization\Services\OrganizationService::class)->getUserOrganizationInfo($request->user())
+                : null,
         ];
     }
 }

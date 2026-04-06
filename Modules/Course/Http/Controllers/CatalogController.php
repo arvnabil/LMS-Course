@@ -41,6 +41,19 @@ class CatalogController extends Controller
         $courses = $query->latest()->paginate(12)->withQueryString();
         $categories = Category::all(['id', 'name', 'slug']);
 
+        // Inject organization pricing data for authenticated users
+        if (auth()->check()) {
+            $orgService = app(\Modules\Organization\Services\OrganizationService::class);
+            $user = auth()->user();
+            $courses->getCollection()->transform(function ($course) use ($user, $orgService) {
+                $pricing = $orgService->getEffectivePrice($user, $course);
+                $course->effective_price = $pricing['final_price'];
+                $course->is_org_sponsored = $pricing['is_org_sponsored'];
+                $course->org_name = $pricing['org_name'];
+                return $course;
+            });
+        }
+
         $isDashboard = $request->route()->named('student.*');
 
         return Inertia::render('Catalog', [
@@ -64,18 +77,24 @@ class CatalogController extends Controller
 
         $isEnrolled = false;
         $enrollment = null;
+        $orgPricing = null;
         if (auth()->check()) {
             $enrollment = Enrollment::where('student_id', auth()->id())
                 ->where('course_id', $course->id)
                 ->with(['lessonProgress', 'quizAttempts', 'submissions'])
                 ->first();
             $isEnrolled = (bool)$enrollment;
+
+            // Get organization pricing
+            $orgService = app(\Modules\Organization\Services\OrganizationService::class);
+            $orgPricing = $orgService->getEffectivePrice(auth()->user(), $course);
         }
 
         return Inertia::render('CourseDetail', [
             'course' => $course,
             'isEnrolled' => $isEnrolled,
             'enrollment' => $enrollment,
+            'orgPricing' => $orgPricing,
             'isDashboard' => $isDashboard,
             'basePath' => $isDashboard ? route('student.catalog.dashboard') : route('catalog.public'),
             'detailRouteName' => $isDashboard ? 'student.courses.dashboard.show' : 'courses.public.show',

@@ -3,7 +3,7 @@ import { Head, Link, usePage } from '@inertiajs/react';
 
 export default function Home({ auth }) {
     const { global_settings } = usePage().props;
-    const platformName = global_settings?.platform_name || 'EduCore';
+    const platformName = global_settings?.platform_name || 'LMS';
 
     return (
         <GuestLayout>

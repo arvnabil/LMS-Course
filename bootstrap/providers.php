@@ -8,4 +8,5 @@ return [
     Modules\Certificate\CertificateServiceProvider::class,
     Modules\Notification\NotificationServiceProvider::class,
     Modules\Settings\SettingsServiceProvider::class,
+    Modules\Organization\OrganizationServiceProvider::class,
 ];

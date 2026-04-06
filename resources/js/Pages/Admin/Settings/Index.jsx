@@ -10,7 +10,7 @@ export default function SettingsIndex({ auth, settings }) {
     const { data, setData, post, processing, errors } = useForm({
         primary_color: settings.primary_color || global_settings.primary_color || '#ef3f09',
         sidebar_active_color: settings.sidebar_active_color || global_settings.sidebar_active_color || '#276874',
-        platform_name: settings.platform_name || global_settings.platform_name || 'EduCore',
+        platform_name: settings.platform_name || global_settings.platform_name || 'LMS',
         platform_logo: null, // Files are null initially
     });
 
@@ -80,7 +80,7 @@ export default function SettingsIndex({ auth, settings }) {
                                                 value={data.platform_name}
                                                 onChange={e => setData('platform_name', e.target.value)}
                                                 className="w-full bg-muted border-none rounded-2xl px-6 py-4 text-sm font-bold focus:ring-4 focus:ring-primary/10 transition-all"
-                                                placeholder="e.g. EduCore"
+                                                placeholder="Enter Brand Name"
                                             />
                                             <InputError message={errors.platform_name} />
                                         </div>

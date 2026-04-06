@@ -129,6 +129,7 @@ const menuConfig = [
             { label: 'Users', icon: 'users', href: '/dashboard/admin/users', routeName: 'admin.users.*', roles: ['admin'] },
             { label: 'Roles & Perms', icon: 'shield', href: '/dashboard/admin/roles', routeName: 'admin.roles.*', roles: ['admin'] },
             { label: 'Transactions', icon: 'credit-card', href: '/dashboard/admin/transactions', routeName: 'admin.transactions.*', roles: ['admin'] },
+            { label: 'Organizations', icon: 'briefcase', href: '/dashboard/admin/organizations', routeName: 'admin.organizations.*', roles: ['admin'] },
 
             { label: 'Setting', icon: 'settings', href: '/dashboard/admin/settings', routeName: 'admin.settings.*', roles: ['admin'] },
         ],
@@ -242,7 +243,7 @@ export default function DashboardLayout({ header, children }) {
                                 )}
                             </div>
                             <span className="text-foreground text-xl font-extrabold tracking-tight">
-                                {global_settings?.platform_name || 'EduCore'}
+                                {global_settings?.platform_name || 'LMS'}
                             </span>
                         </Link>
                         <button onClick={toggleSidebar} className="lg:hidden p-2 hover:bg-gray-200 rounded-lg">

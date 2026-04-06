@@ -43,7 +43,7 @@ class DatabaseSeeder extends Seeder
 
         $adminTest = User::create([
             'full_name' => 'Admin Test',
-            'email' => 'admin@educore.com',
+            'email' => 'admin@example.test',
             'password' => Hash::make('password'),
             'role' => 'admin',
             'email_verified_at' => now(),
@@ -53,7 +53,7 @@ class DatabaseSeeder extends Seeder
         // 2. Create Mentors
         $mentor = User::create([
             'full_name' => 'Professional Mentor',
-            'email' => 'mentor@educore.com',
+            'email' => 'mentor@example.test',
             'password' => Hash::make('password'),
             'role' => 'mentor',
             'email_verified_at' => now(),
@@ -63,7 +63,7 @@ class DatabaseSeeder extends Seeder
         // 3. Create Students
         $student = User::create([
             'full_name' => 'Active Student',
-            'email' => 'student@educore.com',
+            'email' => 'student@example.test',
             'password' => Hash::make('password'),
             'role' => 'student',
             'email_verified_at' => now(),

@@ -33,7 +33,7 @@ export default function Checkout({ snapToken, course, transaction, midtransClien
             onSuccess: function (result) {
                 // Payment was successful (transaction success)
                 // Midtrans Webhook will auto-enroll, we just redirect user
-                router.get(route('payment.callback'), { status: 'success' });
+                router.get(route('payment.callback', { status: 'success', course_slug: course.slug }));
             },
             onPending: function (result) {
                 // Waiting your payment

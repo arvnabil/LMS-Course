@@ -25,6 +25,8 @@ Route::middleware('web')->group(function () {
         // Student routes
         Route::group(['prefix' => 'dashboard', 'as' => 'student.'], function () {
             Route::get('/courses', [CourseController::class, 'index'])->name('courses.index');
+            Route::get('/courses/{course:slug}/enrollment-success', [CourseController::class, 'enrollmentSuccess'])->name('enrollment.success');
+            Route::post('/courses/{course:slug}/enrollment-reason', [CourseController::class, 'submitEnrollmentReason'])->name('enrollment.reason');
             Route::get('/courses/{course:slug}/learn/{lesson?}', [CourseController::class, 'learn'])->name('learn');
             Route::get('/courses/{course:slug}/completed', [CourseController::class, 'completed'])->name('courses.completed');
             Route::post('/lessons/{lesson}/complete', [CourseController::class, 'completeLesson'])->name('lessons.complete');

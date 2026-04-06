@@ -134,4 +134,14 @@ class User extends Authenticatable
     }
 
 
+    /**
+     * Organizations this user belongs to.
+     */
+    public function organizations(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(\Modules\Organization\Models\Organization::class, 'organization_members')
+            ->withPivot('role', 'joined_at')
+            ->withTimestamps();
+    }
+
 }

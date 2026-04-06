@@ -27,7 +27,7 @@ export default function Register() {
                     <div className="bg-white rounded-[40px] p-8 sm:p-12 shadow-2xl shadow-primary/5 border border-gray-100">
                         <div className="text-center mb-10 space-y-4">
                             <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Create Your Account</h1>
-                            <p className="text-gray-500 font-medium">Join {global_settings?.platform_name || 'EduCore'} and start your learning journey.</p>
+                            <p className="text-gray-500 font-medium">Join {global_settings?.platform_name || 'LMS'} and start your learning journey.</p>
                         </div>
 
                         <form onSubmit={submit} className="space-y-6">
