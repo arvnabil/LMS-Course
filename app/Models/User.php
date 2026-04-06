@@ -76,6 +76,29 @@ class User extends Authenticatable
     }
 
 
+    /**
+     * Boot the model and register events.
+     * Automatically deletes old avatar file from storage when avatar is updated.
+     */
+    protected static function booted(): void
+    {
+        static::updating(function (User $user) {
+            if ($user->isDirty('avatar') && $user->getOriginal('avatar')) {
+                $oldAvatar = $user->getOriginal('avatar');
+                if (\Illuminate\Support\Facades\Storage::disk('public')->exists($oldAvatar)) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($oldAvatar);
+                }
+            }
+        });
+
+        static::deleting(function (User $user) {
+            if ($user->avatar) {
+                if (\Illuminate\Support\Facades\Storage::disk('public')->exists($user->avatar)) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($user->avatar);
+                }
+            }
+        });
+    }
 
     /**
      * Accessor for 'name' attribute for Breeze compatibility.
@@ -83,6 +106,18 @@ class User extends Authenticatable
     public function getNameAttribute(): string
     {
         return $this->full_name;
+    }
+
+    /**
+     * Accessor for avatar URL — returns full public URL or null.
+     */
+    public function getAvatarUrlAttribute(): ?string
+    {
+        if (!$this->avatar) {
+            return null;
+        }
+
+        return \Illuminate\Support\Facades\Storage::disk('public')->url($this->avatar);
     }
 
     /**

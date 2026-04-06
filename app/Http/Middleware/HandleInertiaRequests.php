@@ -33,7 +33,10 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $request->user() ? array_merge(
+                    $request->user()->toArray(),
+                    ['avatar_url' => $request->user()->avatar_url]
+                ) : null,
             ],
             'notifications' => $request->user() ? \Modules\Notification\Models\Notification::where('user_id', $request->user()->id)->latest()->take(10)->get()->map(function($n) {
                 return [

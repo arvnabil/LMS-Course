@@ -432,8 +432,8 @@ export default function DashboardLayout({ header, children }) {
                                             className="flex items-center gap-2 hover:bg-gray-50 pr-2 pl-1 py-1 rounded-full transition-all"
                                         >
                                             <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden border border-gray-200">
-                                                {user.avatar ? (
-                                                    <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                                                {user.avatar_url ? (
+                                                    <img src={user.avatar_url} alt={user.full_name || user.name} className="w-full h-full object-cover" />
                                                 ) : (
                                                     <Icon name="user" className="text-gray-500" />
                                                 )}
