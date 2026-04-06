@@ -42,6 +42,10 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
     const [isQuizPlaying, setIsQuizPlaying] = useState(false);
     const [resumeTime, setResumeTime] = useState(0);
     const [showResumeModal, setShowResumeModal] = useState(false);
+    const [volume, setVolume] = useState(100);
+    const [isMuted, setIsMuted] = useState(false);
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    const videoContainerRef = useRef(null);
 
     const completedLessons = enrollment.lesson_progress?.map(lp => lp.lesson_id) || [];
     const completedQuizzes = enrollment.quiz_attempts?.filter(a => a.is_passed).map(a => a.quiz_id) || [];
@@ -261,6 +265,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                     playsinline: 1,
                     showinfo: 0,
                     autohide: 1,
+                    iv_load_policy: 3,
                 },
                 events: {
                     onStateChange: (event) => onPlayerStateChange(event, isAlreadyCompleted),
@@ -298,9 +303,14 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
         };
     }, [currentLesson?.id, videoId]);
 
-    const onPlayerReady = useCallback(() => {
-        // Player is ready
-    }, []);
+    const onPlayerReady = useCallback((event) => {
+        // Sync volume and mute state
+        if (event.target) {
+            event.target.setVolume(volume);
+            if (isMuted) event.target.mute();
+            else event.target.unMute();
+        }
+    }, [volume, isMuted]);
 
     const onPlayerStateChange = useCallback((event) => {
         if (!playerRef.current) return;
@@ -379,6 +389,55 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
         }
     };
 
+    const toggleMute = () => {
+        if (!playerRef.current) return;
+        if (isMuted) {
+            playerRef.current.unMute();
+            setIsMuted(false);
+        } else {
+            playerRef.current.mute();
+            setIsMuted(true);
+        }
+    };
+
+    const handleVolumeChange = (newVolume) => {
+        const vol = parseInt(newVolume);
+        setVolume(vol);
+        if (playerRef.current) {
+            playerRef.current.setVolume(vol);
+            if (vol > 0 && isMuted) {
+                playerRef.current.unMute();
+                setIsMuted(false);
+            } else if (vol === 0 && !isMuted) {
+                playerRef.current.mute();
+                setIsMuted(true);
+            }
+        }
+    };
+
+    const toggleFullscreen = () => {
+        if (!videoContainerRef.current) return;
+
+        if (!document.fullscreenElement) {
+            videoContainerRef.current.requestFullscreen().catch(err => {
+                setToast({ message: `Error attempting to enable full-screen mode: ${err.message}`, type: 'error' });
+            });
+            setIsFullscreen(true);
+        } else {
+            document.exitFullscreen();
+            setIsFullscreen(false);
+        }
+    };
+
+    // Listen for fullscreen changes (e.g. Esc key)
+    useEffect(() => {
+        const handleFsChange = () => {
+            setIsFullscreen(!!document.fullscreenElement);
+        };
+        document.addEventListener('fullscreenchange', handleFsChange);
+        return () => document.removeEventListener('fullscreenchange', handleFsChange);
+    }, []);
+
     const formatTime = (seconds) => {
         const h = Math.floor(seconds / 3600);
         const m = Math.floor((seconds % 3600) / 60);
@@ -435,23 +494,24 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                             </svg>
                         </button>
                         <Link href={route('dashboard')} className="text-gray-400 hover:text-foreground text-xs font-bold uppercase tracking-widest transition-colors">
-                            ← Dashboard
+                            <span className="sm:inline hidden">← Dashboard</span>
+                            <span className="sm:hidden font-extrabold text-lg">←</span>
                         </Link>
-                        <span className="text-gray-300">|</span>
-                        <h1 className="text-sm font-bold text-foreground truncate max-w-xs lg:max-w-md">{course.title}</h1>
+                        <span className="text-gray-300 sm:inline hidden">|</span>
+                        <h1 className="text-sm font-bold text-foreground truncate max-w-[120px] sm:max-w-xs lg:max-w-md hidden sm:block">{course.title}</h1>
                     </div>
                     <div className="flex items-center gap-3">
                         {/* Watch Progress Indicator for video */}
                         {currentLesson?.type === 'video' && !isAlreadyCompleted && (
                             <div className="flex items-center gap-2">
-                                <div className="w-24 bg-gray-200 h-1.5 rounded-full overflow-hidden">
+                                <div className="w-16 sm:w-24 bg-gray-200 h-1.5 rounded-full overflow-hidden hidden sm:block">
                                     <div 
                                         className={`h-full rounded-full transition-all duration-500 ${videoWatched ? 'bg-emerald-400' : 'bg-primary'}`} 
                                         style={{ width: `${watchProgress}%` }}
                                     ></div>
                                 </div>
-                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                                    {videoWatched ? '✓ Watched' : `${watchProgress}%`}
+                                <span className="text-[10px] font-bold text-primary sm:text-gray-400 uppercase tracking-wider">
+                                    {videoWatched ? '✓ Done' : `${watchProgress}%`}
                                 </span>
                             </div>
                         )}
@@ -491,10 +551,18 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                     </button>
                 )}
 
-                <div className="flex flex-1 overflow-hidden">
+                <div className="flex flex-1 overflow-hidden relative">
+                    {/* Background Backdrop for Mobile Sidebar */}
+                    {sidebarOpen && (
+                        <div 
+                            className="fixed inset-0 bg-black/50 z-30 lg:hidden transition-opacity duration-300" 
+                            onClick={() => setSidebarOpen(false)}
+                        ></div>
+                    )}
+
                     {/* Sidebar */}
-                    <aside className={`bg-surface border-r border-border flex-shrink-0 flex flex-col transition-all duration-500 ease-out overflow-hidden ${sidebarOpen ? 'w-80' : 'w-0'}`}>
-                        <div className="w-80 min-w-[320px] flex flex-col h-full">
+                    <aside className={`bg-surface border-r border-border flex-shrink-0 flex flex-col transition-all duration-500 ease-out overflow-hidden z-40 h-full lg:relative absolute ${sidebarOpen ? 'w-[280px] sm:w-80 translate-x-0' : 'w-0 -translate-x-full lg:translate-x-0'}`}>
+                        <div className="w-[280px] sm:w-80 flex flex-col h-full">
                             {/* Course Info */}
                             <div className="px-6 py-6 border-b border-border space-y-4">
                                 <h2 className="text-base font-extrabold text-foreground leading-tight truncate">{course.title}</h2>
@@ -538,11 +606,16 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
 
                                                 if (isLocked) {
                                                     return (
-                                                        <div key={`${item.itemType}-${item.id}`} className="w-full text-left px-3 py-3 rounded-2xl flex items-center gap-3 opacity-50 cursor-not-allowed">
-                                                            <div className="w-5 h-5 rounded-md bg-muted flex items-center justify-center shrink-0">
-                                                                <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                                                        <div 
+                                                            key={`${item.itemType}-${item.id}`} 
+                                                            className="w-full text-left px-4 py-3 rounded-2xl flex items-center gap-4 bg-muted/20 opacity-60 transition-all border border-transparent"
+                                                        >
+                                                            <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center shrink-0 border border-border/50">
+                                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                                                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                                                </svg>
                                                             </div>
-                                                            <span className="text-xs font-bold text-foreground/60 truncate">{item.title}</span>
+                                                            <span className="text-xs font-bold text-gray-500 truncate">{item.title}</span>
                                                         </div>
                                                     );
                                                 }
@@ -557,33 +630,45 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                                                 router.get(route('student.learn', [course.slug]), { quiz_id: item.id });
                                                             }
                                                         }}
-                                                        className={`w-full text-left dark:text-white px-3 py-3 rounded-2xl flex items-center gap-3 transition-all group ${
+                                                        className={`w-full text-left px-4 py-3 rounded-2xl flex items-center gap-4 transition-all duration-300 group border ${
                                                             isActive 
-                                                                ? 'bg-sidebar-active text-white dark:text-primary shadow-lg shadow-black/5' 
-                                                                : 'hover:bg-muted'
+                                                                ? 'bg-primary text-white shadow-lg shadow-primary/20 border-primary' 
+                                                                : 'bg-transparent border-transparent hover:bg-muted hover:border-border/50'
                                                         }`}
                                                     >
-                                                        <div className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 transition-colors ${
-                                                            isCompleted ? 'bg-success' : (isActive ? 'bg-white/20' : 'bg-muted')
+                                                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 ${
+                                                            isCompleted 
+                                                                ? (isActive ? 'bg-white/20' : 'bg-emerald-500/10') 
+                                                                : (isActive ? 'bg-white/20' : 'bg-muted')
                                                         }`}>
                                                             {isCompleted ? (
-                                                                <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>
+                                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" className={isActive ? 'text-white' : 'text-emerald-500'}>
+                                                                    <polyline points="20 6 9 17 4 12"/>
+                                                                </svg>
                                                             ) : (
-                                                                <span className={`text-[8px] ${isActive ? 'text-white' : 'text-gray-500'}`}>
-                                                                    {isLesson ? (item.type === 'video' ? '▶' : '📄') : '📝'}
-                                                                </span>
+                                                                <div className={isActive ? 'text-white' : 'text-gray-500'}>
+                                                                    {isLesson ? (
+                                                                        item.type === 'video' ? (
+                                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                                                                        ) : (
+                                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                                                        )
+                                                                    ) : (
+                                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                                                                    )}
+                                                                </div>
                                                             )}
                                                         </div>
-                                                        <span className={`text-xs font-bold truncate ${isActive ? 'text-white' : 'text-foreground group-hover:text-primary'}`}>
+                                                        <span className={`text-[13px] font-bold truncate transition-colors ${isActive ? 'text-white' : 'text-foreground/80 group-hover:text-foreground'}`}>
                                                             {item.title}
                                                         </span>
                                                         {!isLesson && (
-                                                            <span className={`ml-auto text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border transition-colors ${
+                                                            <span className={`ml-auto text-[8px] font-black uppercase tracking-[0.1em] px-2 py-1 rounded-lg border transition-all ${
                                                                 isActive 
-                                                                    ? 'bg-white/20 text-white border-white/20'
-                                                                    : (theme === 'dark' ? 'bg-white/10 text-white border-white/10' : 'bg-primary/10 text-primary border-primary/10')
+                                                                    ? 'bg-white/10 text-white border-white/20 backdrop-blur-sm'
+                                                                    : (theme === 'dark' ? 'bg-white/5 text-white/50 border-white/10' : 'bg-primary/10 text-primary border-primary/20')
                                                             }`}>
-                                                                {item.type === 'submission' ? 'Assignment' : 'Quiz'}
+                                                                {item.type === 'submission' ? 'Assign' : 'Quiz'}
                                                             </span>
                                                         )}
                                                     </Link>
@@ -688,15 +773,15 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                         )}
                         {/* Video Player Area */}
                         {!currentLesson?.is_quiz && currentLesson?.type === 'video' && (
-                            <div className="w-full bg-black flex items-center justify-center relative group">
+                            <div ref={videoContainerRef} className="w-full bg-black flex items-center justify-center relative group">
                                 {videoId ? (
                                     <div className="w-full aspect-video relative">
                                         <div id="yt-player" className="w-full h-full"></div>
                                         
-                                        {/* Click to Toggle Play/Pause */}
                                         <div 
                                             className="absolute inset-0 z-0 cursor-pointer"
                                             onClick={togglePlay}
+                                            onDoubleClick={toggleFullscreen}
                                         ></div>
 
                                         {/* Custom Thumbnail & Play Button Overlay */}
@@ -761,9 +846,40 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                                 </div>
                                                 
                                                 <div className="flex items-center gap-4">
-                                                    <div className={`px-3 py-1 bg-white/10 rounded-full text-[8px] font-extrabold text-white uppercase tracking-widest border border-white/10 ${isAlreadyCompleted ? 'opacity-50' : ''}`}>
+                                                    {/* Volume Control */}
+                                                    <div className="flex items-center gap-2 group/volume relative">
+                                                        <button onClick={toggleMute} className="text-white hover:text-primary transition-colors cursor-pointer">
+                                                            {isMuted || volume === 0 ? (
+                                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+                                                            ) : volume < 50 ? (
+                                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                                                            ) : (
+                                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                                                            )}
+                                                        </button>
+                                                        <div className="w-0 group-hover/volume:w-20 overflow-hidden transition-all duration-300 flex items-center">
+                                                            <input 
+                                                                type="range" 
+                                                                min="0" 
+                                                                max="100" 
+                                                                value={volume} 
+                                                                onChange={(e) => handleVolumeChange(e.target.value)}
+                                                                className="w-16 h-1 bg-white/20 rounded-full appearance-none cursor-pointer accent-primary"
+                                                            />
+                                                        </div>
+                                                    </div>
+
+                                                    <div className={`px-3 py-1 bg-white/10 rounded-full text-[8px] font-extrabold text-white uppercase tracking-widest border border-white/10 hidden sm:block ${isAlreadyCompleted ? 'opacity-50' : ''}`}>
                                                         {isAlreadyCompleted ? 'Seek Protection Disabled' : 'Seek Protection Enabled'}
                                                     </div>
+
+                                                    <button onClick={toggleFullscreen} className="text-white hover:text-primary transition-colors cursor-pointer">
+                                                        {isFullscreen ? (
+                                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>
+                                                        ) : (
+                                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+                                                        )}
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
@@ -790,29 +906,29 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
 
                         {/* Content Area Below Video */}
                         {!currentLesson?.is_quiz && (
-                            <div className="flex-1 bg-muted p-6 sm:p-10 lg:p-14 flex flex-col">
+                            <div className="flex-1 bg-muted p-4 sm:p-10 lg:p-14 flex flex-col overflow-y-auto">
                                 <div className="max-w-4xl mx-auto w-full flex-1 flex flex-col">
                                     {/* Lesson Title & Content */}
                                     <div className="space-y-4 flex-1 mb-8">
-                                        <h1 className="text-2xl lg:text-3xl font-extrabold text-foreground tracking-tight">{currentLesson?.title || 'Welcome to the Course'}</h1>
+                                        <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-foreground tracking-tight">{currentLesson?.title || 'Welcome to the Course'}</h1>
                                         <div className="prose prose-invert prose-sm max-w-none text-gray-500 font-medium leading-relaxed">
                                             {currentLesson?.content || 'Please select a lesson from the sidebar to begin learning.'}
                                         </div>
                                     </div>
 
                                     {/* Navigation Footer for Lessons */}
-                                    <div className="pt-8 border-t border-gray-100 flex items-center justify-between gap-4 mt-auto">
+                                    <div className="pt-8 border-t border-gray-100 flex items-center justify-between gap-3 mt-auto">
                                         <button 
                                             onClick={goToPrevious}
                                             disabled={!prevLesson}
-                                            className="px-6 py-3 rounded-2xl border border-gray-200 bg-gray-100 text-gray-400 font-bold text-xs uppercase tracking-widest hover:border-gray-200 hover:text-foreground/70 transition-all disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer"
+                                            className="grow sm:grow-0 px-4 sm:px-6 py-3 rounded-2xl border border-gray-200 bg-gray-100 text-gray-400 font-bold text-[10px] sm:text-xs uppercase tracking-widest hover:border-gray-200 hover:text-foreground/70 transition-all disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer"
                                         >
-                                            ← Previous
+                                            ← Prev
                                         </button>
                                         <button 
                                             onClick={markAsComplete}
                                             disabled={currentLesson?.type === 'video' && !isAlreadyCompleted && !videoWatched}
-                                            className={`px-8 py-3 rounded-2xl font-bold text-xs uppercase tracking-widest transition-all cursor-pointer ${
+                                            className={`grow sm:grow-0 px-6 sm:px-8 py-3 rounded-2xl font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-all cursor-pointer ${
                                                 currentLesson?.type === 'video' && !isAlreadyCompleted && !videoWatched
                                                     ? 'bg-gray-100 text-gray-300 border border-gray-100 cursor-not-allowed'
                                                     : 'bg-primary text-white shadow-xl shadow-primary/20 hover:bg-primary-hover hover:scale-[1.02] active:scale-95'
