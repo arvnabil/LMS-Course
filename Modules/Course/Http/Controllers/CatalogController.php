@@ -62,7 +62,7 @@ class CatalogController extends Controller
             'filters' => $request->only(['search', 'category', 'levels']),
             'isDashboard' => $isDashboard,
             'basePath' => $isDashboard ? route('student.catalog.dashboard') : route('catalog.public'),
-            'detailRouteName' => $isDashboard ? 'student.courses.dashboard.show' : 'courses.public.show',
+            'detailRouteName' => $isDashboard ? 'student.catalog.show' : 'courses.public.show',
         ]);
     }
 
@@ -97,7 +97,7 @@ class CatalogController extends Controller
             'orgPricing' => $orgPricing,
             'isDashboard' => $isDashboard,
             'basePath' => $isDashboard ? route('student.catalog.dashboard') : route('catalog.public'),
-            'detailRouteName' => $isDashboard ? 'student.courses.dashboard.show' : 'courses.public.show',
+            'detailRouteName' => $isDashboard ? 'student.catalog.show' : 'courses.public.show',
         ]);
     }
 }

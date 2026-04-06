@@ -35,8 +35,8 @@ Route::middleware('web')->group(function () {
             Route::post('/quizzes/{quiz}/submit', [CourseController::class, 'submitQuiz'])->name('quizzes.submit');
 
             Route::get('/catalog', [CatalogController::class, 'index'])->name('catalog.dashboard');
-            Route::get('/catalog/{course:slug}', [CatalogController::class, 'show'])->name('courses.dashboard.show');
-            Route::get('/courses/{course:slug}/enroll', [CatalogController::class, 'show'])->name('courses.enroll');
+            Route::get('/catalog/{course:slug}', [CatalogController::class, 'show'])->name('catalog.show');
+            Route::get('/courses/{course:slug}/enroll', [CatalogController::class, 'show'])->name('catalog.enroll');
         });
 
         // Mentor routes
