@@ -65,4 +65,35 @@ class UserManagementController extends Controller
         $status = $user->is_banned ? 'banned' : 'unbanned';
         return back()->with('success', "User has been {$status}.");
     }
+
+    public function destroy(User $user)
+    {
+        if ($user->id === auth()->id()) {
+            return back()->with('error', 'You cannot delete yourself.');
+        }
+
+        $user->delete();
+
+        return back()->with('success', 'User deleted successfully.');
+    }
+
+    public function bulkDestroy(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:users,id',
+        ]);
+
+        $ids = array_filter($request->ids, function ($id) {
+            return $id != auth()->id();
+        });
+
+        if (count($ids) === 0) {
+            return back()->with('error', 'Cannot delete the selected users.');
+        }
+
+        User::whereIn('id', $ids)->delete();
+
+        return back()->with('success', count($ids) . ' users deleted successfully.');
+    }
 }

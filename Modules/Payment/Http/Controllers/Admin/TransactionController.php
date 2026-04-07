@@ -49,4 +49,32 @@ class TransactionController extends Controller
             'filters' => $request->only(['status', 'date_from', 'date_to', 'search']),
         ]);
     }
+    public function destroy(Transaction $transaction)
+    {
+        if ($transaction->status !== 'pending') {
+            return back()->with('error', 'Only pending transactions can be deleted.');
+        }
+
+        $transaction->delete();
+
+        return back()->with('success', 'Transaction deleted successfully.');
+    }
+
+    public function bulkDestroy(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:transactions,id',
+        ]);
+
+        $deletedCount = Transaction::whereIn('id', $request->ids)
+            ->where('status', 'pending')
+            ->delete();
+
+        if ($deletedCount === 0) {
+            return back()->with('error', 'No pending transactions found to delete.');
+        }
+
+        return back()->with('success', "{$deletedCount} pending transactions deleted successfully.");
+    }
 }

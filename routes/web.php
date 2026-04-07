@@ -51,11 +51,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // User Management
         Route::get('/users', [\App\Http\Controllers\Admin\UserManagementController::class, 'index'])->name('users.index');
         Route::patch('/users/{user}/role', [\App\Http\Controllers\Admin\UserManagementController::class, 'updateRole'])->name('users.updateRole');
+        Route::patch('/users/{user}/toggle-ban', [\App\Http\Controllers\Admin\UserManagementController::class, 'toggleBan'])->name('users.toggleBan');
+        Route::delete('/users/bulk', [\App\Http\Controllers\Admin\UserManagementController::class, 'bulkDestroy'])->name('users.bulkDestroy');
+        Route::delete('/users/{user}', [\App\Http\Controllers\Admin\UserManagementController::class, 'destroy'])->name('users.destroy');
 
         // Role Management (Spatie)
         Route::get('/roles', [\App\Http\Controllers\Admin\RoleController::class, 'index'])->name('roles.index');
         Route::post('/roles', [\App\Http\Controllers\Admin\RoleController::class, 'store'])->name('roles.store');
         Route::put('/roles/{role}', [\App\Http\Controllers\Admin\RoleController::class, 'update'])->name('roles.update');
+        Route::delete('/roles/bulk', [\App\Http\Controllers\Admin\RoleController::class, 'bulkDestroy'])->name('roles.bulkDestroy');
         Route::delete('/roles/{role}', [\App\Http\Controllers\Admin\RoleController::class, 'destroy'])->name('roles.destroy');
     });
 });

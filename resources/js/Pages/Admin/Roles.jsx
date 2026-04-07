@@ -6,6 +6,38 @@ export default function Roles({ roles, permissions }) {
     const [showModal, setShowModal] = useState(false);
     const [editingRole, setEditingRole] = useState(null);
 
+    // Bulk Actions State
+    const [selectedIds, setSelectedIds] = useState([]);
+
+    const deletableRoles = roles.filter(r => !['admin', 'mentor', 'student', 'org_admin'].includes(r.name));
+
+    const toggleSelectAll = (e) => {
+        if (e.target.checked) {
+            setSelectedIds(deletableRoles.map(r => r.id));
+        } else {
+            setSelectedIds([]);
+        }
+    };
+
+    const toggleSelect = (id) => {
+        if (selectedIds.includes(id)) {
+            setSelectedIds(selectedIds.filter(itemId => itemId !== id));
+        } else {
+            setSelectedIds([...selectedIds, id]);
+        }
+    };
+
+    const deleteSelected = () => {
+        if (confirm(`Are you sure you want to delete ${selectedIds.length} roles?`)) {
+            router.post(route('admin.roles.bulkDestroy'), {
+                _method: 'delete',
+                ids: selectedIds
+            }, {
+                onSuccess: () => setSelectedIds([])
+            });
+        }
+    };
+
     const form = useForm({
         name: '',
         permissions: []
@@ -66,19 +98,55 @@ export default function Roles({ roles, permissions }) {
                     </button>
                 </div>
 
+                {/* Bulk Actions */}
+                {selectedIds.length > 0 && (
+                    <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4 flex items-center justify-between shadow-sm">
+                        <span className="text-sm font-semibold text-primary">{selectedIds.length} roles selected</span>
+                        <div className="flex gap-2">
+                            <button onClick={() => setSelectedIds([])} className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-xl transition-colors">
+                                Cancel
+                            </button>
+                            <button onClick={deleteSelected} className="px-4 py-2 bg-red-600 text-white rounded-xl text-sm font-semibold hover:bg-red-700 transition-colors">
+                                Delete Selected
+                            </button>
+                        </div>
+                    </div>
+                )}
+
                 {/* Table */}
                 <div className="bg-surface rounded-2xl border border-border overflow-hidden shadow-sm">
                     <table className="w-full">
                         <thead>
                             <tr className="border-b border-border bg-muted/50">
+                                <th className="px-6 py-4 w-12">
+                                    <input 
+                                        type="checkbox" 
+                                        className="rounded border-gray-300 text-primary focus:ring-primary w-4 h-4 cursor-pointer"
+                                        checked={deletableRoles.length > 0 && selectedIds.length === deletableRoles.length}
+                                        onChange={toggleSelectAll}
+                                        disabled={deletableRoles.length === 0}
+                                    />
+                                </th>
                                 <th className="text-left px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Role Name</th>
                                 <th className="text-left px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Permissions Count</th>
                                 <th className="text-left px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider w-32">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {roles.map(role => (
-                                <tr key={role.id} className="border-b border-border hover:bg-primary/10 transition-colors">
+                            {roles.map(role => {
+                                const isDeletable = !['admin', 'mentor', 'student', 'org_admin'].includes(role.name);
+                                return (
+                                <tr key={role.id} className={`border-b border-border hover:bg-primary/10 transition-colors ${selectedIds.includes(role.id) ? 'bg-primary/5' : ''}`}>
+                                    <td className="px-6 py-4">
+                                        {isDeletable && (
+                                            <input 
+                                                type="checkbox" 
+                                                className="rounded border-gray-300 text-primary focus:ring-primary w-4 h-4 cursor-pointer"
+                                                checked={selectedIds.includes(role.id)}
+                                                onChange={() => toggleSelect(role.id)}
+                                            />
+                                        )}
+                                    </td>
                                     <td className="px-6 py-4">
                                         <div className="inline-flex px-3 py-1 bg-muted border border-border rounded-full text-sm font-bold text-foreground">
                                             {role.name}
@@ -96,7 +164,8 @@ export default function Roles({ roles, permissions }) {
                                         </div>
                                     </td>
                                 </tr>
-                            ))}
+                                );
+                            })}
                             {roles.length === 0 && (
                                 <tr><td colSpan="3" className="px-6 py-12 text-center text-gray-400">No roles found.</td></tr>
                             )}

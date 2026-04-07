@@ -6,6 +6,36 @@ export default function Categories({ categories }) {
     const [showModal, setShowModal] = useState(false);
     const [editingCategory, setEditingCategory] = useState(null);
 
+    // Bulk Actions State
+    const [selectedIds, setSelectedIds] = useState([]);
+
+    const toggleSelectAll = (e) => {
+        if (e.target.checked) {
+            setSelectedIds(categories.map(c => c.id));
+        } else {
+            setSelectedIds([]);
+        }
+    };
+
+    const toggleSelect = (id) => {
+        if (selectedIds.includes(id)) {
+            setSelectedIds(selectedIds.filter(itemId => itemId !== id));
+        } else {
+            setSelectedIds([...selectedIds, id]);
+        }
+    };
+
+    const deleteSelected = () => {
+        if (confirm(`Are you sure you want to delete ${selectedIds.length} categories?`)) {
+            router.post(route('admin.categories.bulkDestroy'), {
+                _method: 'delete',
+                ids: selectedIds
+            }, {
+                onSuccess: () => setSelectedIds([])
+            });
+        }
+    };
+
     const form = useForm({ name: '', icon: '' });
 
     const openCreate = () => {
@@ -52,12 +82,34 @@ export default function Categories({ categories }) {
                     </button>
                 </div>
 
+                {/* Bulk Actions */}
+                {selectedIds.length > 0 && (
+                    <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4 flex items-center justify-between shadow-sm">
+                        <span className="text-sm font-semibold text-primary">{selectedIds.length} categories selected</span>
+                        <div className="flex gap-2">
+                            <button onClick={() => setSelectedIds([])} className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-xl transition-colors">
+                                Cancel
+                            </button>
+                            <button onClick={deleteSelected} className="px-4 py-2 bg-red-600 text-white rounded-xl text-sm font-semibold hover:bg-red-700 transition-colors">
+                                Delete Selected
+                            </button>
+                        </div>
+                    </div>
+                )}
+
                 {/* Table */}
                 <div className="bg-surface rounded-2xl border border-border overflow-hidden shadow-sm">
                     <table className="w-full">
                         <thead>
                             <tr className="border-b border-border bg-muted/50">
-                                <th className="text-left px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">#</th>
+                                <th className="px-6 py-4 w-12">
+                                    <input 
+                                        type="checkbox" 
+                                        className="rounded border-gray-300 text-primary focus:ring-primary w-4 h-4 cursor-pointer"
+                                        checked={categories.length > 0 && selectedIds.length === categories.length}
+                                        onChange={toggleSelectAll}
+                                    />
+                                </th>
                                 <th className="text-left px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Name</th>
                                 <th className="text-left px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Slug</th>
                                 <th className="text-left px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Courses</th>
@@ -66,8 +118,15 @@ export default function Categories({ categories }) {
                         </thead>
                         <tbody>
                             {categories.map((cat, i) => (
-                                <tr key={cat.id} className="border-b border-border hover:bg-primary/10 transition-colors">
-                                    <td className="px-6 py-4 text-sm text-gray-500">{i + 1}</td>
+                                <tr key={cat.id} className={`border-b border-border hover:bg-primary/5 transition-colors ${selectedIds.includes(cat.id) ? 'bg-primary/5' : ''}`}>
+                                    <td className="px-6 py-4">
+                                        <input 
+                                            type="checkbox" 
+                                            className="rounded border-gray-300 text-primary focus:ring-primary w-4 h-4 cursor-pointer"
+                                            checked={selectedIds.includes(cat.id)}
+                                            onChange={() => toggleSelect(cat.id)}
+                                        />
+                                    </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
                                             {cat.icon && <span className="text-lg">{cat.icon}</span>}

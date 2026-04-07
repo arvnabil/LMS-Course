@@ -8,7 +8,7 @@ const roleBadgeColors = {
     student: 'bg-blue-50 text-blue-700',
 };
 
-export default function Users({ users, availableRoles, filters }) {
+export default function Users({ auth, users, availableRoles, filters }) {
     const [search, setSearch] = useState(filters?.search || '');
     const [roleFilter, setRoleFilter] = useState(filters?.role || '');
     
@@ -16,6 +16,36 @@ export default function Users({ users, availableRoles, filters }) {
     const [showRoleModal, setShowRoleModal] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
     const [selectedRoles, setSelectedRoles] = useState([]);
+
+    // Bulk Actions State
+    const [selectedIds, setSelectedIds] = useState([]);
+
+    const toggleSelectAll = (e) => {
+        if (e.target.checked) {
+            setSelectedIds(userData.map(u => u.id));
+        } else {
+            setSelectedIds([]);
+        }
+    };
+
+    const toggleSelect = (id) => {
+        if (selectedIds.includes(id)) {
+            setSelectedIds(selectedIds.filter(itemId => itemId !== id));
+        } else {
+            setSelectedIds([...selectedIds, id]);
+        }
+    };
+
+    const deleteSelected = () => {
+        if (confirm(`Are you sure you want to delete ${selectedIds.length} users?`)) {
+            router.post(route('admin.users.bulkDestroy'), {
+                _method: 'delete',
+                ids: selectedIds
+            }, {
+                onSuccess: () => setSelectedIds([])
+            });
+        }
+    };
 
     const openRoleModal = (user) => {
         setEditingUser(user);
@@ -81,12 +111,34 @@ export default function Users({ users, availableRoles, filters }) {
                     </div>
                 </div>
 
+                {/* Bulk Actions */}
+                {selectedIds.length > 0 && (
+                    <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4 flex items-center justify-between shadow-sm">
+                        <span className="text-sm font-semibold text-primary">{selectedIds.length} users selected</span>
+                        <div className="flex gap-2">
+                            <button onClick={() => setSelectedIds([])} className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-xl transition-colors">
+                                Cancel
+                            </button>
+                            <button onClick={deleteSelected} className="px-4 py-2 bg-red-600 text-white rounded-xl text-sm font-semibold hover:bg-red-700 transition-colors">
+                                Delete Selected
+                            </button>
+                        </div>
+                    </div>
+                )}
+
                 {/* Table */}
-                <div className="bg-surface rounded-2xl border border-border overflow-hidden shadow-sm">
-                    <table className="w-full">
+                <div className="bg-surface rounded-2xl border border-border overflow-hidden shadow-sm overflow-x-auto">
+                    <table className="w-full min-w-[800px]">
                         <thead>
                             <tr className="border-b border-border bg-muted/50">
-                                <th className="text-left px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">#</th>
+                                <th className="px-6 py-4 w-12">
+                                    <input 
+                                        type="checkbox" 
+                                        className="rounded border-gray-300 text-primary focus:ring-primary w-4 h-4 cursor-pointer"
+                                        checked={userData.length > 0 && selectedIds.length === userData.length}
+                                        onChange={toggleSelectAll}
+                                    />
+                                </th>
                                 <th className="text-left px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Name</th>
                                 <th className="text-left px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Email</th>
                                 <th className="text-left px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Role</th>
@@ -96,8 +148,15 @@ export default function Users({ users, availableRoles, filters }) {
                         </thead>
                         <tbody>
                             {userData.map((user, i) => (
-                                <tr key={user.id} className="border-b border-border hover:bg-primary/10 transition-colors">
-                                    <td className="px-6 py-4 text-sm text-gray-500">{(users?.current_page - 1) * users?.per_page + i + 1}</td>
+                                <tr key={user.id} className={`border-b border-border hover:bg-primary/5 transition-colors ${selectedIds.includes(user.id) ? 'bg-primary/5' : ''}`}>
+                                    <td className="px-6 py-4">
+                                        <input 
+                                            type="checkbox" 
+                                            className="rounded border-gray-300 text-primary focus:ring-primary w-4 h-4 cursor-pointer"
+                                            checked={selectedIds.includes(user.id)}
+                                            onChange={() => toggleSelect(user.id)}
+                                        />
+                                    </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
                                             <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500">
@@ -123,13 +182,31 @@ export default function Users({ users, availableRoles, filters }) {
                                     <td className="px-6 py-4 text-sm text-gray-500">
                                         {new Date(user.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
                                     </td>
-                                    <td className="px-6 py-4 text-right">
+                                    <td className="px-6 py-4 text-right flex items-center justify-end gap-2">
                                         <button 
                                             onClick={() => openRoleModal(user)} 
                                             className="px-3 py-1.5 text-xs font-semibold text-primary border border-primary/20 rounded-lg hover:bg-primary hover:text-white transition-colors"
                                         >
                                             Edit Roles
                                         </button>
+                                        {user.id !== auth.user.id && (
+                                            <>
+                                                <button 
+                                                    onClick={() => router.patch(route('admin.users.toggleBan', user.id))}
+                                                    title={user.is_banned ? 'Unban User' : 'Ban User'}
+                                                    className={`p-1.5 rounded-lg border transition-colors ${user.is_banned ? 'border-green-200 text-green-600 hover:bg-green-50' : 'border-yellow-200 text-yellow-600 hover:bg-yellow-50'}`}
+                                                >
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" x2="19.07" y1="4.93" y2="19.07"/></svg>
+                                                </button>
+                                                <button 
+                                                    onClick={() => confirm('Are you sure you want to delete this user?') && router.delete(route('admin.users.destroy', user.id))}
+                                                    title="Delete User"
+                                                    className="p-1.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
+                                                >
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                                                </button>
+                                            </>
+                                        )}
                                     </td>
                                 </tr>
                             ))}

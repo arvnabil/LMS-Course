@@ -61,4 +61,28 @@ class CategoryController extends Controller
 
         return back()->with('success', 'Category deleted successfully.');
     }
+
+    public function bulkDestroy(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:categories,id',
+        ]);
+
+        $categories = Category::whereIn('id', $request->ids)->withCount('courses')->get();
+
+        $deletedCount = 0;
+        foreach ($categories as $category) {
+            if ($category->courses_count === 0) {
+                $category->delete();
+                $deletedCount++;
+            }
+        }
+
+        if ($deletedCount === 0) {
+            return back()->with('error', 'None of the selected categories could be deleted (they all have courses).');
+        }
+
+        return back()->with('success', "{$deletedCount} categories deleted successfully.");
+    }
 }

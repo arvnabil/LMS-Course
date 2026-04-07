@@ -15,6 +15,9 @@ export default function Transactions({ transactions, stats, filters }) {
     const [dateFrom, setDateFrom] = useState(filters?.date_from || '');
     const [dateTo, setDateTo] = useState(filters?.date_to || '');
 
+    // Bulk Actions State
+    const [selectedIds, setSelectedIds] = useState([]);
+
     const applyFilters = () => {
         router.get(route('admin.transactions.index'), {
             search: search || undefined,
@@ -25,6 +28,34 @@ export default function Transactions({ transactions, stats, filters }) {
     };
 
     const txData = transactions?.data || [];
+    const pendingTxIds = txData.filter(tx => tx.status === 'pending').map(tx => tx.id);
+
+    const toggleSelectAll = (e) => {
+        if (e.target.checked) {
+            setSelectedIds(pendingTxIds);
+        } else {
+            setSelectedIds([]);
+        }
+    };
+
+    const toggleSelect = (id) => {
+        if (selectedIds.includes(id)) {
+            setSelectedIds(selectedIds.filter(itemId => itemId !== id));
+        } else {
+            setSelectedIds([...selectedIds, id]);
+        }
+    };
+
+    const deleteSelected = () => {
+        if (confirm(`Are you sure you want to delete ${selectedIds.length} pending transactions?`)) {
+            router.post(route('admin.transactions.bulkDestroy'), {
+                _method: 'delete',
+                ids: selectedIds
+            }, {
+                onSuccess: () => setSelectedIds([])
+            });
+        }
+    };
 
     return (
         <DashboardLayout header={<h1 className="text-xl font-bold text-foreground">Transactions</h1>}>
@@ -80,11 +111,35 @@ export default function Transactions({ transactions, stats, filters }) {
                     </div>
                 </div>
 
+                {/* Bulk Actions */}
+                {selectedIds.length > 0 && (
+                    <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4 flex items-center justify-between shadow-sm">
+                        <span className="text-sm font-semibold text-primary">{selectedIds.length} pending transactions selected</span>
+                        <div className="flex gap-2">
+                            <button onClick={() => setSelectedIds([])} className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-xl transition-colors">
+                                Cancel
+                            </button>
+                            <button onClick={deleteSelected} className="px-4 py-2 bg-red-600 text-white rounded-xl text-sm font-semibold hover:bg-red-700 transition-colors">
+                                Delete Selected
+                            </button>
+                        </div>
+                    </div>
+                )}
+
                 {/* Table */}
-                <div className="bg-surface rounded-2xl border border-border overflow-hidden shadow-sm">
-                    <table className="w-full">
+                <div className="bg-surface rounded-2xl border border-border overflow-hidden shadow-sm overflow-x-auto">
+                    <table className="w-full min-w-[900px]">
                         <thead>
                             <tr className="border-b border-border bg-muted/50">
+                                <th className="px-6 py-4 w-12">
+                                    <input 
+                                        type="checkbox" 
+                                        className="rounded border-gray-300 text-primary focus:ring-primary w-4 h-4 cursor-pointer"
+                                        checked={pendingTxIds.length > 0 && selectedIds.length === pendingTxIds.length}
+                                        onChange={toggleSelectAll}
+                                        disabled={pendingTxIds.length === 0}
+                                    />
+                                </th>
                                 <th className="text-left px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Order ID</th>
                                 <th className="text-left px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Student</th>
                                 <th className="text-left px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Course</th>
@@ -96,7 +151,17 @@ export default function Transactions({ transactions, stats, filters }) {
                         </thead>
                         <tbody>
                             {txData.map(tx => (
-                                <tr key={tx.id} className="border-b border-border hover:bg-primary/10 transition-colors">
+                                <tr key={tx.id} className={`border-b border-border hover:bg-primary/5 transition-colors ${selectedIds.includes(tx.id) ? 'bg-primary/5' : ''}`}>
+                                    <td className="px-6 py-4">
+                                        {tx.status === 'pending' && (
+                                            <input 
+                                                type="checkbox" 
+                                                className="rounded border-gray-300 text-primary focus:ring-primary w-4 h-4 cursor-pointer"
+                                                checked={selectedIds.includes(tx.id)}
+                                                onChange={() => toggleSelect(tx.id)}
+                                            />
+                                        )}
+                                    </td>
                                     <td className="px-6 py-4 text-sm font-bold text-foreground">{tx.order_id}</td>
                                     <td className="px-6 py-4 text-sm text-foreground font-medium">{tx.student?.full_name || '-'}</td>
                                     <td className="px-6 py-4 text-sm text-gray-600">{tx.course?.title || '-'}</td>
@@ -109,6 +174,17 @@ export default function Transactions({ transactions, stats, filters }) {
                                     </td>
                                     <td className="px-6 py-4 text-sm text-gray-500">
                                         {new Date(tx.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                    </td>
+                                    <td className="px-6 py-4 text-right">
+                                        {tx.status === 'pending' && (
+                                            <button 
+                                                onClick={() => confirm('Delete this pending transaction?') && router.delete(route('admin.transactions.destroy', tx.id))}
+                                                className="p-1.5 text-red-400 hover:text-red-600 transition-colors"
+                                                title="Delete Transaction"
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                                            </button>
+                                        )}
                                     </td>
                                 </tr>
                             ))}

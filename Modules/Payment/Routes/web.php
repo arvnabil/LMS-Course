@@ -33,6 +33,8 @@ Route::middleware('web')->group(function () {
         Route::middleware('role:admin')->prefix('dashboard/admin')->name('admin.')->group(function () {
             // Transaction Management
             Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
+            Route::delete('/transactions/bulk', [TransactionController::class, 'bulkDestroy'])->name('transactions.bulkDestroy');
+            Route::delete('/transactions/{transaction}', [TransactionController::class, 'destroy'])->name('transactions.destroy');
 
             // Payout / Withdrawal Management
             Route::get('/withdrawals', [AdminWithdrawalController::class, 'index'])->name('withdrawals.index');

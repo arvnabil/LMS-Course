@@ -78,4 +78,32 @@ class RoleController extends Controller
 
         return back()->with('success', 'Role deleted successfully.');
     }
+
+    /**
+     * Remove multiple roles from storage.
+     */
+    public function bulkDestroy(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:roles,id',
+        ]);
+
+        $roles = Role::whereIn('id', $request->ids)->get();
+
+        $deletedCount = 0;
+        foreach ($roles as $role) {
+            // Prevent deleting core roles
+            if (!in_array($role->name, ['admin', 'mentor', 'student', 'org_admin'])) {
+                $role->delete();
+                $deletedCount++;
+            }
+        }
+
+        if ($deletedCount === 0) {
+            return back()->with('error', 'None of the selected roles could be deleted.');
+        }
+
+        return back()->with('success', "{$deletedCount} roles deleted successfully.");
+    }
 }

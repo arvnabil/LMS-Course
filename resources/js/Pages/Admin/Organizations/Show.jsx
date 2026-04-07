@@ -229,9 +229,9 @@ export default function OrganizationShow({ auth, organization, availableUsers, a
                                     {organization.courses?.map((course) => (
                                         <div key={course.id} className="flex items-center justify-between bg-muted rounded-2xl px-5 py-4 group">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 bg-white rounded-xl overflow-hidden shrink-0">
+                                                <div className="w-12 h-12 bg-white rounded-xl overflow-hidden shrink-0 border border-gray-100">
                                                     {course.thumbnail ? (
-                                                        <img src={`/storage/${course.thumbnail}`} alt={course.title} className="w-full h-full object-cover" />
+                                                        <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover" />
                                                     ) : (
                                                         <div className="w-full h-full bg-primary/10 flex items-center justify-center text-primary font-bold">C</div>
                                                     )}
