@@ -57,19 +57,19 @@ export default function Checkout({ snapToken, course, transaction, midtransClien
             {toast && <Toast {...toast} onClose={() => setToast(null)} />}
             
             <div className="max-w-3xl mx-auto px-4 py-16">
-                <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-xl shadow-gray-200/50">
+                <div className="bg-surface rounded-3xl p-8 border border-border shadow-xl">
                     <h1 className="text-2xl font-extrabold text-foreground mb-6">Complete Your Enrollment</h1>
                     
-                    <div className="bg-muted rounded-2xl p-6 mb-8 border border-gray-50 flex items-center gap-6">
+                    <div className="bg-muted rounded-2xl p-6 mb-8 border border-border flex items-center gap-6">
                         <div className="w-24 h-24 bg-primary/10 rounded-2xl flex items-center justify-center text-4xl shadow-inner">
                             📘
                         </div>
                         <div className="flex-1">
                             <h2 className="text-lg font-bold text-foreground leading-tight">{course.title}</h2>
-                            <p className="text-sm text-gray-500 mt-1">By {course.mentor?.full_name}</p>
+                            <p className="text-sm text-foreground/50 mt-1">By {course.mentor?.full_name}</p>
                         </div>
                         <div className="text-right">
-                            <p className="text-sm font-semibold text-gray-400 uppercase tracking-widest mb-1">Total</p>
+                            <p className="text-sm font-semibold text-foreground/40 uppercase tracking-widest mb-1">Total</p>
                             <p className="text-2xl font-extrabold text-primary">
                                 Rp {Number(transaction.amount).toLocaleString('id-ID')}
                             </p>
@@ -80,11 +80,11 @@ export default function Checkout({ snapToken, course, transaction, midtransClien
                         <button 
                             onClick={handlePayment}
                             disabled={isProcessing}
-                            className="w-full md:w-auto px-12 py-4 bg-foreground py-5 rounded-full font-extrabold text-sm text-white uppercase tracking-widest shadow-xl hover:bg-gray-800 transition-all disabled:opacity-50"
+                            className="w-full md:w-auto px-12 py-5 bg-primary rounded-full font-extrabold text-sm text-white uppercase tracking-widest shadow-xl shadow-primary/30 hover:brightness-110 transition-all disabled:opacity-50 cursor-pointer"
                         >
                             {isProcessing ? 'Processing...' : 'Pay with Midtrans'}
                         </button>
-                        <p className="text-xs text-gray-400 font-medium mt-4">
+                        <p className="text-xs text-foreground/40 font-medium mt-4">
                             You will be redirected securely to Midtrans payment gateway.
                         </p>
                     </div>
