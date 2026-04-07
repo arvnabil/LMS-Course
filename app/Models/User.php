@@ -14,6 +14,11 @@ class User extends Authenticatable
     use HasFactory, Notifiable, HasRoles, HasUploadedFiles;
 
     /**
+     * The accessors to append to the model's array form.
+     */
+    protected $appends = ['avatar_url'];
+
+    /**
      * Columns that store uploaded file paths (auto-cleanup on update/delete).
      */
     protected array $uploadedFileColumns = ['avatar'];

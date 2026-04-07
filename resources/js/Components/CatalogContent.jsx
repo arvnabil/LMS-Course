@@ -144,8 +144,12 @@ export default function CatalogContent({ categories = [], courses = { data: [] }
                                     
                                     <div className="mt-auto space-y-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-accent-teal/20 flex items-center justify-center text-xs font-bold text-sidebar-active uppercase">
-                                                {course.mentor?.full_name?.[0]}
+                                            <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-xs font-bold text-primary uppercase overflow-hidden">
+                                                {course.mentor?.avatar_url ? (
+                                                    <img src={course.mentor.avatar_url} alt={course.mentor.full_name} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    course.mentor?.full_name?.[0] || 'M'
+                                                )}
                                             </div>
                                             <p className="text-xs font-bold text-gray-500">{course.mentor?.full_name}</p>
                                         </div>

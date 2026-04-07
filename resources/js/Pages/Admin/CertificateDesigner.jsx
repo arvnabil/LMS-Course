@@ -2,7 +2,7 @@ import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Head, router, useForm } from '@inertiajs/react';
 import { useState, useRef, useEffect } from 'react';
 
-// Draggable Element Component
+// Draggable Text Element Component
 function DraggableElement({ id, data, isSelected, onSelect, onChange, containerRef }) {
     const handlePointerDown = (e) => {
         e.preventDefault();
@@ -41,10 +41,6 @@ function DraggableElement({ id, data, isSelected, onSelect, onChange, containerR
         window.addEventListener('pointerup', onPointerUp);
     };
 
-    // Calculate actual pixel size roughly based on container height acting as 210mm for A4 landscape
-    // Actually we keep fontSize relative or just assume 1px = 1 unit
-    // A mapping from textAlign to flex alignments could be useful but text-align CSS on a centered div mostly works if the div width isn't constrained.
-    // However, translating it properly requires text-align: data.align. If data.align is left, the X anchor should be the left edge, not center!
     const getTransform = () => {
         if (data.align === 'center') return 'translate(-50%, -50%)';
         if (data.align === 'left') return 'translate(0%, -50%)';
@@ -83,6 +79,148 @@ function DraggableElement({ id, data, isSelected, onSelect, onChange, containerR
     );
 }
 
+// Draggable Signature Image Element Component
+function DraggableSignatureElement({ data, isSelected, onSelect, onChange, containerRef, signaturePreview }) {
+    const handlePointerDown = (e) => {
+        e.preventDefault();
+        onSelect('signature');
+        const containerRect = containerRef.current.getBoundingClientRect();
+        
+        const startX = e.clientX;
+        const startY = e.clientY;
+        const startDataX = data.x;
+        const startDataY = data.y;
+
+        const onPointerMove = (moveEvent) => {
+            const dx = moveEvent.clientX - startX;
+            const dy = moveEvent.clientY - startY;
+
+            const percentX = (dx / containerRect.width) * 100;
+            const percentY = (dy / containerRect.height) * 100;
+
+            let newX = startDataX + percentX;
+            let newY = startDataY + percentY;
+
+            newX = Math.max(0, Math.min(100, newX));
+            newY = Math.max(0, Math.min(100, newY));
+
+            onChange('signature', { ...data, x: newX, y: newY });
+        };
+
+        const onPointerUp = () => {
+            window.removeEventListener('pointermove', onPointerMove);
+            window.removeEventListener('pointerup', onPointerUp);
+        };
+
+        window.addEventListener('pointermove', onPointerMove);
+        window.addEventListener('pointerup', onPointerUp);
+    };
+
+    return (
+        <div 
+            className={`absolute cursor-move ${isSelected ? 'ring-2 ring-primary ring-offset-2 ring-offset-black/10' : 'hover:ring-1 hover:ring-gray-300'}`}
+            style={{ 
+                left: `${data.x}%`, 
+                top: `${data.y}%`, 
+                transform: 'translate(-50%, -50%)',
+                width: `${data.width || 15}%`,
+                userSelect: 'none',
+                zIndex: isSelected ? 10 : 2,
+                borderRadius: '4px',
+                padding: '2px',
+            }}
+            onPointerDown={handlePointerDown}
+        >
+            <img 
+                src={signaturePreview} 
+                alt="Signature" 
+                className="w-full h-auto pointer-events-none" 
+                style={{ objectFit: 'contain' }}
+                draggable={false}
+            />
+            {isSelected && (
+                <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-black text-white text-[10px] px-2 py-0.5 rounded shadow whitespace-nowrap z-20">
+                    {Math.round(data.x)}%, {Math.round(data.y)}%
+                </div>
+            )}
+        </div>
+    );
+}
+
+// Draggable QR Code Element Component
+function DraggableQrElement({ data, isSelected, onSelect, onChange, containerRef }) {
+    if (!data.visible) return null;
+
+    const handlePointerDown = (e) => {
+        e.preventDefault();
+        onSelect('qr_code');
+        const containerRect = containerRef.current.getBoundingClientRect();
+        
+        const startX = e.clientX;
+        const startY = e.clientY;
+        const startDataX = data.x;
+        const startDataY = data.y;
+
+        const onPointerMove = (moveEvent) => {
+            const dx = moveEvent.clientX - startX;
+            const dy = moveEvent.clientY - startY;
+
+            const percentX = (dx / containerRect.width) * 100;
+            const percentY = (dy / containerRect.height) * 100;
+
+            let newX = startDataX + percentX;
+            let newY = startDataY + percentY;
+
+            newX = Math.max(0, Math.min(100, newX));
+            newY = Math.max(0, Math.min(100, newY));
+
+            onChange('qr_code', { ...data, x: newX, y: newY });
+        };
+
+        const onPointerUp = () => {
+            window.removeEventListener('pointermove', onPointerMove);
+            window.removeEventListener('pointerup', onPointerUp);
+        };
+
+        window.addEventListener('pointermove', onPointerMove);
+        window.addEventListener('pointerup', onPointerUp);
+    };
+
+    return (
+        <div 
+            className={`absolute cursor-move ${isSelected ? 'ring-2 ring-primary ring-offset-2 ring-offset-black/10' : 'hover:ring-1 hover:ring-gray-300'}`}
+            style={{ 
+                left: `${data.x}%`, 
+                top: `${data.y}%`, 
+                transform: 'translate(-50%, -50%)',
+                width: `${data.width || 10}%`,
+                userSelect: 'none',
+                zIndex: isSelected ? 10 : 2,
+                borderRadius: '4px',
+                padding: '2px',
+                backgroundColor: 'white',
+                aspectRatio: '1/1',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+            }}
+            onPointerDown={handlePointerDown}
+        >
+            <div className="w-full h-full border-2 border-dashed border-gray-400 flex flex-col items-center justify-center p-1 font-mono text-[8px] sm:text-[10px] text-gray-500 text-center leading-tight">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mb-0.5 opacity-50"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><path d="M7 7h.01"></path><path d="M17 7h.01"></path><path d="M7 17h.01"></path><path d="M17 17h.01"></path></svg>
+                QR CODE
+            </div>
+            {isSelected && (
+                <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-black text-white text-[10px] px-2 py-0.5 rounded shadow whitespace-nowrap z-20">
+                    {Math.round(data.x)}%, {Math.round(data.y)}%
+                </div>
+            )}
+        </div>
+    );
+}
+
+
 export default function CertificateDesigner({ template, course }) {
     const defaultLayout = {
         'student_name': {x: 50, y: 50, fontSize: 36, color: '#000000', align: 'center', fontFamily: 'sans-serif', fontWeight: 'bold'},
@@ -91,24 +229,36 @@ export default function CertificateDesigner({ template, course }) {
         'certificate_code': {x: 50, y: 80, fontSize: 12, color: '#9ca3af', align: 'center', fontFamily: 'monospace', fontWeight: 'normal'},
     };
 
+    const defaultSignatureLayout = { x: 75, y: 85, width: 15 };
+    const defaultQrLayout = { x: 15, y: 85, width: 12, visible: false };
+
     const initialLayout = template.layout_data || defaultLayout;
-    // ensure layout has all expected keys
+    // ensure layout has all expected keys (excluding signature which is stored separately in layout)
     const _l = { ...defaultLayout, ...initialLayout };
 
+    // Extract signature & qr layout from layout_data if exists, otherwise use default
+    const initialSignatureLayout = initialLayout.signature || defaultSignatureLayout;
+    const initialQrLayout = initialLayout.qr_code || defaultQrLayout;
+
     const [layout, setLayout] = useState(_l);
+    const [signatureLayout, setSignatureLayout] = useState(initialSignatureLayout);
+    const [qrLayout, setQrLayout] = useState(initialQrLayout);
     const [selectedId, setSelectedId] = useState(null);
     const canvasRef = useRef(null);
     const [previewImage, setPreviewImage] = useState(template.background_image);
+    const [signaturePreview, setSignaturePreview] = useState(template.signature_image);
 
     const { data, setData, post, processing, errors } = useForm({
         background_image: null,
-        layout_data: JSON.stringify(_l),
+        signature_image: null,
+        layout_data: JSON.stringify({ ..._l, signature: initialSignatureLayout, qr_code: initialQrLayout }),
     });
 
     // Sync layout changes to form string
     useEffect(() => {
-        setData('layout_data', JSON.stringify(layout));
-    }, [layout]);
+        const merged = { ...layout, signature: signatureLayout, qr_code: qrLayout };
+        setData('layout_data', JSON.stringify(merged));
+    }, [layout, signatureLayout, qrLayout]);
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
@@ -118,11 +268,31 @@ export default function CertificateDesigner({ template, course }) {
         }
     };
 
+    const handleSignatureChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setData('signature_image', file);
+            setSignaturePreview(URL.createObjectURL(file));
+        }
+    };
+
+    const removeSignature = () => {
+        setData('signature_image', null);
+        setSignaturePreview(null);
+        if (selectedId === 'signature') setSelectedId(null);
+    };
+
     const updateElement = (id, newProps) => {
-        setLayout(prev => ({
-            ...prev,
-            [id]: newProps
-        }));
+        if (id === 'signature') {
+            setSignatureLayout(newProps);
+        } else if (id === 'qr_code') {
+            setQrLayout(newProps);
+        } else {
+            setLayout(prev => ({
+                ...prev,
+                [id]: newProps
+            }));
+        }
     };
 
     const handleSave = (e) => {
@@ -131,11 +301,28 @@ export default function CertificateDesigner({ template, course }) {
     };
 
     // Props editor helpers
-    const currentEl = selectedId ? layout[selectedId] : null;
+    const isSignatureSelected = selectedId === 'signature';
+    const isQrSelected = selectedId === 'qr_code';
+    const currentEl = selectedId && !isSignatureSelected && !isQrSelected ? layout[selectedId] : null;
 
     const handlePropChange = (field, value) => {
         if (!selectedId) return;
-        updateElement(selectedId, { ...currentEl, [field]: value });
+        if (isSignatureSelected) {
+            setSignatureLayout(prev => ({ ...prev, [field]: value }));
+        } else if (isQrSelected) {
+            setQrLayout(prev => ({ ...prev, [field]: value }));
+        } else if (currentEl) {
+            updateElement(selectedId, { ...currentEl, [field]: value });
+        }
+    };
+
+    // Get text element keys (exclude signature and qr_code)
+    const textElementKeys = Object.keys(layout).filter(k => k !== 'signature' && k !== 'qr_code');
+
+    const handlePreview = () => {
+        // First we should probably save if there's any pending change, or just preview current DB state.
+        // It's safer to save first if possible, but let's just open the preview route in new tab.
+        window.open(route('mentor.courses.certificate-template.preview', course.id), '_blank');
     };
 
     return (
@@ -152,6 +339,9 @@ export default function CertificateDesigner({ template, course }) {
                         </div>
                         <div className="flex gap-3">
                             <button type="button" onClick={() => router.get(route('mentor.courses.edit', course.id))} className="text-xs font-semibold text-gray-500 px-3 py-1.5 hover:bg-gray-100 rounded-lg transition-colors">Cancel</button>
+                            <button type="button" onClick={handlePreview} className="text-xs font-bold text-primary bg-primary/10 px-4 py-2 hover:bg-primary/20 rounded-xl transition-colors">
+                                Preview Result <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block ml-1 mb-0.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                            </button>
                             <button type="submit" disabled={processing} className="px-5 py-2 bg-primary text-white text-xs font-bold rounded-xl shadow hover:bg-primary/90 disabled:opacity-50 transition-colors">
                                 {processing ? 'Saving...' : 'Save Template'}
                             </button>
@@ -161,7 +351,6 @@ export default function CertificateDesigner({ template, course }) {
                     <div className="flex-1 overflow-auto p-4 md:p-8 flex items-center justify-center bg-[#E5E5F7] relative" onClick={() => setSelectedId(null)}
                         style={{backgroundImage: 'radial-gradient(#CBD5E1 1px, transparent 1px)', backgroundSize: '16px 16px'}}
                     >
-                        {/* Custom Ruler indicators visually */}
                         {/* Canvas Container */}
                         <div 
                             className="bg-white shadow-2xl relative aspect-[1.414/1] w-full max-w-4xl overflow-hidden ring-1 ring-gray-900/10 group rounded-sm"
@@ -184,8 +373,8 @@ export default function CertificateDesigner({ template, course }) {
                                 <div className="absolute top-1/2 left-0 right-0 h-[1px] bg-cyan-400" />
                             </div>
 
-                            {/* Render Draggables */}
-                            {previewImage && Object.keys(layout).map(key => (
+                            {/* Render Text Draggables */}
+                            {previewImage && textElementKeys.map(key => (
                                 <DraggableElement 
                                     key={key} 
                                     id={key} 
@@ -196,6 +385,29 @@ export default function CertificateDesigner({ template, course }) {
                                     containerRef={canvasRef}
                                 />
                             ))}
+
+                            {/* Render Signature Image Draggable */}
+                            {previewImage && signaturePreview && (
+                                <DraggableSignatureElement
+                                    data={signatureLayout}
+                                    isSelected={isSignatureSelected}
+                                    onSelect={setSelectedId}
+                                    onChange={updateElement}
+                                    containerRef={canvasRef}
+                                    signaturePreview={signaturePreview}
+                                />
+                            )}
+
+                            {/* Render QR Code Draggable */}
+                            {previewImage && (
+                                <DraggableQrElement
+                                    data={qrLayout}
+                                    isSelected={isQrSelected}
+                                    onSelect={setSelectedId}
+                                    onChange={updateElement}
+                                    containerRef={canvasRef}
+                                />
+                            )}
                         </div>
                     </div>
                 </div>
@@ -224,7 +436,99 @@ export default function CertificateDesigner({ template, course }) {
                                 </label>
                                 {errors.background_image && <p className="text-red-500 text-[10px] font-medium mt-1">{errors.background_image}</p>}
                             </div>
-                            <label className="flex items-center gap-3 mt-4 pt-4 border-t border-gray-100 cursor-pointer group">
+                        </div>
+
+                        <hr className="border-gray-100" />
+
+                        {/* Signature Image Upload */}
+                        <div className="space-y-3">
+                            <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 19.5v.5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8.5L18 5.5"></path><path d="M16 2v4a2 2 0 0 0 2 2h4"></path><path d="M12 18v-6"></path><path d="m9 15 3 3 3-3"></path></svg>
+                                Signature Image
+                            </h3>
+                            
+                            {signaturePreview ? (
+                                <div className="space-y-2">
+                                    <div className="relative bg-gray-50 border border-gray-200 rounded-xl p-3 flex items-center justify-center">
+                                        <img 
+                                            src={signaturePreview} 
+                                            alt="Signature Preview" 
+                                            className="max-h-16 object-contain"
+                                        />
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <div className="flex-1">
+                                            <input 
+                                                type="file" 
+                                                id="sig-upload" 
+                                                className="hidden" 
+                                                accept="image/png, image/jpeg, image/webp"
+                                                onChange={handleSignatureChange}
+                                            />
+                                            <label htmlFor="sig-upload" className="flex items-center justify-center w-full px-3 py-1.5 text-[10px] font-bold text-primary bg-primary/10 border border-primary/20 rounded-lg cursor-pointer hover:bg-primary/20 transition-colors">
+                                                Replace
+                                            </label>
+                                        </div>
+                                        <button 
+                                            type="button" 
+                                            onClick={removeSignature}
+                                            className="px-3 py-1.5 text-[10px] font-bold text-red-500 bg-red-50 border border-red-100 rounded-lg hover:bg-red-100 transition-colors"
+                                        >
+                                            Remove
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div>
+                                    <input 
+                                        type="file" 
+                                        id="sig-upload" 
+                                        className="hidden" 
+                                        accept="image/png, image/jpeg, image/webp"
+                                        onChange={handleSignatureChange}
+                                    />
+                                    <label htmlFor="sig-upload" className="flex items-center justify-center w-full px-4 py-2.5 text-xs font-bold text-gray-500 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:bg-gray-100 hover:border-gray-300 transition-colors group">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 text-gray-400 group-hover:text-gray-500 transition-colors"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                                        Upload Signature
+                                    </label>
+                                </div>
+                            )}
+                            {errors.signature_image && <p className="text-red-500 text-[10px] font-medium mt-1">{errors.signature_image}</p>}
+                            <p className="text-[9px] text-gray-400 leading-tight">Upload a signature image (PNG with transparent background recommended). Drag to position on the canvas.</p>
+                        </div>
+
+                        <hr className="border-gray-100" />
+
+                        {/* Validation QR Code Settings */}
+                        <div className="space-y-3">
+                            <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center justify-between">
+                                <span className="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><path d="M7 7h.01"></path><path d="M17 7h.01"></path><path d="M7 17h.01"></path><path d="M17 17h.01"></path></svg>
+                                    Validation QR Code
+                                </span>
+                                <label className="inline-flex relative items-center cursor-pointer">
+                                    <input 
+                                        type="checkbox" 
+                                        className="sr-only peer" 
+                                        checked={qrLayout.visible || false}
+                                        onChange={(e) => {
+                                            const isVisible = e.target.checked;
+                                            setQrLayout(prev => ({ ...prev, visible: isVisible }));
+                                            if (isVisible) setSelectedId('qr_code');
+                                            else if (selectedId === 'qr_code') setSelectedId(null);
+                                        }}
+                                    />
+                                    <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                                </label>
+                            </h3>
+                            <p className="text-[9px] text-gray-400 leading-tight">Enable a QR code that students and employers can scan to verify the certificate's authenticity.</p>
+                        </div>
+
+                        <hr className="border-gray-100" />
+
+                        {/* Course Dependent Info */}
+                        <div>
+                            <label className="flex items-center gap-3 cursor-pointer group">
                                 <div>
                                     <span className="block text-sm font-bold text-foreground">Course Dependent</span>
                                     <span className="block text-[10px] text-gray-500 mt-0.5 leading-tight">This template is specific to {course.title}.</span>
@@ -238,15 +542,90 @@ export default function CertificateDesigner({ template, course }) {
                         <div className="space-y-4">
                             <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-                                {currentEl ? `Editing Target` : 'Element Inspector'}
+                                {currentEl ? 'Editing Target' : isSignatureSelected ? 'Editing Signature' : 'Element Inspector'}
                             </h3>
                             
-                            {!currentEl && (
+                            {!currentEl && !isSignatureSelected && (
                                 <div className="text-xs text-gray-500 text-center py-6 bg-gray-50 rounded-xl border border-gray-100">
                                     Click an element on the canvas to edit its properties.
                                 </div>
                             )}
 
+                            {/* Signature Element Inspector */}
+                            {isSignatureSelected && signaturePreview && (
+                                <>
+                                    <div className="px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-xs font-bold text-amber-700 mb-2 flex items-center gap-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 19.5v.5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8.5L18 5.5"></path><path d="M16 2v4a2 2 0 0 0 2 2h4"></path></svg>
+                                        <span>Signature Image</span>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-x-3 gap-y-4">
+                                        <div>
+                                            <label className="block text-[10px] font-bold text-foreground/50 mb-1">X Position (%)</label>
+                                            <input type="number" step="0.1" value={Math.round(signatureLayout.x * 10) / 10} onChange={e => handlePropChange('x', parseFloat(e.target.value) || 0)} className="w-full px-2.5 py-1.5 text-xs bg-muted border border-border rounded-lg focus:outline-none focus:border-primary focus:bg-surface font-mono shadow-sm" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-bold text-foreground/50 mb-1">Y Position (%)</label>
+                                            <input type="number" step="0.1" value={Math.round(signatureLayout.y * 10) / 10} onChange={e => handlePropChange('y', parseFloat(e.target.value) || 0)} className="w-full px-2.5 py-1.5 text-xs bg-muted border border-border rounded-lg focus:outline-none focus:border-primary focus:bg-surface font-mono shadow-sm" />
+                                        </div>
+                                        <div className="col-span-2">
+                                            <label className="block text-[10px] font-bold text-foreground/50 mb-1">Width (%)</label>
+                                            <input 
+                                                type="range" 
+                                                min="5" 
+                                                max="40" 
+                                                step="1" 
+                                                value={signatureLayout.width || 15} 
+                                                onChange={e => handlePropChange('width', parseInt(e.target.value))} 
+                                                className="w-full accent-primary"
+                                            />
+                                            <div className="flex justify-between text-[9px] text-gray-400 mt-1">
+                                                <span>Small</span>
+                                                <span className="font-mono font-bold text-foreground/70">{signatureLayout.width || 15}%</span>
+                                                <span>Large</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+
+                            {/* QR Code Element Inspector */}
+                            {isQrSelected && (
+                                <>
+                                    <div className="px-3 py-2 bg-indigo-50 border border-indigo-200 rounded-lg text-xs font-bold text-indigo-700 mb-2 flex items-center gap-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><path d="M7 7h.01"></path><path d="M17 7h.01"></path><path d="M7 17h.01"></path><path d="M17 17h.01"></path></svg>
+                                        <span>QR Code Validation</span>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-x-3 gap-y-4">
+                                        <div>
+                                            <label className="block text-[10px] font-bold text-foreground/50 mb-1">X Position (%)</label>
+                                            <input type="number" step="0.1" value={Math.round(qrLayout.x * 10) / 10} onChange={e => handlePropChange('x', parseFloat(e.target.value) || 0)} className="w-full px-2.5 py-1.5 text-xs bg-muted border border-border rounded-lg focus:outline-none focus:border-primary focus:bg-surface font-mono shadow-sm" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-bold text-foreground/50 mb-1">Y Position (%)</label>
+                                            <input type="number" step="0.1" value={Math.round(qrLayout.y * 10) / 10} onChange={e => handlePropChange('y', parseFloat(e.target.value) || 0)} className="w-full px-2.5 py-1.5 text-xs bg-muted border border-border rounded-lg focus:outline-none focus:border-primary focus:bg-surface font-mono shadow-sm" />
+                                        </div>
+                                        <div className="col-span-2">
+                                            <label className="block text-[10px] font-bold text-foreground/50 mb-1">Size (%)</label>
+                                            <input 
+                                                type="range" 
+                                                min="5" 
+                                                max="30" 
+                                                step="1" 
+                                                value={qrLayout.width || 10} 
+                                                onChange={e => handlePropChange('width', parseInt(e.target.value))} 
+                                                className="w-full accent-primary"
+                                            />
+                                            <div className="flex justify-between text-[9px] text-gray-400 mt-1">
+                                                <span>Small</span>
+                                                <span className="font-mono font-bold text-foreground/70">{qrLayout.width || 10}%</span>
+                                                <span>Large</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+
+                            {/* Text Element Inspector */}
                             {currentEl && (
                                 <>
                                     <div className="px-3 py-2 bg-primary/5 border border-primary/20 rounded-lg text-xs font-bold text-primary mb-2 flex items-center justify-between">

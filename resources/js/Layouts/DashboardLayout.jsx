@@ -299,7 +299,7 @@ export default function DashboardLayout({ header, children }) {
                             <div className="flex items-center gap-3">
                                 <div className="min-w-0 flex-1 flex flex-col justify-center">
                                     <h3 className="text-sm font-extrabold text-foreground truncate leading-tight">
-                                        {user.name || 'User'}
+                                        {user.full_name || user.name || 'User'}
                                     </h3>
                                     <p className="text-xs font-semibold text-foreground/60 truncate mb-1">
                                         {user.email || 'user@example.com'}

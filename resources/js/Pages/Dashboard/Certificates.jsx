@@ -41,12 +41,14 @@ export default function Certificates({ certificates }) {
                                             {cert.issued_at ? new Date(cert.issued_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'}
                                         </span>
                                     </div>
-                                    {cert.pdf_url && (
-                                        <a href={cert.pdf_url.startsWith('/') ? cert.pdf_url : `/storage/${cert.pdf_url}`} target="_blank" rel="noopener noreferrer"
-                                            className="block w-full text-center px-4 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-primary/90 transition-colors">
-                                            Download PDF
-                                        </a>
-                                    )}
+                                    <a 
+                                        href={cert.pdf_url ? (cert.pdf_url.startsWith('/') ? cert.pdf_url : `/storage/${cert.pdf_url}`) : '#'} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="block w-full text-center px-4 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-primary/90 transition-colors"
+                                    >
+                                        Download PDF
+                                    </a>
                                 </div>
                             </div>
                         ))}

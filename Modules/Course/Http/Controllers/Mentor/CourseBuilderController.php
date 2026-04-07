@@ -474,6 +474,7 @@ class CourseBuilderController extends Controller
                 'id' => null,
                 'course_id' => $course->id,
                 'background_image' => null,
+                'signature_image' => null,
                 'layout_data' => $defaultLayout,
             ];
         }
@@ -493,11 +494,13 @@ class CourseBuilderController extends Controller
 
         $validated = $request->validate([
             'background_image' => 'nullable|image|max:10240',
+            'signature_image' => 'nullable|image|max:5120',
             'layout_data' => 'required|string',
         ]);
 
         $template = $course->certificateTemplate;
         $imagePath = $template ? $template->background_image : null;
+        $signaturePath = $template ? $template->signature_image : null;
 
         if ($request->hasFile('background_image')) {
             // Delete old image if exists
@@ -509,6 +512,16 @@ class CourseBuilderController extends Controller
             $imagePath = '/storage/' . $path;
         }
 
+        if ($request->hasFile('signature_image')) {
+            // Delete old signature if exists
+            if ($template && $template->signature_image) {
+                $oldPath = str_replace('/storage/', '', $template->signature_image);
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($oldPath);
+            }
+            $path = $request->file('signature_image')->store('certificates/signatures', 'public');
+            $signaturePath = '/storage/' . $path;
+        }
+
         if (!$imagePath) {
             return back()->withErrors(['background_image' => 'A background image is required.']);
         }
@@ -518,15 +531,58 @@ class CourseBuilderController extends Controller
         if ($template) {
             $template->update([
                 'background_image' => $imagePath,
+                'signature_image' => $signaturePath,
                 'layout_data' => $layoutData,
             ]);
         } else {
             $course->certificateTemplate()->create([
                 'background_image' => $imagePath,
+                'signature_image' => $signaturePath,
                 'layout_data' => $layoutData,
             ]);
         }
 
         return redirect()->route('mentor.courses.edit', $course->id)->with('success', 'Certificate template updated.');
+    }
+
+    /**
+     * Preview course certificate template.
+     */
+    public function previewCertificateTemplate(Course $course)
+    {
+        if ($course->mentor_id != auth()->id()) abort(403);
+
+        $template = $course->certificateTemplate;
+        if (!$template) {
+            abort(404, 'Certificate template not found. Please save the template first.');
+        }
+
+        // Create dummy certificate in memory (not saved to DB)
+        $dummyCertificate = new \Modules\Certificate\Models\Certificate([
+            'certificate_code' => 'CERT-EXAMPLE-001',
+            'issued_at' => now(),
+        ]);
+        
+        // Mock relations
+        $student = new \Illuminate\Foundation\Auth\User();
+        $student->name = "John Doe (Example)";
+        
+        $dummyCertificate->setRelation('student', $student);
+        $dummyCertificate->setRelation('course', $course);
+
+        $layout = is_string($template->layout_data) ? json_decode($template->layout_data, true) : $template->layout_data;
+
+        $data = [
+            'certificate' => $dummyCertificate,
+            'template' => $template,
+            'layout' => $layout,
+        ];
+
+        // Generate PDF
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('certificate::pdf.certificate', $data)
+            ->setPaper('a4', 'landscape')
+            ->setWarnings(false);
+
+        return $pdf->stream('preview-certificate.pdf');
     }
 }

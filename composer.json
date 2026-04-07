@@ -13,6 +13,7 @@
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^3.0",
         "midtrans/midtrans-php": "^2.6",
+        "simplesoftwareio/simple-qrcode": "^4.2",
         "spatie/laravel-permission": "^7.2",
         "tightenco/ziggy": "^2.0"
     },

@@ -528,9 +528,11 @@ export default function CourseDetail({ course = {}, isDashboard = false, isEnrol
                             {/* Mentor Info */}
                             <section className="bg-surface rounded-[48px] p-10 border border-border text-center space-y-8 shadow-sm">
                                 <div className="w-28 h-28 bg-primary/10 rounded-full mx-auto flex items-center justify-center text-5xl overflow-hidden border-4 border-surface shadow-xl relative group">
-                                    {course.mentor?.avatar ? (
-                                        <img src={course.mentor.avatar} alt={course.mentor.full_name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                                    ) : '👨‍🏫'}
+                                    {course.mentor?.avatar_url ? (
+                                        <img src={course.mentor.avatar_url} alt={course.mentor.full_name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                                    ) : (
+                                        <span className="text-primary font-black">{course.mentor?.full_name?.[0] || 'M'}</span>
+                                    )}
                                 </div>
                                 <div className="space-y-2">
                                     <h3 className="text-xl font-black text-foreground tracking-tight">{course.mentor?.full_name}</h3>

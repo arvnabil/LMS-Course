@@ -31,7 +31,7 @@ export default function GuestLayout({ children }) {
                             <Link href="/" className="text-sm font-bold text-foreground hover:text-primary transition-colors">Home</Link>
                             <Link href="/catalog" className="text-sm font-bold text-gray-500 hover:text-primary transition-colors">Course</Link>
                             <Link href="#" className="text-sm font-bold text-gray-500 hover:text-primary transition-colors">Mentors</Link>
-                            <Link href="#" className="text-sm font-bold text-gray-500 hover:text-primary transition-colors">Reviews</Link>
+                            <Link href={route('certificate.verify')} className="text-sm font-bold text-gray-500 hover:text-primary transition-colors">Verify Certificate</Link>
                         </div>
 
                         {/* Actions */}
@@ -95,7 +95,7 @@ export default function GuestLayout({ children }) {
                                 <li><Link href="/" className="hover:text-white transition-colors">Home</Link></li>
                                 <li><Link href="/catalog" className="hover:text-white transition-colors">Courses</Link></li>
                                 <li><Link href="#" className="hover:text-white transition-colors">Mentors</Link></li>
-                                <li><Link href="#" className="hover:text-white transition-colors">Reviews</Link></li>
+                                <li><Link href={route('certificate.verify')} className="hover:text-white transition-colors">Verify Certificate</Link></li>
                             </ul>
                         </div>
 

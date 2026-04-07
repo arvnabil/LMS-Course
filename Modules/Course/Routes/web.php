@@ -67,6 +67,7 @@ Route::middleware('web')->group(function () {
             // Course Certificate Template
             Route::get('courses/{course}/certificate-template', [CourseBuilderController::class, 'editCertificateTemplate'])->name('courses.certificate-template');
             Route::post('courses/{course}/certificate-template', [CourseBuilderController::class, 'updateCertificateTemplate'])->name('courses.certificate-template.update');
+            Route::get('courses/{course}/certificate-template/preview', [CourseBuilderController::class, 'previewCertificateTemplate'])->name('courses.certificate-template.preview');
 
             // Mentor Students
             Route::get('/students', [StudentController::class, 'index'])->name('students');

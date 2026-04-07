@@ -56,7 +56,9 @@ export default function CourseComplete({ course, enrollment }) {
                         Back to My Courses
                     </Link>
                     <Link
-                        href={route('student.dashboard.certificates')}
+                        href={route('student.dashboard.certificates.claim', course.id)}
+                        method="post"
+                        as="button"
                         className="flex-1 bg-primary text-white py-5 rounded-full font-extrabold text-sm uppercase tracking-widest shadow-xl shadow-primary/20 hover:bg-primary-hover transition-all hover:-translate-y-1"
                     >
                         Claim Certificate 🏆
