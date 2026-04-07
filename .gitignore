@@ -21,6 +21,5 @@ yarn-error.log
 /.vscode
 /.zed
 error_log
-/public/build
 public/error_log
 *.log
