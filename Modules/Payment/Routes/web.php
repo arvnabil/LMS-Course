@@ -16,7 +16,7 @@ use Modules\Payment\Http\Controllers\Mentor\WithdrawalController as MentorWithdr
 Route::middleware('web')->group(function () {
     Route::middleware(['auth', 'verified'])->group(function () {
         // Payment Routes
-        Route::post('/checkout/{course:slug}', [PaymentController::class, 'checkout'])->name('payment.checkout');
+        Route::get('/checkout/{course:slug}', [PaymentController::class, 'checkout'])->name('payment.checkout');
         Route::get('/payment/callback', [PaymentController::class, 'callback'])->name('payment.callback');
 
         // Mentor routes

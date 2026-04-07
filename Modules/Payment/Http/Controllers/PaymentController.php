@@ -96,16 +96,26 @@ class PaymentController extends Controller
         }
 
         // 3. Paid Course Logic (Midtrans)
-        $orderId = 'TRX-' . time() . '-' . strtoupper(Str::random(5));
+        // Check for existing pending transaction for this user and course
+        $transaction = Transaction::where('student_id', $user->id)
+            ->where('course_id', $course->id)
+            ->where('status', 'pending')
+            ->latest()
+            ->first();
 
-        // Create pending transaction
-        $transaction = Transaction::create([
-            'student_id' => $user->id,
-            'course_id' => $course->id,
-            'order_id' => $orderId,
-            'amount' => $course->price,
-            'status' => 'pending',
-        ]);
+        if ($transaction) {
+            $orderId = $transaction->order_id;
+        } else {
+            $orderId = 'TRX-' . time() . '-' . strtoupper(Str::random(5));
+            // Create pending transaction
+            $transaction = Transaction::create([
+                'student_id' => $user->id,
+                'course_id' => $course->id,
+                'order_id' => $orderId,
+                'amount' => $course->price,
+                'status' => 'pending',
+            ]);
+        }
 
         // Midtrans setup
         \Midtrans\Config::$serverKey = config('midtrans.server_key');

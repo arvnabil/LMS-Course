@@ -64,8 +64,6 @@ const CourseCard = ({ course, isEnrolled, onPlayClick, auth, orgPricing }) => (
                 ) : (
                     <Link
                         href={auth?.user ? route('payment.checkout', course.slug) : route('login')}
-                        method={auth?.user ? "post" : "get"}
-                        as={auth?.user ? "button" : "a"}
                         className="w-full bg-primary text-white py-4 rounded-[20px] font-extrabold text-[13px] uppercase tracking-[0.15em] shadow-xl shadow-primary/20 hover:bg-primary-hover transition-all translate-y-0 hover:-translate-y-1 block text-center"
                     >
                         {orgPricing?.is_org_sponsored ? 'Enroll Now' : (Number(course.price) === 0 ? 'Enroll for Free' : 'Buy Course Now')}
