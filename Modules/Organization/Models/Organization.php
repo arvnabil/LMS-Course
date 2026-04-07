@@ -3,6 +3,7 @@
 namespace Modules\Organization\Models;
 
 use App\Models\User;
+use App\Traits\HasUploadedFiles;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -10,6 +11,13 @@ use Illuminate\Support\Str;
 
 class Organization extends Model
 {
+    use HasUploadedFiles;
+
+    /**
+     * Columns that store uploaded file paths (auto-cleanup on update/delete).
+     */
+    protected array $uploadedFileColumns = ['logo'];
+
     protected $fillable = [
         'name',
         'slug',

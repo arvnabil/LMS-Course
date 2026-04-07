@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\HasUploadedFiles;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -10,7 +11,12 @@ use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasRoles;
+    use HasFactory, Notifiable, HasRoles, HasUploadedFiles;
+
+    /**
+     * Columns that store uploaded file paths (auto-cleanup on update/delete).
+     */
+    protected array $uploadedFileColumns = ['avatar'];
 
     /**
      * The attributes that are mass assignable.
@@ -76,29 +82,6 @@ class User extends Authenticatable
     }
 
 
-    /**
-     * Boot the model and register events.
-     * Automatically deletes old avatar file from storage when avatar is updated.
-     */
-    protected static function booted(): void
-    {
-        static::updating(function (User $user) {
-            if ($user->isDirty('avatar') && $user->getOriginal('avatar')) {
-                $oldAvatar = $user->getOriginal('avatar');
-                if (\Illuminate\Support\Facades\Storage::disk('public')->exists($oldAvatar)) {
-                    \Illuminate\Support\Facades\Storage::disk('public')->delete($oldAvatar);
-                }
-            }
-        });
-
-        static::deleting(function (User $user) {
-            if ($user->avatar) {
-                if (\Illuminate\Support\Facades\Storage::disk('public')->exists($user->avatar)) {
-                    \Illuminate\Support\Facades\Storage::disk('public')->delete($user->avatar);
-                }
-            }
-        });
-    }
 
     /**
      * Accessor for 'name' attribute for Breeze compatibility.

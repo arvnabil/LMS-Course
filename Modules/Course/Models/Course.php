@@ -3,6 +3,7 @@
 namespace Modules\Course\Models;
 
 use App\Models\User;
+use App\Traits\HasUploadedFiles;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -10,7 +11,13 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Course extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, HasUploadedFiles;
+
+    /**
+     * Columns that store uploaded file paths (auto-cleanup on update/delete).
+     */
+    protected array $uploadedFileColumns = ['thumbnail', 'cover_image'];
+
     protected $fillable = [
         'mentor_id',
         'category_id',

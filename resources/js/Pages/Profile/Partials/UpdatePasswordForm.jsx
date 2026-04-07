@@ -51,7 +51,7 @@ export default function UpdatePasswordForm({ className = '' }) {
                     Update Password
                 </h2>
 
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-1 text-sm text-foreground/60">
                     Ensure your account is using a long, random password to stay
                     secure.
                 </p>
@@ -122,7 +122,9 @@ export default function UpdatePasswordForm({ className = '' }) {
                 </div>
 
                 <div className="flex items-center gap-4">
-                    <PrimaryButton disabled={processing}>Save</PrimaryButton>
+                    <PrimaryButton disabled={processing}>
+                        {processing ? 'Saving...' : 'Save Changes'}
+                    </PrimaryButton>
 
                     <Transition
                         show={recentlySuccessful}
@@ -131,8 +133,9 @@ export default function UpdatePasswordForm({ className = '' }) {
                         leave="transition ease-in-out"
                         leaveTo="opacity-0"
                     >
-                        <p className="text-sm text-gray-600">
-                            Saved.
+                        <p className="text-sm font-bold text-green-500 flex items-center gap-1">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                            Saved successfully.
                         </p>
                     </Transition>
                 </div>
