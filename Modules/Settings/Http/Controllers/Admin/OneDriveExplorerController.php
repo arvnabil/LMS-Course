@@ -79,6 +79,29 @@ class OneDriveExplorerController extends Controller
         return response()->json(['error' => 'Failed to create folder.'], 500);
     }
 
+    public function renameFolder(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|string',
+            'name' => 'required|string|max:255'
+        ]);
+
+        if (!$this->oneDrive->getAccessToken()) {
+            return response()->json(['error' => 'OneDrive not connected.'], 401);
+        }
+
+        $result = $this->oneDrive->renameItem($request->id, $request->name);
+
+        if ($result) {
+            return response()->json([
+                'id' => $result['id'],
+                'name' => $result['name']
+            ]);
+        }
+
+        return response()->json(['error' => 'Failed to rename folder.'], 500);
+    }
+
     public function resolvePath($itemId)
     {
         if (!$this->oneDrive->getAccessToken()) {

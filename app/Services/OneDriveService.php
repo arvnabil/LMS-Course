@@ -339,6 +339,28 @@ class OneDriveService
     }
 
     /**
+     * Rename a DriveItem (file or folder).
+     */
+    public function renameItem(string $itemId, string $newName): ?array
+    {
+        $accessToken = $this->getAccessToken();
+        if (!$accessToken) return null;
+
+        $url = "https://graph.microsoft.com/v1.0/me/drive/items/{$itemId}";
+        
+        $response = Http::withToken($accessToken)->patch($url, [
+            'name' => $newName
+        ]);
+
+        if ($response->successful()) {
+            return $response->json();
+        }
+
+        Log::error('OneDrive Rename Failed', ['response' => $response->json()]);
+        return null;
+    }
+
+    /**
      * Get metadata for a specific DriveItem.
      */
     public function getDriveItem(string $itemId): ?array
@@ -377,5 +399,33 @@ class OneDriveService
         }
 
         return $name;
+    }
+
+    /**
+     * Get metadata for the folder configured as the platform's root.
+     */
+    public function getConfiguredRootMetadata(): ?array
+    {
+        $accessToken = $this->getAccessToken();
+        if (!$accessToken) return null;
+
+        $path = trim($this->basePath, '/');
+        if (empty($path)) {
+            return $this->getDriveItem('root');
+        }
+
+        $url = "https://graph.microsoft.com/v1.0/me/drive/root:/{$path}";
+        $response = Http::withToken($accessToken)->get($url);
+
+        return $response->successful() ? $response->json() : null;
+    }
+
+    /**
+     * Get the Item ID of the configured root folder.
+     */
+    public function getConfiguredRootId(): string
+    {
+        $metadata = $this->getConfiguredRootMetadata();
+        return $metadata['id'] ?? 'root';
     }
 }

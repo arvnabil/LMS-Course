@@ -11,6 +11,12 @@ class OneDriveFilesController extends Controller
     public function list(Request $request, $itemId = 'root')
     {
         $oneDrive = new OneDriveService();
+        
+        // If starting at root, resolve the configured root folder first
+        if ($itemId === 'root') {
+            $itemId = $oneDrive->getConfiguredRootId();
+        }
+
         $items = $oneDrive->listChildren($itemId);
 
         if (is_null($items)) {

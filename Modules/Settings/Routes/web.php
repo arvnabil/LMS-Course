@@ -21,6 +21,7 @@ Route::middleware('web')->group(function () {
             // OneDrive Explorer for Settings
             Route::get('/settings/onedrive/list/{itemId?}', [OneDriveExplorerController::class, 'list'])->name('settings.onedrive.list');
             Route::post('/settings/onedrive/create-folder', [OneDriveExplorerController::class, 'createFolder'])->name('settings.onedrive.create-folder');
+            Route::post('/settings/onedrive/rename-folder', [OneDriveExplorerController::class, 'renameFolder'])->name('settings.onedrive.rename-folder');
             Route::get('/settings/onedrive/resolve-path/{itemId}', [OneDriveExplorerController::class, 'resolvePath'])->name('settings.onedrive.resolve-path');
         });
     });

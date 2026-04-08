@@ -9,6 +9,8 @@ export default function OneDriveFolderPicker({ show, onClose, onSelect, currentP
     const [error, setError] = useState(null);
     const [newFolderName, setNewFolderName] = useState('');
     const [creating, setCreating] = useState(false);
+    const [renamingId, setRenamingId] = useState(null);
+    const [renameValue, setRenameValue] = useState('');
 
     useEffect(() => {
         if (show) {
@@ -60,6 +62,22 @@ export default function OneDriveFolderPicker({ show, onClose, onSelect, currentP
             alert(err.response?.data?.error || 'Failed to create folder.');
         } finally {
             setCreating(false);
+        }
+    };
+
+    const handleRename = async (e, folderId) => {
+        e.preventDefault();
+        if (!renameValue.trim()) return;
+
+        try {
+            await axios.post(route('admin.settings.onedrive.rename-folder'), {
+                id: folderId,
+                name: renameValue
+            });
+            setRenamingId(null);
+            fetchFolders(history[history.length - 1].id);
+        } catch (err) {
+            alert(err.response?.data?.error || 'Failed to rename folder.');
         }
     };
 
@@ -132,20 +150,60 @@ export default function OneDriveFolderPicker({ show, onClose, onSelect, currentP
                         </div>
                     ) : (
                         items.map(folder => (
-                            <button 
-                                key={folder.id}
-                                onClick={() => navigateTo(folder)}
-                                className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-muted transition-all group text-left border border-transparent hover:border-gray-100"
-                            >
-                                <div className="w-10 h-10 bg-[#0078D4]/5 rounded-xl flex items-center justify-center text-[#0078D4] group-hover:bg-[#0078D4] group-hover:text-white transition-all">
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-bold text-foreground truncate">{folder.name}</p>
-                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{folder.updated_at ? new Date(folder.updated_at).toLocaleDateString() : 'N/A'}</p>
-                                </div>
-                                <svg className="w-4 h-4 text-gray-300 group-hover:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
-                            </button>
+                            <div key={folder.id} className="relative group/container">
+                                {renamingId === folder.id ? (
+                                    <form 
+                                        onSubmit={(e) => handleRename(e, folder.id)}
+                                        className="flex items-center gap-4 p-4 rounded-2xl bg-primary/5 border border-primary/20"
+                                    >
+                                        <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white">
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                        </div>
+                                        <input 
+                                            autoFocus
+                                            type="text" 
+                                            value={renameValue}
+                                            onChange={e => setRenameValue(e.target.value)}
+                                            className="flex-1 bg-white border-none rounded-xl px-4 py-2 text-sm font-bold focus:ring-4 focus:ring-primary/10 transition-all outline-none"
+                                        />
+                                        <div className="flex gap-2">
+                                            <button type="submit" className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors">
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+                                            </button>
+                                            <button type="button" onClick={() => setRenamingId(null)} className="p-2 text-gray-400 hover:bg-gray-100 rounded-lg transition-colors">
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                            </button>
+                                        </div>
+                                    </form>
+                                ) : (
+                                    <div className="flex items-center gap-1 group transition-all">
+                                        <button 
+                                            onClick={() => navigateTo(folder)}
+                                            className="flex-1 flex items-center gap-4 p-4 rounded-2xl hover:bg-muted transition-all group/item text-left border border-transparent hover:border-gray-100"
+                                        >
+                                            <div className="w-10 h-10 bg-[#0078D4]/5 rounded-xl flex items-center justify-center text-[#0078D4] group-hover/item:bg-[#0078D4] group-hover/item:text-white transition-all">
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-bold text-foreground truncate">{folder.name}</p>
+                                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{folder.updated_at ? new Date(folder.updated_at).toLocaleDateString() : 'N/A'}</p>
+                                            </div>
+                                            <svg className="w-4 h-4 text-gray-300 group-hover/item:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
+                                        </button>
+                                        <button 
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setRenamingId(folder.id);
+                                                setRenameValue(folder.name);
+                                            }}
+                                            className="p-3 text-gray-300 hover:text-primary hover:bg-muted rounded-xl transition-all opacity-0 group-hover/container:opacity-100 shrink-0"
+                                            title="Rename Folder"
+                                        >
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
                         ))
                     )}
                 </div>
