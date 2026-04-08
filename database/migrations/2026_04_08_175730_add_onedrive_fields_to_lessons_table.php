@@ -12,8 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('lessons', function (Blueprint $table) {
-            $table->string('video_source')->default('youtube')->after('video_url');
-            $table->string('video_id')->nullable()->after('video_source');
+            if (!Schema::hasColumn('lessons', 'video_source')) {
+                $table->string('video_source')->default('youtube')->after('video_url');
+            }
+            if (!Schema::hasColumn('lessons', 'video_id')) {
+                $table->string('video_id')->nullable()->after('video_source');
+            }
         });
     }
 
@@ -23,7 +27,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('lessons', function (Blueprint $table) {
-            //
+            $table->dropColumn(['video_source', 'video_id']);
         });
     }
 };

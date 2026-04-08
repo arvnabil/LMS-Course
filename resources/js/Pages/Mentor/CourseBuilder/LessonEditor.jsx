@@ -6,7 +6,7 @@ import axios from 'axios';
 import Toast from '@/Components/Toast';
 
 
-export default function LessonEditor({ auth, lesson }) {
+export default function LessonEditor({ auth, lesson, onedrive_permissions }) {
     console.log("Lesson Data Loaded:", lesson);
     const [activeSource, setActiveSource] = useState((lesson.video_source && lesson.video_source !== '') ? lesson.video_source : 'youtube');
 
@@ -169,9 +169,9 @@ export default function LessonEditor({ auth, lesson }) {
 
     const tabs = [
         { id: 'youtube', label: 'YouTube Link', icon: '📺' },
-        { id: 'onedrive_shared_link', label: 'OneDrive Shared Link', icon: '🔗' },
-        { id: 'onedrive_upload', label: 'Upload to OneDrive', icon: '☁️' },
-        { id: 'onedrive_library', label: 'OneDrive Library', icon: '📂' },
+        ...(onedrive_permissions?.can_use_shared_link ? [{ id: 'onedrive_shared_link', label: 'OneDrive Shared Link', icon: '🔗' }] : []),
+        ...(onedrive_permissions?.can_upload ? [{ id: 'onedrive_upload', label: 'Upload to OneDrive', icon: '☁️' }] : []),
+        ...(onedrive_permissions?.can_use_library ? [{ id: 'onedrive_library', label: 'OneDrive Library', icon: '📂' }] : []),
     ];
 
     return (

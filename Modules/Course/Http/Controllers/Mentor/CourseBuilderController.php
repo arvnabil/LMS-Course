@@ -14,6 +14,7 @@ use Modules\Certificate\Models\CertificateTemplate;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Str;
+use App\Models\OneDrivePermission;
 
 class CourseBuilderController extends Controller
 {
@@ -312,6 +313,11 @@ class CourseBuilderController extends Controller
 
         return Inertia::render('Mentor/CourseBuilder/LessonEditor', [
             'lesson' => $lesson->load('section.course'),
+            'onedrive_permissions' => OneDrivePermission::where('user_id', auth()->id())->first() ?? [
+                'can_use_shared_link' => false,
+                'can_upload' => false,
+                'can_use_library' => false,
+            ],
         ]);
     }
 

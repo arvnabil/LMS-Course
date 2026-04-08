@@ -168,4 +168,12 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
+    /**
+     * OneDrive permissions for this user.
+     */
+    public function oneDrivePermission(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(OneDrivePermission::class);
+    }
+
 }

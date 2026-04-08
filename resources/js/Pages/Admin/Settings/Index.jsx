@@ -12,6 +12,8 @@ export default function SettingsIndex({ auth, settings, onedriveConnected }) {
     
     const [activeIntegration, setActiveIntegration] = useState(null);
     const [showFolderPicker, setShowFolderPicker] = useState(false);
+    const [mentors, setMentors] = useState([]);
+    const [isLoadingMentors, setIsLoadingMentors] = useState(false);
 
     const { data, setData, post, processing, errors, reset } = useForm({
         primary_color: settings.primary_color || global_settings.primary_color || '#ef3f09',
@@ -30,6 +32,40 @@ export default function SettingsIndex({ auth, settings, onedriveConnected }) {
             setShowToast(true);
         }
     }, [flash]);
+
+    const fetchMentors = async () => {
+        setIsLoadingMentors(true);
+        try {
+            const response = await axios.get(route('admin.settings.onedrive.permissions.index'));
+            setMentors(response.data.mentors);
+        } catch (err) {
+            console.error('Failed to fetch mentors', err);
+        } finally {
+            setIsLoadingMentors(false);
+        }
+    };
+
+    const updatePermission = async (userId, field, value) => {
+        const mentor = mentors.find(m => m.id === userId);
+        const newPermissions = { ...mentor.permissions, [field]: value };
+        
+        try {
+            await axios.post(route('admin.settings.onedrive.permissions.update'), {
+                user_id: userId,
+                ...newPermissions
+            });
+            // Update local state
+            setMentors(mentors.map(m => m.id === userId ? { ...m, permissions: newPermissions } : m));
+        } catch (err) {
+            console.error('Failed to update permission', err);
+        }
+    };
+
+    useEffect(() => {
+        if (activeIntegration === 'onedrive') {
+            fetchMentors();
+        }
+    }, [activeIntegration]);
 
     const submit = (e) => {
         e.preventDefault();
@@ -383,6 +419,70 @@ export default function SettingsIndex({ auth, settings, onedriveConnected }) {
                                                 </div>
                                             </div>
                                         </div>
+
+                                        {/* Mentor Access Control Section */}
+                                        <div className="pt-10 border-t border-gray-100 space-y-6">
+                                            <div>
+                                                <h3 className="text-xl font-extrabold text-foreground tracking-tight">Grant Mentor for OneDrive Access</h3>
+                                                <p className="text-gray-400 text-sm font-medium mt-1">Select which OneDrive features each mentor can access in the lesson editor.</p>
+                                            </div>
+
+                                            <div className="bg-muted/30 rounded-3xl border border-gray-100 overflow-hidden">
+                                                <table className="w-full text-left border-collapse">
+                                                    <thead>
+                                                        <tr className="border-b border-gray-100">
+                                                            <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-gray-400">Mentor</th>
+                                                            <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Shared Link</th>
+                                                            <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Direct Upload</th>
+                                                            <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">OneDrive Library</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="divide-y divide-gray-50">
+                                                        {isLoadingMentors ? (
+                                                            <tr>
+                                                                <td colSpan="4" className="px-6 py-10 text-center text-xs font-bold text-gray-400">Loading mentors...</td>
+                                                            </tr>
+                                                        ) : mentors.length === 0 ? (
+                                                            <tr>
+                                                                <td colSpan="4" className="px-6 py-10 text-center text-xs font-bold text-gray-400">No mentors found.</td>
+                                                            </tr>
+                                                        ) : mentors.map((mentor) => (
+                                                            <tr key={mentor.id} className="hover:bg-white transition-colors">
+                                                                <td className="px-6 py-4">
+                                                                    <p className="text-sm font-bold text-foreground">{mentor.full_name}</p>
+                                                                    <p className="text-[10px] text-gray-400 font-medium">{mentor.email}</p>
+                                                                </td>
+                                                                <td className="px-6 py-4 text-center">
+                                                                    <input 
+                                                                        type="checkbox" 
+                                                                        className="w-5 h-5 rounded-lg border-gray-200 text-primary focus:ring-primary/20 cursor-pointer"
+                                                                        checked={mentor.permissions.can_use_shared_link}
+                                                                        onChange={(e) => updatePermission(mentor.id, 'can_use_shared_link', e.target.checked)}
+                                                                    />
+                                                                </td>
+                                                                <td className="px-6 py-4 text-center">
+                                                                    <input 
+                                                                        type="checkbox" 
+                                                                        className="w-5 h-5 rounded-lg border-gray-200 text-primary focus:ring-primary/20 cursor-pointer"
+                                                                        checked={mentor.permissions.can_upload}
+                                                                        onChange={(e) => updatePermission(mentor.id, 'can_upload', e.target.checked)}
+                                                                    />
+                                                                </td>
+                                                                <td className="px-6 py-4 text-center">
+                                                                    <input 
+                                                                        type="checkbox" 
+                                                                        className="w-5 h-5 rounded-lg border-gray-200 text-primary focus:ring-primary/20 cursor-pointer"
+                                                                        checked={mentor.permissions.can_use_library}
+                                                                        onChange={(e) => updatePermission(mentor.id, 'can_use_library', e.target.checked)}
+                                                                    />
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+
                                         <div className="flex justify-start pt-6 border-t border-gray-50">
                                             <button
                                                 type="submit"
