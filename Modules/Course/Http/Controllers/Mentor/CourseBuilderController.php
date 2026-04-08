@@ -156,6 +156,11 @@ class CourseBuilderController extends Controller
         return Inertia::render('Mentor/CourseBuilder/Edit', [
             'course' => $course,
             'categories' => $categories,
+            'onedrive_permissions' => OneDrivePermission::where('user_id', auth()->id())->first() ?? [
+                'can_use_shared_link' => false,
+                'can_upload' => false,
+                'can_use_library' => false,
+            ],
         ]);
     }
 

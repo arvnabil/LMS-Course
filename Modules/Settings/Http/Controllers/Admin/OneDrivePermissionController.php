@@ -14,7 +14,8 @@ class OneDrivePermissionController extends Controller
      */
     public function index()
     {
-        $mentors = User::where('role', 'mentor')
+        $mentors = User::role('mentor')
+            ->orWhere('role', 'like', '%mentor%')
             ->with('oneDrivePermission')
             ->get();
 

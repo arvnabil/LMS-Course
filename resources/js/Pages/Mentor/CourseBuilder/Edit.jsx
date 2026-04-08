@@ -4,7 +4,7 @@ import { Head, Link, useForm, router } from '@inertiajs/react';
 import { useState } from 'react';
 import Modal from '@/Components/Modal';
 
-export default function Edit({ auth, course, categories = [] }) {
+export default function Edit({ auth, course, categories = [], onedrive_permissions }) {
     const [activeTab, setActiveTab] = useState('curriculum'); // Default to curriculum
     const [isAddingSection, setIsAddingSection] = useState(false);
     const [newSectionTitle, setNewSectionTitle] = useState('');
@@ -556,11 +556,11 @@ export default function Edit({ auth, course, categories = [] }) {
                             <label className="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest px-1">Video Source</label>
                             <div className="grid grid-cols-2 gap-4">
                                 {[
-                                    { id: 'youtube', label: 'YouTube', icon: '📺' },
-                                    { id: 'onedrive_shared_link', label: 'OneDrive Link', icon: '🔗' },
-                                    { id: 'onedrive_upload', label: 'Upload', icon: '☁️' },
-                                    { id: 'onedrive_library', label: 'Library', icon: '📂' },
-                                ].map((tab) => (
+                                    { id: 'youtube', label: 'YouTube', icon: '📺', permission: true },
+                                    { id: 'onedrive_shared_link', label: 'OneDrive Link', icon: '🔗', permission: onedrive_permissions?.can_use_shared_link },
+                                    { id: 'onedrive_upload', label: 'Upload', icon: '☁️', permission: onedrive_permissions?.can_upload },
+                                    { id: 'onedrive_library', label: 'Library', icon: '📂', permission: onedrive_permissions?.can_use_library },
+                                ].filter(tab => tab.permission).map((tab) => (
                                     <button
                                         key={tab.id}
                                         type="button"
