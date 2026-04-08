@@ -18,13 +18,13 @@ class OneDriveService
 
     public function __construct()
     {
-        $settings = Setting::where('group', 'integration')->pluck('value', 'key');
+        $settings = \Modules\Settings\Models\Setting::where('group', 'onedrive')->pluck('value', 'key');
 
-        $this->clientId = $settings->get('onedrive_client_id') ?? config('services.onedrive.client_id');
-        $this->clientSecret = $settings->get('onedrive_client_secret') ?? config('services.onedrive.client_secret');
-        $this->tenantId = $settings->get('onedrive_tenant_id') ?? config('services.onedrive.tenant_id', 'common');
-        $this->redirectUri = $settings->get('onedrive_redirect_uri') ?? config('services.onedrive.redirect_uri');
-        $this->basePath = $settings->get('onedrive_base_path') ?? config('services.onedrive.base_path', 'LMS-Course');
+        $this->clientId = $settings->get('onedrive_client_id') ?? config('services.onedrive.client_id') ?? '';
+        $this->clientSecret = $settings->get('onedrive_client_secret') ?? config('services.onedrive.client_secret') ?? '';
+        $this->tenantId = $settings->get('onedrive_tenant_id') ?? config('services.onedrive.tenant_id', 'common') ?? 'common';
+        $this->redirectUri = $settings->get('onedrive_redirect_uri') ?? config('services.onedrive.redirect_uri') ?? '';
+        $this->basePath = $settings->get('onedrive_base_path') ?? config('services.onedrive.base_path', 'LMS-Course') ?? 'LMS-Course';
     }
 
     public function getAuthUrl(): string
