@@ -337,6 +337,11 @@ class CourseBuilderController extends Controller
 
         $lesson->update($updateData);
 
+        \Illuminate\Support\Facades\Log::info('Lesson updated in database', [
+            'lesson_id' => $lesson->id,
+            'attributes' => $lesson->fresh()->getAttributes(),
+        ]);
+
         return back()->with('success', 'Lesson updated.');
     }
 

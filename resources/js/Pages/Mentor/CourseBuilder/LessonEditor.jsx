@@ -3,6 +3,8 @@ import DashboardLayout from '@/Layouts/DashboardLayout';
 import InputError from '@/Components/InputError';
 import { Head, Link, useForm } from '@inertiajs/react';
 import axios from 'axios';
+import Toast from '@/Components/Toast';
+
 
 export default function LessonEditor({ auth, lesson }) {
     const [activeSource, setActiveSource] = useState(lesson.video_source || 'youtube');
@@ -32,6 +34,8 @@ export default function LessonEditor({ auth, lesson }) {
     // Shared Link State
     const [sharedLink, setSharedLink] = useState(lesson.video_source === 'onedrive_shared_link' ? lesson.video_url : '');
     const [isResolvingLink, setIsResolvingLink] = useState(false);
+    const [toast, setToast] = useState(null);
+
 
     const handleThumbnailChange = (e) => {
         const file = e.target.files[0];
@@ -100,9 +104,9 @@ export default function LessonEditor({ auth, lesson }) {
                 video_id: response.data.id,
                 video_url: sharedLink
             }));
-            alert(`Resolved: ${response.data.name}`);
+            setToast({ message: `Resolved: ${response.data.name}`, type: 'success' });
         } catch (err) {
-            alert('Failed to resolve sharing link. Make sure it is a valid OneDrive sharing URL.');
+            setToast({ message: 'Failed to resolve sharing link. Make sure it is a valid OneDrive sharing URL.', type: 'error' });
         } finally {
             setIsResolvingLink(false);
         }
@@ -115,22 +119,21 @@ export default function LessonEditor({ auth, lesson }) {
         }
     }, [activeSource]);
 
+    useEffect(() => {
+        if (activeSource === 'onedrive_shared_link') {
+            setData('video_url', sharedLink);
+        }
+    }, [sharedLink, activeSource]);
+
+
     const submit = (e) => {
         e.preventDefault();
-        
-        // Final sync for OneDrive shared link before submit
-        if (activeSource === 'onedrive_shared_link') {
-            setData(prev => ({
-                ...prev,
-                video_url: sharedLink,
-                video_source: 'onedrive_shared_link'
-            }));
-            // We use the direct route call here to ensure we use the fresh state
-            post(route('mentor.lessons.update', lesson.id));
-        } else {
-            post(route('mentor.lessons.update', lesson.id));
-        }
+        post(route('mentor.lessons.update', lesson.id), {
+            onSuccess: () => setToast({ message: 'Lesson updated successfully!', type: 'success' }),
+            onError: () => setToast({ message: 'Failed to update lesson. Please check the form.', type: 'error' }),
+        });
     };
+
 
     const tabs = [
         { id: 'youtube', label: 'YouTube Link', icon: '📺' },
@@ -142,6 +145,14 @@ export default function LessonEditor({ auth, lesson }) {
     return (
         <DashboardLayout user={auth.user}>
             <Head title={`Edit Lesson: ${lesson.title}`} />
+
+            {toast && (
+                <Toast 
+                    message={toast.message} 
+                    type={toast.type} 
+                    onClose={() => setToast(null)} 
+                />
+            )}
 
             <div className="max-w-5xl mx-auto space-y-10 pb-20">
                 <div className="flex items-center justify-between">
