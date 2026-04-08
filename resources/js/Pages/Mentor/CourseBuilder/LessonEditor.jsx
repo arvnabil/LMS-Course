@@ -188,20 +188,26 @@ export default function LessonEditor({ auth, lesson }) {
                         <div className="space-y-8">
                             <div>
                                 <label className="text-xs font-extrabold text-foreground uppercase tracking-widest px-1 block mb-4">Video Source Type</label>
-                                <select
-                                    value={activeSource}
-                                    onChange={(e) => {
-                                        setActiveSource(e.target.value);
-                                        setData('video_source', e.target.value);
-                                    }}
-                                    className="w-full max-w-sm bg-muted border-none rounded-2xl px-6 py-4 text-sm font-bold focus:ring-4 focus:ring-primary/10 transition-all outline-none cursor-pointer appearance-none"
-                                >
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                                     {tabs.map((tab) => (
-                                        <option key={tab.id} value={tab.id}>
-                                            {tab.icon} {tab.label}
-                                        </option>
+                                        <button
+                                            key={tab.id}
+                                            type="button"
+                                            onClick={() => {
+                                                setActiveSource(tab.id);
+                                                setData('video_source', tab.id);
+                                            }}
+                                            className={`p-6 rounded-[32px] border-2 text-left transition-all hover:scale-[1.02] active:scale-[0.98] flex flex-col justify-between ${
+                                                activeSource === tab.id 
+                                                    ? 'border-primary bg-primary/5 text-primary shadow-xl shadow-primary/10' 
+                                                    : 'border-gray-50 bg-muted/50 text-gray-400 hover:border-primary/20 hover:bg-white'
+                                            }`}
+                                        >
+                                            <div className="text-2xl mb-4">{tab.icon}</div>
+                                            <p className="text-[10px] font-black uppercase tracking-widest leading-tight">{tab.label}</p>
+                                        </button>
                                     ))}
-                                </select>
+                                </div>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-start">
