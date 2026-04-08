@@ -9,7 +9,7 @@ import Toast from '@/Components/Toast';
 export default function LessonEditor({ auth, lesson }) {
     const [activeSource, setActiveSource] = useState(lesson.video_source || 'youtube');
     
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing, errors, transform } = useForm({
         content: lesson.content || '',
         video_url: lesson.video_url || '',
         video_source: lesson.video_source || 'youtube',
@@ -141,14 +141,13 @@ export default function LessonEditor({ auth, lesson }) {
         });
     };
 
-    // Define the transformation logic
+    // Define the transformation logic to ensure state is synced before POST
     useEffect(() => {
-        const unwatch = transform((data) => ({
+        transform((data) => ({
             ...data,
             video_source: activeSource,
             video_url: activeSource === 'onedrive_shared_link' ? sharedLink : data.video_url,
         }));
-        return () => unwatch; // Clean up transform if needed (though useForm handles it)
     }, [activeSource, sharedLink, transform]);
 
 
