@@ -24,28 +24,17 @@ class OneDriveStreamController extends Controller
      */
     public function stream(string $itemId)
     {
+        \Illuminate\Support\Facades\Log::info("OneDrive Stream Request", ['item_id' => $itemId]);
+        
         $downloadUrl = $this->oneDrive->getDownloadUrl($itemId);
 
         if (!$downloadUrl) {
+            \Illuminate\Support\Facades\Log::error("OneDrive Stream Failed: Could not get download URL", ['item_id' => $itemId]);
             abort(404, 'File not found or access denied.');
         }
 
-        // Try to determine content type from extension (naive but helpful)
-        $contentType = 'video/mp4'; // Default to mp4 as it's most common for web
-        
-        return response()->stream(function () use ($downloadUrl) {
-            $stream = fopen($downloadUrl, 'r');
-            if ($stream) {
-                while (!feof($stream)) {
-                    echo fread($stream, 8192 * 4); // Use larger buffer for smoother streaming
-                    flush();
-                }
-                fclose($stream);
-            }
-        }, 200, [
-            'Content-Type' => $contentType,
-            'Cache-Control' => 'max-age=86400',
-            'Accept-Ranges' => 'bytes',
-        ]);
+        // Redirecting to the pre-signed URL is much better for video playback
+        // as it supports Range requests and chunked streaming natively.
+        return redirect()->away($downloadUrl);
     }
 }

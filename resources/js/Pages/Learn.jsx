@@ -908,16 +908,24 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                     <div className="w-full aspect-video relative flex items-center justify-center bg-black">
                                         <video 
                                             ref={videoRef}
-                                            src={`/onedrive/stream/${currentLesson.video_id}`}
+                                            src={`/onedrive/stream/${currentLesson.video_id}?t=${new Date(currentLesson.updated_at).getTime()}`}
                                             controls
                                             controlsList="nodownload"
                                             className="w-full h-full outline-none"
                                             playsInline
+                                            crossOrigin="anonymous"
                                             onPlay={() => {
                                                 setIsPlaying(true);
                                                 setHasStarted(true);
                                             }}
                                             onPause={() => setIsPlaying(false)}
+                                            onError={(e) => {
+                                                console.error("Video Playback Error:", e);
+                                                setToast({ 
+                                                    message: "Failed to load video. Please ensure the OneDrive link is still valid and you have permissions.", 
+                                                    type: 'error' 
+                                                });
+                                            }}
                                             onTimeUpdate={(e) => {
                                                 const current = e.target.currentTime;
                                                 const dur = e.target.duration || 0;
