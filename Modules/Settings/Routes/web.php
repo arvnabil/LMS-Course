@@ -16,6 +16,11 @@ Route::middleware('web')->group(function () {
             // Platform Settings
             Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
             Route::post('/settings', [SettingController::class, 'update'])->name('settings.update');
+
+            // OneDrive Explorer for Settings
+            Route::get('/settings/onedrive/list/{itemId?}', [OneDriveExplorerController::class, 'list'])->name('settings.onedrive.list');
+            Route::post('/settings/onedrive/create-folder', [OneDriveExplorerController::class, 'createFolder'])->name('settings.onedrive.create-folder');
+            Route::get('/settings/onedrive/resolve-path/{itemId}', [OneDriveExplorerController::class, 'resolvePath'])->name('settings.onedrive.resolve-path');
         });
     });
 });

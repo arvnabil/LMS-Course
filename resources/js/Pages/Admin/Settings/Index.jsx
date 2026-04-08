@@ -3,6 +3,7 @@ import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import InputError from '@/Components/InputError';
 import Toast from '@/Components/Toast';
+import OneDriveFolderPicker from '@/Components/OneDriveFolderPicker';
 
 export default function SettingsIndex({ auth, settings, onedriveConnected }) {
     const { flash, global_settings } = usePage().props;
@@ -10,6 +11,7 @@ export default function SettingsIndex({ auth, settings, onedriveConnected }) {
     const [showToast, setShowToast] = useState(false);
     
     const [activeIntegration, setActiveIntegration] = useState(null);
+    const [showFolderPicker, setShowFolderPicker] = useState(false);
 
     const { data, setData, post, processing, errors, reset } = useForm({
         primary_color: settings.primary_color || global_settings.primary_color || '#ef3f09',
@@ -344,17 +346,40 @@ export default function SettingsIndex({ auth, settings, onedriveConnected }) {
                                                     />
                                                     <InputError message={errors.onedrive_redirect_uri} />
                                                 </div>
-                                                <div className="space-y-3 md:col-span-2">
-                                                    <label className="text-xs font-extrabold text-foreground uppercase tracking-widest px-1">Base Path (Folder Name)</label>
-                                                    <input 
-                                                        type="text" 
-                                                        value={data.onedrive_base_path}
-                                                        onChange={e => setData('onedrive_base_path', e.target.value)}
-                                                        className="w-full bg-muted border-none rounded-2xl px-6 py-4 text-sm font-bold focus:ring-4 focus:ring-[#0078D4]/20 transition-all outline-none"
-                                                        placeholder="e.g. LMS-Course"
-                                                    />
-                                                    <p className="text-[11px] text-gray-500 font-bold px-2">This is the root folder where all course files will be uploaded automatically.</p>
+                                                 <div className="space-y-3 md:col-span-2">
+                                                    <label className="text-xs font-extrabold text-foreground uppercase tracking-widest px-1">Base Path (Root Folder)</label>
+                                                    
+                                                    <div className="flex items-stretch gap-3">
+                                                        <div className="flex-1 bg-muted rounded-2xl px-6 py-4 flex items-center min-h-[56px]">
+                                                            <div className="flex items-center gap-3 overflow-hidden">
+                                                                <div className="w-8 h-8 rounded-lg bg-white/50 flex items-center justify-center text-[#0078D4] shrink-0">
+                                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
+                                                                </div>
+                                                                <span className="text-sm font-bold text-foreground truncate">
+                                                                    {data.onedrive_base_path || 'OneDrive Root'}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        <button 
+                                                            type="button"
+                                                            onClick={() => setShowFolderPicker(true)}
+                                                            className="px-6 rounded-2xl bg-[#0078D4] text-white text-xs font-black uppercase tracking-widest shadow-xl shadow-blue-500/20 hover:bg-blue-700 transition-all whitespace-nowrap"
+                                                        >
+                                                            Browse Folder
+                                                        </button>
+                                                    </div>
+
+                                                    <p className="text-[11px] text-gray-500 font-bold px-2 mt-2">
+                                                        This is the root directory where all course materials and videos will be managed.
+                                                    </p>
                                                     <InputError message={errors.onedrive_base_path} />
+
+                                                    <OneDriveFolderPicker 
+                                                        show={showFolderPicker} 
+                                                        onClose={() => setShowFolderPicker(false)}
+                                                        onSelect={(path) => setData('onedrive_base_path', path)}
+                                                        currentPath={data.onedrive_base_path}
+                                                    />
                                                 </div>
                                             </div>
                                         </div>

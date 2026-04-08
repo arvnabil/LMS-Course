@@ -337,4 +337,45 @@ class OneDriveService
 
         return $response->successful() ? $response->json() : null;
     }
+
+    /**
+     * Get metadata for a specific DriveItem.
+     */
+    public function getDriveItem(string $itemId): ?array
+    {
+        $accessToken = $this->getAccessToken();
+        if (!$accessToken) return null;
+
+        $url = "https://graph.microsoft.com/v1.0/me/drive/items/{$itemId}";
+        $response = Http::withToken($accessToken)->get($url);
+
+        return $response->successful() ? $response->json() : null;
+    }
+
+    /**
+     * Resolve the readable path for a folder given its Item ID.
+     */
+    public function getItemPath(string $itemId): ?string
+    {
+        $item = $this->getDriveItem($itemId);
+        if (!$item) return null;
+
+        // Microsoft Graph returns path like "/drive/root:/folder/subfolder"
+        // We want to extract just the part after "root:/"
+        $fullPath = $item['parentReference']['path'] ?? '';
+        $name = $item['name'] ?? '';
+
+        if (str_contains($fullPath, 'root:')) {
+            $parts = explode('root:', $fullPath);
+            $pathAfterRoot = $parts[1] ?? '';
+            $pathAfterRoot = trim($pathAfterRoot, '/');
+            
+            if ($pathAfterRoot === '') {
+                return $name;
+            }
+            return $pathAfterRoot . '/' . $name;
+        }
+
+        return $name;
+    }
 }
