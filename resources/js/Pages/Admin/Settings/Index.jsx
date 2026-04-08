@@ -1,18 +1,21 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import InputError from '@/Components/InputError';
+import Toast from '@/Components/Toast';
 
 export default function SettingsIndex({ auth, settings, onedriveConnected }) {
+    const { flash, global_settings } = usePage().props;
     const [activeTab, setActiveTab] = useState('branding');
+    const [showToast, setShowToast] = useState(false);
+    
     const [activeIntegration, setActiveIntegration] = useState(null);
-    const { global_settings } = usePage().props;
 
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing, errors, reset } = useForm({
         primary_color: settings.primary_color || global_settings.primary_color || '#ef3f09',
         sidebar_active_color: settings.sidebar_active_color || global_settings.sidebar_active_color || '#276874',
         platform_name: settings.platform_name || global_settings.platform_name || 'LMS',
-        platform_logo: null, // Files are null initially
+        platform_logo: null,
         onedrive_client_id: settings.onedrive_client_id || '',
         onedrive_client_secret: settings.onedrive_client_secret || '',
         onedrive_tenant_id: settings.onedrive_tenant_id || 'common',
@@ -20,12 +23,19 @@ export default function SettingsIndex({ auth, settings, onedriveConnected }) {
         onedrive_base_path: settings.onedrive_base_path || 'LMS-Course',
     });
 
+    useEffect(() => {
+        if (flash.success) {
+            setShowToast(true);
+        }
+    }, [flash]);
+
     const submit = (e) => {
         e.preventDefault();
         post(route('admin.settings.update'), {
             preserveScroll: true,
             onSuccess: () => {
-                location.reload(); 
+                // No reload needed, Inertia updates props automatically
+                reset('platform_logo');
             }
         });
     };
@@ -33,6 +43,14 @@ export default function SettingsIndex({ auth, settings, onedriveConnected }) {
     return (
         <DashboardLayout user={auth.user}>
             <Head title="Platform Settings" />
+
+            {showToast && (
+                <Toast 
+                    message={flash.success} 
+                    type="success" 
+                    onClose={() => setShowToast(false)} 
+                />
+            )}
 
             <div className="max-w-5xl mx-auto space-y-8 pb-20">
                 <div className="flex items-center justify-between">
