@@ -109,6 +109,7 @@ export default function LessonEditor({ auth, lesson }) {
     };
 
     useEffect(() => {
+        setData('video_source', activeSource);
         if (activeSource === 'onedrive_library' && files.length === 0) {
             fetchFiles();
         }
@@ -116,7 +117,19 @@ export default function LessonEditor({ auth, lesson }) {
 
     const submit = (e) => {
         e.preventDefault();
-        post(route('mentor.lessons.update', lesson.id));
+        
+        // Final sync for OneDrive shared link before submit
+        if (activeSource === 'onedrive_shared_link') {
+            setData(prev => ({
+                ...prev,
+                video_url: sharedLink,
+                video_source: 'onedrive_shared_link'
+            }));
+            // We use the direct route call here to ensure we use the fresh state
+            post(route('mentor.lessons.update', lesson.id));
+        } else {
+            post(route('mentor.lessons.update', lesson.id));
+        }
     };
 
     const tabs = [

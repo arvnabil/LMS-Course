@@ -898,7 +898,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                             </div>
                                         </div>
                                     </div>
-                                ) : currentLesson?.video_source?.includes('onedrive') && currentLesson?.video_id ? (
+                                ) : (currentLesson?.video_source?.includes('onedrive') || currentLesson?.video_url?.includes('sharepoint.com') || currentLesson?.video_url?.includes('onedrive.live.com')) && currentLesson?.video_id ? (
                                     <div className="w-full aspect-video relative flex items-center justify-center bg-black">
                                         <video 
                                             ref={videoRef}

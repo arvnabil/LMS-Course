@@ -318,19 +318,14 @@ class CourseBuilderController extends Controller
             'is_preview' => 'nullable|boolean',
         ]);
 
-        $updateData = array_filter($validated, fn($v) => !is_null($v));
+        $updateData = $validated;
 
-        \Illuminate\Support\Facades\Log::info('Lesson update payload', [
-            'request' => $request->all(),
-            'validated' => $validated,
-            'updateData' => $updateData
+        \Illuminate\Support\Facades\Log::info('Lesson update payload received', [
+            'raw_request' => $request->all(),
+            'validated_data' => $validated,
         ]);
 
-        // Logic check: if video_url is provided but no source, default to youtube
-        if (isset($updateData['video_url']) && !isset($updateData['video_source'])) {
-            $updateData['video_source'] = 'youtube';
-        }
-        
+        // Only add thumbnail if it's present in the request
         if ($request->hasFile('thumbnail')) {
             if ($lesson->thumbnail) {
                 $oldPath = str_replace('/storage/', '', $lesson->thumbnail);
