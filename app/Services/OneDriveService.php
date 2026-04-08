@@ -217,6 +217,17 @@ class OneDriveService
             if ($result) return $result;
         }
 
+        // Try 3: SharePoint specific normalization (sharing links sometimes need specific formatting)
+        if (str_contains($sharingUrl, 'sharepoint.com')) {
+            // Remove everything after the last colon if it's a redirect link
+            // e.g. .../:v:/g/personal/...
+            $normalized = preg_replace('/(\/[^:]+:[^:]+:)[^?]+/', '$1', $sharingUrl);
+            if ($normalized && $normalized !== $sharingUrl) {
+                $result = $this->attemptResolve($normalized, $accessToken);
+                if ($result) return $result;
+            }
+        }
+
         return null;
     }
 
@@ -234,11 +245,14 @@ class OneDriveService
                 return $response->json();
             }
 
-            Log::debug('OneDrive Attempt Resolve Failed', [
-                'url' => $url,
-                'status' => $response->status(),
-                'error' => $response->json()
-            ]);
+            // If not found (404), Log debug info but don't treat as fatal error yet
+            if ($response->status() !== 404) {
+                Log::debug('OneDrive Attempt Resolve Failed', [
+                    'url' => $url,
+                    'status' => $response->status(),
+                    'error' => $response->json()
+                ]);
+            }
         } catch (\Exception $e) {
             Log::error('OneDrive Attempt Resolve Exception: ' . $e->getMessage());
         }

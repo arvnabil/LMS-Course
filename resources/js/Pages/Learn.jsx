@@ -902,8 +902,9 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                     currentLesson?.video_source?.includes('onedrive') || 
                                     currentLesson?.video_url?.includes('sharepoint.com') || 
                                     currentLesson?.video_url?.includes('onedrive.live.com') ||
-                                    (currentLesson?.video_url && !currentLesson.video_url.includes('youtube.com') && !currentLesson.video_url.includes('youtu.be') && currentLesson.video_id)
-                                ) && currentLesson?.video_id ? (
+                                    // Also match if it's explicitly identified as a non-youtube source but has a video_id
+                                    (currentLesson?.video_id && !videoId)
+                                ) ? (
                                     <div className="w-full aspect-video relative flex items-center justify-center bg-black">
                                         <video 
                                             ref={videoRef}

@@ -107,15 +107,22 @@ export default function LessonEditor({ auth, lesson }) {
         setIsResolvingLink(true);
         try {
             const response = await axios.post(route('mentor.onedrive.resolve'), { url: sharedLink });
+            
+            // Ensure we update both the form data AND the local state correctly
             setData(data => ({
                 ...data,
                 video_source: 'onedrive_shared_link',
                 video_id: response.data.id,
                 video_url: sharedLink
             }));
+            
             setToast({ message: `Resolved: ${response.data.name}`, type: 'success' });
         } catch (err) {
-            setToast({ message: 'Failed to resolve sharing link. Make sure it is a valid OneDrive sharing URL.', type: 'error' });
+            console.error('Resolve Error:', err.response?.data || err.message);
+            setToast({ 
+                message: err.response?.data?.error || 'Failed to resolve sharing link. Make sure it is a valid OneDrive sharing URL.', 
+                type: 'error' 
+            });
         } finally {
             setIsResolvingLink(false);
         }
