@@ -371,40 +371,58 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
     }, [isAlreadyCompleted, currentLesson]);
 
     const togglePlay = () => {
-        if (!playerRef.current) return;
-        if (isPlaying) {
-            playerRef.current.pauseVideo();
-        } else {
-            setHasStarted(true);
-            playerRef.current.playVideo();
+        if (playerRef.current && typeof playerRef.current.playVideo === 'function') {
+            if (isPlaying) {
+                playerRef.current.pauseVideo();
+            } else {
+                setHasStarted(true);
+                playerRef.current.playVideo();
+            }
+        } else if (videoRef.current) {
+            if (videoRef.current.paused) {
+                setHasStarted(true);
+                videoRef.current.play();
+                setIsPlaying(true);
+            } else {
+                videoRef.current.pause();
+                setIsPlaying(false);
+            }
         }
     };
 
     const seekTo = (seconds) => {
-        if (!playerRef.current) return;
-        // Only allow seeking backward
         if (isAlreadyCompleted || seconds <= lastMaxTime.current) {
-            playerRef.current.seekTo(seconds, true);
+            if (playerRef.current && typeof playerRef.current.seekTo === 'function') {
+                playerRef.current.seekTo(seconds, true);
+            } else if (videoRef.current) {
+                videoRef.current.currentTime = seconds;
+            }
         } else {
             setToast({ message: "You can only seek back to parts you've already watched.", type: 'warning' });
         }
     };
 
     const toggleMute = () => {
-        if (!playerRef.current) return;
-        if (isMuted) {
-            playerRef.current.unMute();
-            setIsMuted(false);
-        } else {
-            playerRef.current.mute();
-            setIsMuted(true);
+        if (playerRef.current && typeof playerRef.current.mute === 'function') {
+            if (isMuted) {
+                playerRef.current.unMute();
+                setIsMuted(false);
+            } else {
+                playerRef.current.mute();
+                setIsMuted(true);
+            }
+        } else if (videoRef.current) {
+            const newMuted = !videoRef.current.muted;
+            videoRef.current.muted = newMuted;
+            setIsMuted(newMuted);
         }
     };
 
     const handleVolumeChange = (newVolume) => {
         const vol = parseInt(newVolume);
         setVolume(vol);
-        if (playerRef.current) {
+        
+        if (playerRef.current && typeof playerRef.current.setVolume === 'function') {
             playerRef.current.setVolume(vol);
             if (vol > 0 && isMuted) {
                 playerRef.current.unMute();
@@ -413,6 +431,11 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                 playerRef.current.mute();
                 setIsMuted(true);
             }
+        } else if (videoRef.current) {
+            videoRef.current.volume = vol / 100;
+            const newMuted = vol === 0;
+            videoRef.current.muted = newMuted;
+            setIsMuted(newMuted);
         }
     };
 
@@ -788,171 +811,179 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                         {/* Video Player Area */}
                         {!currentLesson?.is_quiz && currentLesson?.type === 'video' && (
                             <div ref={videoContainerRef} className="w-full bg-black flex items-center justify-center relative group">
-                                {videoId ? (
-                                    <div className="w-full aspect-video relative">
+                                    {videoId ? (
                                         <div id="yt-player" className="w-full h-full"></div>
-                                        
+                                    ) : (currentLesson?.video_source?.includes('onedrive') || 
+                                         currentLesson?.video_url?.includes('sharepoint.com') || 
+                                         currentLesson?.video_url?.includes('onedrive.live.com') ||
+                                         (currentLesson?.video_id && !videoId)) ? (
+                                        <div className="w-full h-full flex items-center justify-center">
+                                            <video 
+                                                ref={videoRef}
+                                                src={`/onedrive/stream/${currentLesson.video_id}?t=${new Date(currentLesson.updated_at).getTime()}`}
+                                                className="w-full h-full outline-none"
+                                                playsInline
+                                                crossOrigin="anonymous"
+                                                onPlay={() => {
+                                                    setIsPlaying(true);
+                                                    setHasStarted(true);
+                                                }}
+                                                onPause={() => setIsPlaying(false)}
+                                                onError={(e) => {
+                                                    console.error("Video Playback Error:", e);
+                                                    setToast({ 
+                                                        message: "Failed to load video. Please ensure the OneDrive link is still valid and you have permissions.", 
+                                                        type: 'error' 
+                                                    });
+                                                }}
+                                                onTimeUpdate={(e) => {
+                                                    const current = e.target.currentTime;
+                                                    const dur = e.target.duration || 0;
+                                                    
+                                                    if (!isAlreadyCompleted && current > lastMaxTime.current + 2) {
+                                                        e.target.currentTime = lastMaxTime.current;
+                                                    } else if (isAlreadyCompleted || current > lastMaxTime.current) {
+                                                        lastMaxTime.current = isAlreadyCompleted ? dur : current;
+                                                    }
+                                                    
+                                                    setCurrentTime(current);
+                                                    setDuration(dur);
+                                                    if (dur > 0) {
+                                                        const pct = Math.round((current / dur) * 100);
+                                                        setWatchProgress(pct);
+                                                        if (pct >= 98) setVideoWatched(true);
+                                                        if (current > 10) localStorage.setItem(`lesson_${currentLesson.id}_resume_time`, current);
+                                                    }
+                                                }}
+                                                onLoadedMetadata={(e) => {
+                                                    setDuration(e.target.duration);
+                                                }}
+                                                onEnded={() => {
+                                                    setVideoWatched(true);
+                                                    setWatchProgress(100);
+                                                    setIsPlaying(false);
+                                                    setHasStarted(false);
+                                                    localStorage.removeItem(`lesson_${currentLesson.id}_resume_time`);
+                                                }}
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center">
+                                            <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-primary/10 to-gray-950"></div>
+                                            <p className="mt-6 text-gray-400 text-[10px] font-extrabold uppercase tracking-[0.2em] relative z-10">Waiting for Video Source...</p>
+                                        </div>
+                                    )}
+
+                                    {/* Invisible click area for toggle play/pause while playing */}
+                                    {hasStarted && (
                                         <div 
                                             className="absolute inset-0 z-0 cursor-pointer"
                                             onClick={togglePlay}
                                             onDoubleClick={toggleFullscreen}
                                         ></div>
-
-                                        {/* Custom Thumbnail & Play Button Overlay */}
-                                        {videoId && !hasStarted && (
-                                            <div 
-                                                className="absolute inset-0 z-20 cursor-pointer group/overlay transition-all duration-700 overflow-hidden"
-                                                onClick={togglePlay}
-                                            >
+                                    )}
+                                    
+                                    {/* Custom Thumbnail & Play Button Overlay */}
+                                    {!hasStarted && (
+                                        <div 
+                                            className="absolute inset-0 z-20 cursor-pointer group/overlay transition-all duration-700 overflow-hidden"
+                                            onClick={togglePlay}
+                                        >
+                                            {currentLesson.thumbnail || videoId ? (
                                                 <img 
                                                     src={currentLesson.thumbnail || `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`} 
                                                     className="w-full h-full object-cover transition-transform duration-700 group-hover/overlay:scale-105" 
                                                     alt="Video Thumbnail"
                                                     onError={(e) => {
-                                                        if (!currentLesson.thumbnail) {
+                                                        if (videoId && !currentLesson.thumbnail) {
                                                             if (e.target.src.includes('maxresdefault.jpg')) {
-                                                                e.target.src = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+                                                                  e.target.src = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
                                                             } else if (e.target.src.includes('hqdefault.jpg')) {
-                                                                e.target.src = `https://i.ytimg.com/vi/${videoId}/0.jpg`;
+                                                                  e.target.src = `https://i.ytimg.com/vi/${videoId}/0.jpg`;
                                                             }
                                                         } else {
-                                                            // If custom thumbnail fails, try youtube as ultimate fallback
-                                                            e.target.src = `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`;
+                                                            e.target.style.display = 'none';
                                                         }
                                                     }}
                                                 />
-                                                <div className="absolute inset-0 bg-black/10 group-hover/overlay:bg-black/30 transition-colors flex items-center justify-center">
-                                                    <div className="w-20 h-14 sm:w-24 sm:h-16 bg-primary rounded-[18px] flex items-center justify-center shadow-2xl transition-all duration-300 group-hover/overlay:scale-110 group-hover/overlay:shadow-primary/40">
-                                                        <svg width="28" height="28" viewBox="0 0 24 24" fill="white" className="ml-1">
-                                                            <path d="M8 5v14l11-7z"/>
-                                                        </svg>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
-                                        
-                                        {/* Custom Overlay Controls */}
-                                        <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col gap-4 z-10">
-                                            {/* Custom Progress Bar */}
-                                            <div className="relative w-full h-1.5 bg-white/20 rounded-full cursor-pointer group/progress overflow-hidden" 
-                                                 onClick={(e) => {
-                                                     const rect = e.currentTarget.getBoundingClientRect();
-                                                     const pos = (e.clientX - rect.left) / rect.width;
-                                                     seekTo(pos * duration);
-                                                 }}>
-                                                <div className="absolute inset-y-0 left-0 bg-primary transition-all pointer-events-none" style={{ width: `${watchProgress}%` }}></div>
-                                                <div className="absolute inset-y-0 left-0 bg-white/30 transition-all pointer-events-none" style={{ width: `${(lastMaxTime.current / duration) * 100}%` }}></div>
-                                            </div>
-                                            
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-6">
-                                                    <button onClick={togglePlay} className="text-white hover:text-primary transition-colors cursor-pointer">
-                                                        {isPlaying ? (
-                                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
-                                                        ) : (
-                                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                                                        )}
-                                                    </button>
-                                                    
-                                                    <div className="text-[10px] font-bold text-white uppercase tracking-widest tabular-nums">
-                                                        {formatTime(currentTime)} <span className="text-white/40">/</span> {formatTime(duration)}
-                                                    </div>
-                                                </div>
-                                                
-                                                <div className="flex items-center gap-4">
-                                                    {/* Volume Control */}
-                                                    <div className="flex items-center gap-2 group/volume relative">
-                                                        <button onClick={toggleMute} className="text-white hover:text-primary transition-colors cursor-pointer">
-                                                            {isMuted || volume === 0 ? (
-                                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
-                                                            ) : volume < 50 ? (
-                                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
-                                                            ) : (
-                                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
-                                                            )}
-                                                        </button>
-                                                        <div className="w-0 group-hover/volume:w-20 overflow-hidden transition-all duration-300 flex items-center">
-                                                            <input 
-                                                                type="range" 
-                                                                min="0" 
-                                                                max="100" 
-                                                                value={volume} 
-                                                                onChange={(e) => handleVolumeChange(e.target.value)}
-                                                                className="w-16 h-1 bg-white/20 rounded-full appearance-none cursor-pointer accent-primary"
-                                                            />
-                                                        </div>
-                                                    </div>
-
-                                                    <div className={`px-3 py-1 bg-white/10 rounded-full text-[8px] font-extrabold text-white uppercase tracking-widest border border-white/10 hidden sm:block ${isAlreadyCompleted ? 'opacity-50' : ''}`}>
-                                                        {isAlreadyCompleted ? 'Seek Protection Disabled' : 'Seek Protection Enabled'}
-                                                    </div>
-
-                                                    <button onClick={toggleFullscreen} className="text-white hover:text-primary transition-colors cursor-pointer">
-                                                        {isFullscreen ? (
-                                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>
-                                                        ) : (
-                                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
-                                                        )}
-                                                    </button>
+                                            ) : (
+                                                <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-primary/20 to-gray-950"></div>
+                                            )}
+                                            <div className="absolute inset-0 bg-black/10 group-hover/overlay:bg-black/30 transition-colors flex items-center justify-center">
+                                                <div className="w-20 h-14 sm:w-24 sm:h-16 bg-primary rounded-[18px] flex items-center justify-center shadow-2xl transition-all duration-300 group-hover/overlay:scale-110 group-hover/overlay:shadow-primary/40 border border-white/10 backdrop-blur-sm">
+                                                    <svg width="28" height="28" viewBox="0 0 24 24" fill="white" className="ml-1">
+                                                        <path d="M8 5v14l11-7z"/>
+                                                    </svg>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ) : (
-                                    currentLesson?.video_source?.includes('onedrive') || 
-                                    currentLesson?.video_url?.includes('sharepoint.com') || 
-                                    currentLesson?.video_url?.includes('onedrive.live.com') ||
-                                    // Also match if it's explicitly identified as a non-youtube source but has a video_id
-                                    (currentLesson?.video_id && !videoId)
-                                ) ? (
-                                    <div className="w-full aspect-video relative flex items-center justify-center bg-black">
-                                        <video 
-                                            ref={videoRef}
-                                            src={`/onedrive/stream/${currentLesson.video_id}?t=${new Date(currentLesson.updated_at).getTime()}`}
-                                            controls
-                                            controlsList="nodownload"
-                                            className="w-full h-full outline-none"
-                                            playsInline
-                                            crossOrigin="anonymous"
-                                            onPlay={() => {
-                                                setIsPlaying(true);
-                                                setHasStarted(true);
-                                            }}
-                                            onPause={() => setIsPlaying(false)}
-                                            onError={(e) => {
-                                                console.error("Video Playback Error:", e);
-                                                setToast({ 
-                                                    message: "Failed to load video. Please ensure the OneDrive link is still valid and you have permissions.", 
-                                                    type: 'error' 
-                                                });
-                                            }}
-                                            onTimeUpdate={(e) => {
-                                                const current = e.target.currentTime;
-                                                const dur = e.target.duration || 0;
+                                    )}
+                                    
+                                    {/* Custom Overlay Controls */}
+                                    <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col gap-4 z-10">
+                                        {/* Custom Progress Bar */}
+                                        <div className="relative w-full h-1.5 bg-white/20 rounded-full cursor-pointer group/progress overflow-hidden" 
+                                             onClick={(e) => {
+                                                 const rect = e.currentTarget.getBoundingClientRect();
+                                                 const pos = (e.clientX - rect.left) / rect.width;
+                                                 seekTo(pos * duration);
+                                             }}>
+                                            <div className="absolute inset-y-0 left-0 bg-primary transition-all pointer-events-none" style={{ width: `${watchProgress}%` }}></div>
+                                            <div className="absolute inset-y-0 left-0 bg-white/30 transition-all pointer-events-none" style={{ width: `${(lastMaxTime.current / duration) * 100}%` }}></div>
+                                        </div>
+                                        
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-6">
+                                                <button onClick={togglePlay} className="text-white hover:text-primary transition-colors cursor-pointer outline-none">
+                                                    {isPlaying ? (
+                                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                                                    ) : (
+                                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                                                    )}
+                                                </button>
                                                 
-                                                if (!isAlreadyCompleted && current > lastMaxTime.current + 2) {
-                                                    e.target.currentTime = lastMaxTime.current;
-                                                } else if (isAlreadyCompleted || current > lastMaxTime.current) {
-                                                    lastMaxTime.current = isAlreadyCompleted ? dur : current;
-                                                }
-                                                
-                                                setCurrentTime(current);
-                                                setDuration(dur);
-                                                if (dur > 0) {
-                                                    const pct = Math.round((current / dur) * 100);
-                                                    setWatchProgress(pct);
-                                                    if (pct >= 98) setVideoWatched(true);
-                                                    if (current > 10) localStorage.setItem(`lesson_${currentLesson.id}_resume_time`, current);
-                                                }
-                                            }}
-                                            onEnded={() => {
-                                                setVideoWatched(true);
-                                                setWatchProgress(100);
-                                                setIsPlaying(false);
-                                                setHasStarted(false);
-                                                localStorage.removeItem(`lesson_${currentLesson.id}_resume_time`);
-                                            }}
-                                        />
+                                                <div className="text-[10px] font-bold text-white uppercase tracking-widest tabular-nums">
+                                                    {formatTime(currentTime)} <span className="text-white/40">/</span> {formatTime(duration)}
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="flex items-center gap-4">
+                                                {/* Volume Control */}
+                                                <div className="flex items-center gap-2 group/volume relative">
+                                                    <button onClick={toggleMute} className="text-white hover:text-primary transition-colors cursor-pointer outline-none">
+                                                        {isMuted || volume === 0 ? (
+                                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+                                                        ) : volume < 50 ? (
+                                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                                                        ) : (
+                                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                                                        )}
+                                                    </button>
+                                                    <div className="w-0 group-hover/volume:w-20 overflow-hidden transition-all duration-300 flex items-center">
+                                                        <input 
+                                                            type="range" 
+                                                            min="0" 
+                                                            max="100" 
+                                                            value={volume} 
+                                                            onChange={(e) => handleVolumeChange(e.target.value)}
+                                                            className="w-16 h-1 bg-white/20 rounded-full appearance-none cursor-pointer accent-primary"
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <div className={`px-3 py-1 bg-white/10 rounded-full text-[8px] font-extrabold text-white uppercase tracking-widest border border-white/10 hidden sm:block ${isAlreadyCompleted ? 'opacity-50' : ''}`}>
+                                                    {isAlreadyCompleted ? 'Seek Protection Disabled' : 'Seek Protection Enabled'}
+                                                </div>
+
+                                                <button onClick={toggleFullscreen} className="text-white hover:text-primary transition-colors cursor-pointer outline-none">
+                                                    {isFullscreen ? (
+                                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>
+                                                    ) : (
+                                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+                                                    )}
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
                                 ) : (
                                     <div className="w-full aspect-video relative flex items-center justify-center">
@@ -969,8 +1000,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                             </div>
                                             <p className="mt-6 text-gray-400 text-[10px] font-extrabold uppercase tracking-[0.2em]">Video coming soon</p>
                                         </div>
-                                    </div>
-                                )}
+                                </div>
                             </div>
                         )}
 
