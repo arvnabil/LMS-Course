@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Settings\Http\Controllers\Admin\SettingController;
+use Modules\Settings\Http\Controllers\Admin\OneDriveExplorerController;
 
 /*
 |--------------------------------------------------------------------------
