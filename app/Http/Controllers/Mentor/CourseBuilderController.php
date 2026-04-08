@@ -320,6 +320,12 @@ class CourseBuilderController extends Controller
 
         $updateData = array_filter($validated, fn($v) => !is_null($v));
 
+        \Illuminate\Support\Facades\Log::info('Lesson update payload', [
+            'request' => $request->all(),
+            'validated' => $validated,
+            'updateData' => $updateData
+        ]);
+
         // Logic check: if video_url is provided but no source, default to youtube
         if (isset($updateData['video_url']) && !isset($updateData['video_source'])) {
             $updateData['video_source'] = 'youtube';
