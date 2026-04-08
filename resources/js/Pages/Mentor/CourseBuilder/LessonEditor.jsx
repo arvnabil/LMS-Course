@@ -94,12 +94,12 @@ export default function LessonEditor({ auth, lesson }) {
         setIsResolvingLink(true);
         try {
             const response = await axios.post(route('mentor.onedrive.resolve'), { url: sharedLink });
-            setData({
+            setData(data => ({
                 ...data,
                 video_source: 'onedrive_shared_link',
                 video_id: response.data.id,
                 video_url: sharedLink
-            });
+            }));
             alert(`Resolved: ${response.data.name}`);
         } catch (err) {
             alert('Failed to resolve sharing link. Make sure it is a valid OneDrive sharing URL.');

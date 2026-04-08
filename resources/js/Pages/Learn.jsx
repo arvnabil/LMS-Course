@@ -46,6 +46,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
     const [isMuted, setIsMuted] = useState(false);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const videoContainerRef = useRef(null);
+    const videoRef = useRef(null);
 
     const completedLessons = enrollment.lesson_progress?.map(lp => lp.lesson_id) || [];
     const completedQuizzes = enrollment.quiz_attempts?.filter(a => a.is_passed).map(a => a.quiz_id) || [];
@@ -449,12 +450,20 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
     };
 
     const handleResume = () => {
-        if (playerRef.current && resumeTime > 0) {
-            playerRef.current.seekTo(resumeTime, true);
-            lastMaxTime.current = Math.max(lastMaxTime.current, resumeTime);
-            playerRef.current.playVideo();
-            setIsPlaying(true);
-            setHasStarted(true);
+        if (resumeTime > 0) {
+            if (playerRef.current) {
+                playerRef.current.seekTo(resumeTime, true);
+                lastMaxTime.current = Math.max(lastMaxTime.current, resumeTime);
+                playerRef.current.playVideo();
+                setIsPlaying(true);
+                setHasStarted(true);
+            } else if (videoRef.current) {
+                videoRef.current.currentTime = resumeTime;
+                lastMaxTime.current = Math.max(lastMaxTime.current, resumeTime);
+                videoRef.current.play();
+                setIsPlaying(true);
+                setHasStarted(true);
+            }
         }
         setShowResumeModal(false);
     };
@@ -465,6 +474,11 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
         if (playerRef.current) {
             playerRef.current.seekTo(0, true);
             playerRef.current.playVideo();
+            setIsPlaying(true);
+            setHasStarted(true);
+        } else if (videoRef.current) {
+            videoRef.current.currentTime = 0;
+            videoRef.current.play();
             setIsPlaying(true);
             setHasStarted(true);
         }
@@ -884,9 +898,51 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                             </div>
                                         </div>
                                     </div>
+                                ) : currentLesson?.video_source?.includes('onedrive') && currentLesson?.video_id ? (
+                                    <div className="w-full aspect-video relative flex items-center justify-center bg-black">
+                                        <video 
+                                            ref={videoRef}
+                                            src={`/onedrive/stream/${currentLesson.video_id}`}
+                                            controls
+                                            controlsList="nodownload"
+                                            className="w-full h-full outline-none"
+                                            playsInline
+                                            onPlay={() => {
+                                                setIsPlaying(true);
+                                                setHasStarted(true);
+                                            }}
+                                            onPause={() => setIsPlaying(false)}
+                                            onTimeUpdate={(e) => {
+                                                const current = e.target.currentTime;
+                                                const dur = e.target.duration || 0;
+                                                
+                                                if (!isAlreadyCompleted && current > lastMaxTime.current + 2) {
+                                                    e.target.currentTime = lastMaxTime.current;
+                                                } else if (isAlreadyCompleted || current > lastMaxTime.current) {
+                                                    lastMaxTime.current = isAlreadyCompleted ? dur : current;
+                                                }
+                                                
+                                                setCurrentTime(current);
+                                                setDuration(dur);
+                                                if (dur > 0) {
+                                                    const pct = Math.round((current / dur) * 100);
+                                                    setWatchProgress(pct);
+                                                    if (pct >= 98) setVideoWatched(true);
+                                                    if (current > 10) localStorage.setItem(`lesson_${currentLesson.id}_resume_time`, current);
+                                                }
+                                            }}
+                                            onEnded={() => {
+                                                setVideoWatched(true);
+                                                setWatchProgress(100);
+                                                setIsPlaying(false);
+                                                setHasStarted(false);
+                                                localStorage.removeItem(`lesson_${currentLesson.id}_resume_time`);
+                                            }}
+                                        />
+                                    </div>
                                 ) : (
                                     <div className="w-full aspect-video relative flex items-center justify-center">
-                                        {currentLesson.thumbnail ? (
+                                        {currentLesson?.thumbnail ? (
                                             <img src={currentLesson.thumbnail} className="absolute inset-0 w-full h-full object-cover" alt="Lesson Thumbnail" />
                                         ) : (
                                             <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-primary/10 to-gray-950"></div>
