@@ -722,7 +722,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                     {/* Main Content Area */}
                     <main className="flex-1 overflow-y-auto flex flex-col relative">
                         {/* Quiz/Assignment Content Area */}
-                        {currentLesson?.is_quiz && (
+                        {currentLesson?.is_quiz ? (
                             isQuizPlaying ? (
                                 <QuizPlayerInline quiz={currentLesson} onCancel={() => setIsQuizPlaying(false)} />
                             ) : (
@@ -807,9 +807,8 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                     </div>
                                 </div>
                             )
-                        )}
-                        {/* Video Player Area */}
-                        {!currentLesson?.is_quiz && currentLesson?.type === 'video' && (
+                        ) : currentLesson?.type === 'video' ? (
+                            /* Video Player Area */
                             <div ref={videoContainerRef} className="w-full bg-black flex items-center justify-center relative group">
                                     {videoId ? (
                                         <div id="yt-player" className="w-full h-full"></div>
@@ -985,24 +984,8 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                             </div>
                                         </div>
                                     </div>
-                                ) : (
-                                    <div className="w-full aspect-video relative flex items-center justify-center">
-                                        {currentLesson?.thumbnail ? (
-                                            <img src={currentLesson.thumbnail} className="absolute inset-0 w-full h-full object-cover" alt="Lesson Thumbnail" />
-                                        ) : (
-                                            <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-primary/10 to-gray-950"></div>
-                                        )}
-                                        <div className="relative z-10 flex flex-col items-center">
-                                            <div className="w-20 h-14 bg-primary rounded-[18px] flex items-center justify-center shadow-2xl transition-all duration-300 transform hover:scale-110 border border-white/10 backdrop-blur-sm">
-                                                <svg width="28" height="28" viewBox="0 0 24 24" fill="white" className="ml-1">
-                                                    <path d="M8 5v14l11-7z"/>
-                                                </svg>
-                                            </div>
-                                            <p className="mt-6 text-gray-400 text-[10px] font-extrabold uppercase tracking-[0.2em]">Video coming soon</p>
-                                        </div>
-                                </div>
                             </div>
-                        )}
+                        ) : null}
 
                         {/* Content Area Below Video */}
                         {!currentLesson?.is_quiz && (
