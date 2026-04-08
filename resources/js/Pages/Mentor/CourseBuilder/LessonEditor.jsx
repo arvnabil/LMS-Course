@@ -128,11 +128,28 @@ export default function LessonEditor({ auth, lesson }) {
 
     const submit = (e) => {
         e.preventDefault();
+        
+        // Use transform to guarantee the data being sent matches the current UI state
+        // This avoids race conditions with React's asynchronous setData
         post(route('mentor.lessons.update', lesson.id), {
+            onBefore: () => {
+                // You can also use transform() here or earlier. 
+                // Using transform() is better as it's the standard Inertia way.
+            },
             onSuccess: () => setToast({ message: 'Lesson updated successfully!', type: 'success' }),
             onError: () => setToast({ message: 'Failed to update lesson. Please check the form.', type: 'error' }),
         });
     };
+
+    // Define the transformation logic
+    useEffect(() => {
+        const unwatch = transform((data) => ({
+            ...data,
+            video_source: activeSource,
+            video_url: activeSource === 'onedrive_shared_link' ? sharedLink : data.video_url,
+        }));
+        return () => unwatch; // Clean up transform if needed (though useForm handles it)
+    }, [activeSource, sharedLink, transform]);
 
 
     const tabs = [

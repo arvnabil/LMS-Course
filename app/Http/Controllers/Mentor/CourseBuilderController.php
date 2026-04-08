@@ -325,6 +325,16 @@ class CourseBuilderController extends Controller
             'validated_data' => $validated,
         ]);
 
+        // Ultimate Safety Net: Smart Correction
+        // If the source is 'youtube' but the URL is clearly from OneDrive/SharePoint, auto-correct it.
+        if (($updateData['video_source'] ?? 'youtube') === 'youtube') {
+            $url = $updateData['video_url'] ?? '';
+            if (str_contains($url, 'sharepoint.com') || str_contains($url, 'onedrive.live.com')) {
+                \Illuminate\Support\Facades\Log::info('Smart Correction: Auto-detected OneDrive URL mislabeled as YouTube', ['url' => $url]);
+                $updateData['video_source'] = 'onedrive_shared_link';
+            }
+        }
+
         // Only add thumbnail if it's present in the request
         if ($request->hasFile('thumbnail')) {
             if ($lesson->thumbnail) {
