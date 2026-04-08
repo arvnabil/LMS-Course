@@ -215,12 +215,24 @@ class CourseBuilderController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'type' => 'required|in:video,article',
+            'video_source' => 'nullable|string',
         ]);
 
-        $section->lessons()->create([
+        $videoSource = $validated['video_source'] ?? null;
+        if (empty($videoSource) && $validated['type'] === 'video') {
+            $videoSource = 'youtube';
+        }
+
+        $lesson = $section->lessons()->create([
             'title' => $validated['title'],
             'type' => $validated['type'],
+            'video_source' => $videoSource,
             'order' => $section->lessons()->count() + 1,
+        ]);
+
+        \Illuminate\Support\Facades\Log::info("Module Lesson Created", [
+            'id' => $lesson->id,
+            'video_source' => $lesson->video_source
         ]);
 
         return back()->with('success', 'Lesson added successfully.');
@@ -313,7 +325,9 @@ class CourseBuilderController extends Controller
         $validated = $request->validate([
             'title' => 'nullable|string|max:255',
             'content' => 'nullable|string',
-            'video_url' => 'nullable|url',
+            'video_url' => 'nullable|string',
+            'video_source' => 'nullable|string',
+            'video_id' => 'nullable|string',
             'duration_minutes' => 'nullable|integer',
             'thumbnail' => 'nullable|image|max:2048',
             'is_preview' => 'nullable|boolean',
@@ -330,7 +344,18 @@ class CourseBuilderController extends Controller
             $updateData['thumbnail'] = '/storage/' . $path;
         }
 
-        $lesson->update($updateData);
+        // Explicitly handle video_source to prevent it being lost if empty/falsey
+        if ($request->has('video_source')) {
+            $lesson->video_source = $request->video_source;
+        }
+
+        $lesson->fill($updateData);
+        $lesson->save();
+
+        \Illuminate\Support\Facades\Log::info("Module Lesson Updated", [
+            'id' => $lesson->id,
+            'video_source' => $lesson->video_source
+        ]);
 
         return back()->with('success', 'Lesson updated.');
     }

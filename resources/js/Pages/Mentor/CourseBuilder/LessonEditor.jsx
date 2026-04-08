@@ -7,12 +7,21 @@ import Toast from '@/Components/Toast';
 
 
 export default function LessonEditor({ auth, lesson }) {
-    const [activeSource, setActiveSource] = useState(lesson.video_source || 'youtube');
+    console.log("Lesson Data Loaded:", lesson);
+    const [activeSource, setActiveSource] = useState((lesson.video_source && lesson.video_source !== '') ? lesson.video_source : 'youtube');
+
+    // Sync activeSource when lesson prop changes (crucial for Inertia navigation)
+    useEffect(() => {
+        if (lesson.video_source && lesson.video_source !== '') {
+            setActiveSource(lesson.video_source);
+            setData('video_source', lesson.video_source);
+        }
+    }, [lesson.id, lesson.video_source]);
     
     const { data, setData, post, processing, errors, transform } = useForm({
         content: lesson.content || '',
         video_url: lesson.video_url || '',
-        video_source: lesson.video_source || 'youtube',
+        video_source: (lesson.video_source && lesson.video_source !== '') ? lesson.video_source : 'youtube',
         video_id: lesson.video_id || '',
         thumbnail: null,
         _method: 'PUT'

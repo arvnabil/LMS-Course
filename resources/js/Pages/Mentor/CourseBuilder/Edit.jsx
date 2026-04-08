@@ -49,6 +49,7 @@ export default function Edit({ auth, course, categories = [] }) {
     const [modalState, setModalState] = useState({ isOpen: false, type: '', payload: null });
     const [modalInputValue, setModalInputValue] = useState('');
     const [quizType, setQuizType] = useState('multiple_choice');
+    const [videoSource, setVideoSource] = useState('youtube');
 
     // Delete Modal State
     const [deleteModal, setDeleteModal] = useState({ isOpen: false, type: '', id: null, title: '' });
@@ -57,11 +58,13 @@ export default function Edit({ auth, course, categories = [] }) {
         setModalState({ isOpen: true, type, payload });
         setModalInputValue(payload.initialValue || '');
         if (payload.quizType) setQuizType(payload.quizType);
+        setVideoSource('youtube'); // Reset to default when opening to avoid stale state
     };
     
     const closeModal = () => {
         setModalState({ isOpen: false, type: '', payload: null });
         setQuizType('multiple_choice');
+        setVideoSource('youtube');
     };
 
     const openDeleteModal = (type, id, title) => {
@@ -91,7 +94,17 @@ export default function Edit({ auth, course, categories = [] }) {
         e.preventDefault();
         const { type, payload } = modalState;
         if (type === 'addLesson') {
-            router.post(route('mentor.lessons.store', payload.sectionId), { title: modalInputValue, type: payload.type }, { onSuccess: closeModal });
+            const finalSource = payload.type === 'video' ? (videoSource || 'youtube') : null;
+            console.log("Submitting New Lesson:", {
+                title: modalInputValue,
+                type: payload.type,
+                video_source: finalSource
+            });
+            router.post(route('mentor.lessons.store', payload.sectionId), { 
+                title: modalInputValue, 
+                type: payload.type,
+                video_source: finalSource
+            }, { onSuccess: closeModal });
         } else if (type === 'addQuiz') {
             router.post(route('mentor.quizzes.store', payload.sectionId), { title: modalInputValue, type: quizType }, { onSuccess: closeModal });
         } else if (type === 'editSection') {
@@ -534,6 +547,34 @@ export default function Edit({ auth, course, categories = [] }) {
                                     <div className="text-xl mb-2">📥</div>
                                     <p className="text-xs font-bold">Assignment/Submission</p>
                                 </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {modalState.type === 'addLesson' && modalState.payload?.type === 'video' && (
+                        <div className="space-y-4 mb-10">
+                            <label className="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest px-1">Video Source</label>
+                            <div className="grid grid-cols-2 gap-4">
+                                {[
+                                    { id: 'youtube', label: 'YouTube', icon: '📺' },
+                                    { id: 'onedrive_shared_link', label: 'OneDrive Link', icon: '🔗' },
+                                    { id: 'onedrive_upload', label: 'Upload', icon: '☁️' },
+                                    { id: 'onedrive_library', label: 'Library', icon: '📂' },
+                                ].map((tab) => (
+                                    <button
+                                        key={tab.id}
+                                        type="button"
+                                        onClick={() => setVideoSource(tab.id)}
+                                        className={`p-4 rounded-[24px] border-2 text-left transition-all hover:scale-[1.02] active:scale-[0.98] flex flex-col justify-between ${
+                                            videoSource === tab.id 
+                                                ? 'border-primary bg-primary/5 text-primary shadow-lg shadow-primary/5' 
+                                                : 'border-gray-50 bg-muted/50 text-gray-400 hover:border-primary/20 hover:bg-white'
+                                        }`}
+                                    >
+                                        <div className="text-xl mb-3">{tab.icon}</div>
+                                        <p className="text-[10px] font-black uppercase tracking-widest italic">{tab.label}</p>
+                                    </button>
+                                ))}
                             </div>
                         </div>
                     )}
