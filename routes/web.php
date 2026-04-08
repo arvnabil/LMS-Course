@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\OneDriveAuthController;
+use App\Http\Controllers\OneDriveStreamController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -37,6 +39,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // OneDrive Storage
+    Route::get('/onedrive/auth', [OneDriveAuthController::class, 'redirect'])->name('onedrive.auth');
+    Route::get('/onedrive/callback', [OneDriveAuthController::class, 'callback'])->name('onedrive.callback');
+    Route::get('/onedrive/stream/{itemId}', [OneDriveStreamController::class, 'stream'])->name('onedrive.stream');
+    Route::post('/dashboard/mentor/lessons/{lesson}/upload-video', [\App\Http\Controllers\Mentor\CourseBuilderController::class, 'uploadLessonVideo'])->name('mentor.lessons.upload-video');
+    
+    // OneDrive Library & Shared Link Resolvers
+    Route::get('/dashboard/mentor/onedrive/files/{itemId?}', [\App\Http\Controllers\Mentor\OneDriveFilesController::class, 'list'])->name('mentor.onedrive.files');
+    Route::post('/dashboard/mentor/onedrive/resolve', [\App\Http\Controllers\Mentor\OneDriveFilesController::class, 'resolve'])->name('mentor.onedrive.resolve');
+
 
     // Achievements (Cross-module)
     Route::group(['prefix' => 'dashboard', 'as' => 'student.'], function () {

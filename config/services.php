@@ -43,4 +43,12 @@ return [
         ],
     ],
 
+    'onedrive' => [
+        'client_id' => env('MICROSOFT_GRAPH_CLIENT_ID'),
+        'client_secret' => env('MICROSOFT_GRAPH_CLIENT_SECRET'),
+        'tenant_id' => env('MICROSOFT_GRAPH_TENANT_ID', 'common'),
+        'redirect_uri' => env('MICROSOFT_GRAPH_REDIRECT_URI'),
+        'base_path' => env('ONEDRIVE_BASE_PATH', 'LMS-Course'),
+    ],
+
 ];

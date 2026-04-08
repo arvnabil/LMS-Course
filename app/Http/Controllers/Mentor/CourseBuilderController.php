@@ -311,12 +311,19 @@ class CourseBuilderController extends Controller
             'title' => 'nullable|string|max:255',
             'content' => 'nullable|string',
             'video_url' => 'nullable|url',
+            'video_source' => 'nullable|in:youtube,onedrive_upload,onedrive_library,onedrive_shared_link',
+            'video_id' => 'nullable|string',
             'duration_minutes' => 'nullable|integer',
             'thumbnail' => 'nullable|image|max:2048',
             'is_preview' => 'nullable|boolean',
         ]);
 
         $updateData = array_filter($validated, fn($v) => !is_null($v));
+
+        // Logic check: if video_url is provided but no source, default to youtube
+        if (isset($updateData['video_url']) && !isset($updateData['video_source'])) {
+            $updateData['video_source'] = 'youtube';
+        }
         
         if ($request->hasFile('thumbnail')) {
             if ($lesson->thumbnail) {
@@ -341,6 +348,36 @@ class CourseBuilderController extends Controller
         ]);
 
         return back()->with('success', 'Lesson preview status updated.');
+    }
+
+    public function uploadLessonVideo(Request $request, \App\Models\Lesson $lesson)
+    {
+        if ($lesson->section->course->mentor_id !== auth()->id()) abort(403);
+
+        $request->validate([
+            'video' => 'required|file|max:512000', // 500MB max
+        ]);
+
+        $file = $request->file('video');
+        $oneDrive = new \App\Services\OneDriveService();
+        
+        // Use course slug as folder name
+        $folder = $lesson->section->course->slug;
+        $filename = Str::slug($lesson->title) . '-' . time() . '.' . $file->getClientOriginalExtension();
+        
+        $result = $oneDrive->uploadLargeFile($file->getRealPath(), $filename, $folder);
+
+        if ($result && isset($result['id'])) {
+            $lesson->update([
+                'video_source' => 'onedrive_upload',
+                'video_id' => $result['id'],
+                'video_url' => null, // Clear youtube URL if it existed
+            ]);
+
+            return back()->with('success', 'Video uploaded to OneDrive successfully.');
+        }
+
+        return back()->withErrors(['video' => 'Failed to upload video to OneDrive.']);
     }
 
     /**

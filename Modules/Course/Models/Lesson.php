@@ -25,6 +25,8 @@ class Lesson extends Model
         'order',
         'is_preview',
         'thumbnail',
+        'video_source',
+        'video_id',
     ];
 
     protected $casts = [

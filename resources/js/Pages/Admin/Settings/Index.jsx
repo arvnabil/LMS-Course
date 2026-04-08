@@ -3,8 +3,9 @@ import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import InputError from '@/Components/InputError';
 
-export default function SettingsIndex({ auth, settings }) {
+export default function SettingsIndex({ auth, settings, onedriveConnected }) {
     const [activeTab, setActiveTab] = useState('branding');
+    const [activeIntegration, setActiveIntegration] = useState(null);
     const { global_settings } = usePage().props;
 
     const { data, setData, post, processing, errors } = useForm({
@@ -12,6 +13,11 @@ export default function SettingsIndex({ auth, settings }) {
         sidebar_active_color: settings.sidebar_active_color || global_settings.sidebar_active_color || '#276874',
         platform_name: settings.platform_name || global_settings.platform_name || 'LMS',
         platform_logo: null, // Files are null initially
+        onedrive_client_id: settings.onedrive_client_id || '',
+        onedrive_client_secret: settings.onedrive_client_secret || '',
+        onedrive_tenant_id: settings.onedrive_tenant_id || 'common',
+        onedrive_redirect_uri: settings.onedrive_redirect_uri || '',
+        onedrive_base_path: settings.onedrive_base_path || 'LMS-Course',
     });
 
     const submit = (e) => {
@@ -51,6 +57,12 @@ export default function SettingsIndex({ auth, settings }) {
                             className={`w-full text-left px-5 py-4 rounded-2xl text-sm font-bold transition-all ${activeTab === 'branding' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-gray-500 hover:bg-white hover:text-foreground cursor-pointer'}`}
                         >
                             Branding
+                        </button>
+                        <button 
+                            onClick={() => setActiveTab('integrations')}
+                            className={`w-full text-left px-5 py-4 rounded-2xl text-sm font-bold transition-all ${activeTab === 'integrations' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-gray-500 hover:bg-white hover:text-foreground cursor-pointer'}`}
+                        >
+                            Integrations
                         </button>
                     </div>
 
@@ -157,12 +169,189 @@ export default function SettingsIndex({ auth, settings }) {
                                     <button
                                         type="submit"
                                         disabled={processing}
-                                        className="bg-primary text-white px-12 py-4 rounded-full font-extrabold shadow-xl shadow-primary/20 hover:bg-primary-hover transition-all translate-y-0 hover:-translate-y-1 cursor-pointer"
+                                        className="bg-primary text-white px-12 py-4 rounded-2xl font-extrabold shadow-xl shadow-primary/20 hover:bg-primary-hover transition-all translate-y-0 hover:-translate-y-1 cursor-pointer"
                                     >
                                         {processing ? 'Saving...' : 'Save Branding Assets'}
                                     </button>
                                 </div>
                             </form>
+                        )}
+                        
+                        {activeTab === 'integrations' && (
+                            <div>
+                                {!activeIntegration ? (
+                                    <div className="space-y-8">
+                                        <div>
+                                            <h2 className="text-2xl font-extrabold text-foreground tracking-tight">Integrations</h2>
+                                            <p className="text-gray-400 text-sm font-medium mt-2">Manage third-party services and external connections.</p>
+                                        </div>
+                                        
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            {/* OneDrive Card */}
+                                            <div className="bg-white border border-gray-100 p-6 rounded-3xl shadow-sm hover:shadow-xl hover:shadow-gray-200/40 transition-all group">
+                                                <div className="flex items-start gap-4 mb-6">
+                                                    <div className="w-14 h-14 bg-[#0078D4]/10 rounded-2xl flex items-center justify-center text-[#0078D4] shrink-0 group-hover:scale-110 transition-transform">
+                                                        <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M17.65 11.23a4.7 4.7 0 0 0-6.9-3.08 5.75 5.75 0 0 0-10.4 2.8 4.25 4.25 0 0 0 1.25 8.3h16a3.75 3.75 0 0 0 .05-7.5l-.2-.02H18z"/></svg>
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="font-extrabold text-lg text-foreground">Microsoft OneDrive</h3>
+                                                        <p className="text-xs text-gray-500 font-medium mt-1 leading-relaxed">Connect to OneDrive for storing and streaming large course videos efficiently.</p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center justify-between border-t border-gray-50 pt-5">
+                                                    <span className={`px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${onedriveConnected ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                                                        {onedriveConnected ? 'Connected' : 'Not Configured'}
+                                                    </span>
+                                                    <button onClick={() => setActiveIntegration('onedrive')} className="text-sm font-bold text-primary hover:text-primary-hover transition-colors">
+                                                        Configure &rarr;
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {/* Google Drive Card (Mock) */}
+                                            <div className="bg-white border border-gray-100 p-6 rounded-3xl shadow-sm opacity-50 grayscale cursor-not-allowed">
+                                                <div className="flex items-start gap-4 mb-6">
+                                                    <div className="w-14 h-14 bg-yellow-50 rounded-2xl flex items-center justify-center text-yellow-600 shrink-0">
+                                                        <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M7.71 3.5L1.15 15l3.43 6L11.14 9.5M9.73 15L6.3 21h13.12l3.43-6M12.86 3.5h-6.85l6.57 11.5h6.85"/></svg>
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="font-extrabold text-lg text-foreground">Google Drive</h3>
+                                                        <p className="text-xs text-gray-500 font-medium mt-1 leading-relaxed">Store documents and files in Google Workspace. (Coming Soon)</p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center justify-between border-t border-gray-50 pt-5">
+                                                    <span className="px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-gray-100 text-gray-400">
+                                                        Coming Soon
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            
+                                            {/* AWS S3 Card (Mock) */}
+                                            <div className="bg-white border border-gray-100 p-6 rounded-3xl shadow-sm opacity-50 grayscale cursor-not-allowed">
+                                                <div className="flex items-start gap-4 mb-6">
+                                                    <div className="w-14 h-14 bg-orange-50 rounded-2xl flex items-center justify-center text-orange-500 shrink-0">
+                                                        <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/></svg>
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="font-extrabold text-lg text-foreground">AWS S3 Storage</h3>
+                                                        <p className="text-xs text-gray-500 font-medium mt-1 leading-relaxed">Enterprise object storage for massive scale. (Coming Soon)</p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center justify-between border-t border-gray-50 pt-5">
+                                                    <span className="px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-gray-100 text-gray-400">
+                                                        Coming Soon
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : activeIntegration === 'onedrive' ? (
+                                    <form onSubmit={submit} className="space-y-8">
+                                        <div className="flex items-center gap-4 border-b border-gray-100 pb-6">
+                                            <button 
+                                                type="button" 
+                                                onClick={() => setActiveIntegration(null)} 
+                                                className="w-12 h-12 flex items-center justify-center rounded-2xl bg-muted text-gray-500 hover:bg-gray-200 hover:text-foreground transition-all"
+                                            >
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                                            </button>
+                                            <div>
+                                                <h2 className="text-2xl font-extrabold text-foreground tracking-tight">Microsoft OneDrive Settings</h2>
+                                                <p className="text-gray-400 text-sm font-medium mt-1">Configure your Microsoft Graph API parameters.</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="space-y-6">
+                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between bg-[#0078D4]/5 border border-[#0078D4]/20 p-6 rounded-3xl gap-4">
+                                                <div>
+                                                    <h3 className="font-bold text-lg text-[#0078D4] flex items-center gap-2">
+                                                        Connection Status
+                                                    </h3>
+                                                    <p className="text-sm text-[#0078D4]/70 font-medium mt-1">You must save your settings before connecting.</p>
+                                                </div>
+                                                <div className="flex items-center gap-4">
+                                                    <span className={`px-4 py-2 rounded-full text-xs font-extrabold uppercase tracking-wider ${onedriveConnected ? 'bg-green-100 text-green-700' : 'bg-red-50 text-red-600'}`}>
+                                                        {onedriveConnected ? 'Active' : 'Disconnected'}
+                                                    </span>
+                                                    {onedriveConnected ? (
+                                                        <a href={route('onedrive.auth')} className="text-sm font-bold text-primary hover:text-primary-hover underline underline-offset-4 bg-white px-4 py-2 rounded-2xl shadow-sm whitespace-nowrap">Reconnect</a>
+                                                    ) : (
+                                                        <a href={route('onedrive.auth')} className="text-sm font-bold text-white bg-[#0078D4] px-6 py-2.5 rounded-2xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/30 whitespace-nowrap">Connect Now</a>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                                                <div className="space-y-3">
+                                                    <label className="text-xs font-extrabold text-foreground uppercase tracking-widest px-1">Client ID</label>
+                                                    <input 
+                                                        type="text" 
+                                                        value={data.onedrive_client_id}
+                                                        onChange={e => setData('onedrive_client_id', e.target.value)}
+                                                        className="w-full bg-muted border-none rounded-2xl px-6 py-4 text-sm font-bold focus:ring-4 focus:ring-[#0078D4]/20 transition-all outline-none"
+                                                        placeholder="Enter Microsoft Client ID"
+                                                    />
+                                                    <InputError message={errors.onedrive_client_id} />
+                                                </div>
+                                                <div className="space-y-3">
+                                                    <label className="text-xs font-extrabold text-foreground uppercase tracking-widest px-1">Client Secret</label>
+                                                    <input 
+                                                        type="password" 
+                                                        value={data.onedrive_client_secret}
+                                                        onChange={e => setData('onedrive_client_secret', e.target.value)}
+                                                        className="w-full bg-muted border-none rounded-2xl px-6 py-4 text-sm font-bold focus:ring-4 focus:ring-[#0078D4]/20 transition-all outline-none"
+                                                        placeholder="Enter Microsoft Client Secret"
+                                                    />
+                                                    <InputError message={errors.onedrive_client_secret} />
+                                                </div>
+                                                <div className="space-y-3">
+                                                    <label className="text-xs font-extrabold text-foreground uppercase tracking-widest px-1">Tenant ID</label>
+                                                    <input 
+                                                        type="text" 
+                                                        value={data.onedrive_tenant_id}
+                                                        onChange={e => setData('onedrive_tenant_id', e.target.value)}
+                                                        className="w-full bg-muted border-none rounded-2xl px-6 py-4 text-sm font-bold focus:ring-4 focus:ring-[#0078D4]/20 transition-all outline-none"
+                                                        placeholder="e.g. common or specific tenant ID"
+                                                    />
+                                                    <InputError message={errors.onedrive_tenant_id} />
+                                                </div>
+                                                <div className="space-y-3">
+                                                    <label className="text-xs font-extrabold text-foreground uppercase tracking-widest px-1">Redirect URI</label>
+                                                    <input 
+                                                        type="text" 
+                                                        value={data.onedrive_redirect_uri}
+                                                        onChange={e => setData('onedrive_redirect_uri', e.target.value)}
+                                                        className="w-full bg-muted border-none rounded-2xl px-6 py-4 text-sm font-bold focus:ring-4 focus:ring-[#0078D4]/20 transition-all outline-none"
+                                                        placeholder="https://.../onedrive/callback"
+                                                    />
+                                                    <InputError message={errors.onedrive_redirect_uri} />
+                                                </div>
+                                                <div className="space-y-3 md:col-span-2">
+                                                    <label className="text-xs font-extrabold text-foreground uppercase tracking-widest px-1">Base Path (Folder Name)</label>
+                                                    <input 
+                                                        type="text" 
+                                                        value={data.onedrive_base_path}
+                                                        onChange={e => setData('onedrive_base_path', e.target.value)}
+                                                        className="w-full bg-muted border-none rounded-2xl px-6 py-4 text-sm font-bold focus:ring-4 focus:ring-[#0078D4]/20 transition-all outline-none"
+                                                        placeholder="e.g. LMS-Course"
+                                                    />
+                                                    <p className="text-[11px] text-gray-500 font-bold px-2">This is the root folder where all course files will be uploaded automatically.</p>
+                                                    <InputError message={errors.onedrive_base_path} />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="flex justify-start pt-6 border-t border-gray-50">
+                                            <button
+                                                type="submit"
+                                                disabled={processing}
+                                                className="bg-primary text-white px-12 py-4 rounded-2xl font-extrabold shadow-xl shadow-primary/20 hover:bg-primary-hover transition-all translate-y-0 hover:-translate-y-1 cursor-pointer"
+                                            >
+                                                {processing ? 'Saving...' : 'Save Settings'}
+                                            </button>
+                                        </div>
+                                    </form>
+                                ) : null}
+                            </div>
                         )}
                     </div>
                 </div>
