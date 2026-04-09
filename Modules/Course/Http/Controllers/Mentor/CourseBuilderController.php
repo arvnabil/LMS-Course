@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Str;
 use App\Models\OneDrivePermission;
+use App\Services\OneDriveService;
 
 class CourseBuilderController extends Controller
 {
@@ -379,6 +380,41 @@ class CourseBuilderController extends Controller
         $lesson->save();
 
         return back()->with('success', 'Lesson preview status updated.');
+    }
+
+    /**
+     * Upload video to OneDrive.
+     */
+    public function uploadLessonVideo(Request $request, Lesson $lesson)
+    {
+        if ($lesson->section->course->mentor_id != auth()->id()) abort(403);
+
+        $request->validate([
+            'video' => 'required|file|mimetypes:video/mp4,video/mpeg,video/quicktime,video/x-msvideo|max:102400', // 100MB max for now
+        ]);
+
+        $oneDrive = new OneDriveService();
+        if (!$oneDrive->getAccessToken()) {
+            return back()->with('error', 'OneDrive integration is not connected.');
+        }
+
+        $file = $request->file('video');
+        $filename = Str::slug($lesson->title) . '-' . time() . '.' . $file->getClientOriginalExtension();
+        $folderName = 'Course-' . Str::slug($lesson->section->course->title);
+
+        $result = $oneDrive->uploadLargeFile($file->getRealPath(), $filename, $folderName);
+
+        if ($result) {
+            $lesson->update([
+                'video_source' => 'onedrive_upload',
+                'video_id' => $result['id'],
+                'video_url' => $result['webUrl'] ?? null,
+            ]);
+
+            return back()->with('success', 'Video uploaded to OneDrive successfully!');
+        }
+
+        return back()->with('error', 'Failed to upload video to OneDrive.');
     }
 
     /**
