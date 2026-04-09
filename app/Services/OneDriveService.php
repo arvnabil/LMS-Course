@@ -114,10 +114,13 @@ class OneDriveService
         $accessToken = $this->getAccessToken();
         if (!$accessToken) return null;
 
-        $path = $this->basePath . ($folder ? '/' . $folder : '') . '/' . $filename;
+        $path = $this->encodePath($this->basePath . ($folder ? '/' . $folder : '') . '/' . $filename);
         $url = "https://graph.microsoft.com/v1.0/me/drive/root:/{$path}:/content";
 
+        Log::debug('OneDrive Uploading Small File', ['path' => $path]);
+
         $response = Http::withToken($accessToken)
+            ->timeout(60)
             ->withBody($fileContent, 'application/octet-stream')
             ->put($url);
 
@@ -125,7 +128,7 @@ class OneDriveService
             return $response->json();
         }
 
-        Log::error('OneDrive Upload Failed', ['response' => $response->json()]);
+        Log::error('OneDrive Upload Failed', ['response' => $response->json(), 'path' => $path]);
         return null;
     }
 
@@ -158,14 +161,25 @@ class OneDriveService
             $this->getOrCreateFolder($folder);
         }
 
-        $path = $this->basePath . ($folder ? '/' . $folder : '') . '/' . $filename;
+        $path = $this->encodePath($this->basePath . ($folder ? '/' . $folder : '') . '/' . $filename);
         $url = "https://graph.microsoft.com/v1.0/me/drive/root:/{$path}:/createUploadSession";
 
-        $sessionResponse = Http::withToken($accessToken)->post($url, [
-            'item' => ['@microsoft.graph.conflictBehavior' => 'rename']
-        ]);
+        Log::debug('OneDrive Creating Upload Session', ['path' => $path]);
 
-        if (!$sessionResponse->successful()) return null;
+        $sessionResponse = Http::withToken($accessToken)
+            ->timeout(60)
+            ->post($url, [
+                'item' => ['@microsoft.graph.conflictBehavior' => 'rename']
+            ]);
+
+        if (!$sessionResponse->successful()) {
+            Log::error('OneDrive Upload Session Failed', [
+                'status' => $sessionResponse->status(),
+                'response' => $sessionResponse->json(),
+                'path' => $path
+            ]);
+            return null;
+        }
 
         $uploadUrl = $sessionResponse->json()['uploadUrl'];
         $fileSize = filesize($filePath);
@@ -173,20 +187,52 @@ class OneDriveService
         $handle = fopen($filePath, 'rb');
         
         $uploaded = 0;
+        $chunkCount = 0;
+        
+        Log::debug('OneDrive Starting Chunked Upload', [
+            'total_size' => $fileSize,
+            'chunk_size' => $chunkSize,
+            'filename' => $filename
+        ]);
+
         while (!feof($handle)) {
             $chunk = fread($handle, $chunkSize);
+            if (empty($chunk)) break;
+            
             $end = $uploaded + strlen($chunk) - 1;
             
             $response = Http::withHeaders([
                 'Content-Length' => strlen($chunk),
                 'Content-Range' => "bytes {$uploaded}-{$end}/{$fileSize}",
-            ])->withBody($chunk, 'application/octet-stream')->put($uploadUrl);
+            ])
+            ->timeout(120) // Give chunks more time
+            ->withBody($chunk, 'application/octet-stream')
+            ->put($uploadUrl);
 
             $uploaded = $end + 1;
+            $chunkCount++;
             
-            if ($response->successful() && $uploaded >= $fileSize) {
+            if ($chunkCount % 5 === 0) {
+                Log::debug('OneDrive Upload Progress', [
+                    'uploaded' => $uploaded,
+                    'percentage' => round(($uploaded / $fileSize) * 100, 2)
+                ]);
+            }
+
+            if ($response->successful()) {
+                if ($uploaded >= $fileSize) {
+                    fclose($handle);
+                    Log::debug('OneDrive Upload Completed Successfully', ['filename' => $filename]);
+                    return $response->json();
+                }
+            } else {
+                Log::error('OneDrive Chunk Upload Failed', [
+                    'chunk' => $chunkCount,
+                    'status' => $response->status(),
+                    'response' => $response->json()
+                ]);
                 fclose($handle);
-                return $response->json();
+                return null;
             }
         }
         
@@ -320,7 +366,10 @@ class OneDriveService
         $parentPath = $parentPath ?: $this->basePath;
         
         // Try to find if folder exists
-        $searchUrl = "https://graph.microsoft.com/v1.0/me/drive/root:/{$parentPath}/{$folderName}";
+        $parentPathEncoded = $this->encodePath($parentPath);
+        $folderNameEncoded = rawurlencode($folderName);
+        $searchUrl = "https://graph.microsoft.com/v1.0/me/drive/root:/{$parentPathEncoded}/{$folderNameEncoded}";
+        
         $check = Http::withToken($accessToken)->get($searchUrl);
 
         if ($check->successful()) {
@@ -328,7 +377,7 @@ class OneDriveService
         }
 
         // Create if not exists
-        $createUrl = "https://graph.microsoft.com/v1.0/me/drive/root:/{$parentPath}:/children";
+        $createUrl = "https://graph.microsoft.com/v1.0/me/drive/root:/{$parentPathEncoded}:/children";
         $response = Http::withToken($accessToken)->post($createUrl, [
             'name' => $folderName,
             'folder' => (object)[],
@@ -414,7 +463,8 @@ class OneDriveService
             return $this->getDriveItem('root');
         }
 
-        $url = "https://graph.microsoft.com/v1.0/me/drive/root:/{$path}";
+        $pathEncoded = $this->encodePath($path);
+        $url = "https://graph.microsoft.com/v1.0/me/drive/root:/{$pathEncoded}";
         $response = Http::withToken($accessToken)->get($url);
 
         return $response->successful() ? $response->json() : null;
@@ -427,5 +477,17 @@ class OneDriveService
     {
         $metadata = $this->getConfiguredRootMetadata();
         return $metadata['id'] ?? 'root';
+    }
+
+    /**
+     * Helper to encode path segments for Microsoft Graph API.
+     */
+    protected function encodePath(string $path): string
+    {
+        $segments = explode('/', $path);
+        $encodedSegments = array_map(function ($segment) {
+            return rawurlencode($segment);
+        }, $segments);
+        return implode('/', $encodedSegments);
     }
 }

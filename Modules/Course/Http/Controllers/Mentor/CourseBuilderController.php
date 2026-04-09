@@ -389,6 +389,9 @@ class CourseBuilderController extends Controller
     {
         if ($lesson->section->course->mentor_id != auth()->id()) abort(403);
 
+        // Increase time limit for large video uploads (5 minutes)
+        set_time_limit(300);
+
         $request->validate([
             'video' => 'required|file|mimetypes:video/mp4,video/mpeg,video/quicktime,video/x-msvideo|max:102400', // 100MB max for now
         ]);
