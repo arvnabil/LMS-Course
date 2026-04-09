@@ -155,8 +155,12 @@ export default function OrganizationShow({ auth, organization, availableUsers, a
                                         <div key={member.id} className="flex items-center justify-between bg-muted rounded-2xl px-5 py-4 group">
                                             <div className="flex items-center gap-4">
                                                 <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center overflow-hidden">
-                                                    {member.avatar ? (
-                                                        <img src={member.avatar} alt={member.full_name} className="w-full h-full object-cover" />
+                                                    {member.avatar_url ? (
+                                                        <img 
+                                                            src={member.avatar_url.startsWith('http') ? member.avatar_url : `/storage/${member.avatar_url}`} 
+                                                            alt={member.full_name} 
+                                                            className="w-full h-full object-cover" 
+                                                        />
                                                     ) : (
                                                         <span className="text-sm font-bold text-primary">{member.full_name.charAt(0)}</span>
                                                     )}
