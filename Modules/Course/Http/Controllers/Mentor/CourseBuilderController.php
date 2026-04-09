@@ -390,11 +390,21 @@ class CourseBuilderController extends Controller
         if ($lesson->section->course->mentor_id != auth()->id()) abort(403);
 
         try {
+            // Logic to detect if file was lost due to server 'post_max_size' limit
+            if ($request->isMethod('post') && empty($request->all()) && empty($request->file())) {
+                return back()->withErrors(['video' => 'The file is too large for the server to process. Please increase post_max_size and upload_max_filesize in your hosting PHP settings.']);
+            }
+
             $request->validate([
                 'video' => 'required|file|mimetypes:video/mp4,video/mpeg,video/quicktime,video/x-msvideo|max:512000', // 500MB max
             ]);
 
             $file = $request->file('video');
+            
+            if (!$file->isValid()) {
+                return back()->withErrors(['video' => 'Upload failed: ' . $file->getErrorMessage()]);
+            }
+
             $originalName = $file->getClientOriginalName();
             $extension = $file->getClientOriginalExtension();
             $filename = \Illuminate\Support\Str::slug($lesson->title) . '-' . time() . '.' . $extension;
@@ -422,6 +432,8 @@ class CourseBuilderController extends Controller
 
             return back()->with('success', 'Upload successful! Your video is being processed in the background and will appear on the lesson page in a few minutes.');
 
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return back()->withErrors($e->errors());
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error("OneDrive Dispatch Error: " . $e->getMessage());
             return back()->withErrors(['video' => 'Server error: ' . $e->getMessage()]);

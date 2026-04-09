@@ -294,24 +294,76 @@ export default function LessonEditor({ auth, lesson, onedrive_permissions }) {
 
                                     {activeSource === 'onedrive_upload' && (
                                         <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                            <label className="text-xs font-extrabold text-foreground uppercase tracking-widest px-1">Upload to OneDrive</label>
-                                            <div 
-                                                className="relative group bg-muted border-2 border-dashed border-gray-200 rounded-2xl p-8 flex flex-col items-center justify-center hover:border-primary/50 transition-all cursor-pointer"
-                                                onClick={() => !uploadForm.processing && document.getElementById('video-upload-input').click()}
-                                            >
-                                                <span className="text-4xl mb-2 group-hover:scale-110 transition-transform">📤</span>
-                                                <span className="text-xs font-extrabold uppercase tracking-widest text-gray-400 group-hover:text-primary transition-colors">
-                                                    {uploadForm.processing ? 'Uploading...' : 'Drop or Browse Video'}
-                                                </span>
-                                                {uploadProgress > 0 && (
-                                                    <div className="absolute inset-0 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center p-6 rounded-2xl">
-                                                        <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden mb-3">
-                                                            <div className="bg-primary h-full transition-all duration-300" style={{ width: `${uploadProgress}%` }}></div>
-                                                        </div>
-                                                        <span className="text-sm font-black text-primary">{Math.round(uploadProgress)}%</span>
-                                                    </div>
+                                            <div className="flex items-center justify-between px-1">
+                                                <label className="text-xs font-extrabold text-foreground uppercase tracking-widest">Upload to OneDrive</label>
+                                                {data.video_id && data.video_source === 'onedrive_upload' && (
+                                                    <span className="bg-green-500/10 text-green-500 text-[9px] font-black px-2 py-1 rounded-full">✓ AKTIF</span>
                                                 )}
                                             </div>
+
+                                            {/* Logic to show Active Video or Processing state */}
+                                            {(data.video_id && data.video_source === 'onedrive_upload') ? (
+                                                <div className="relative bg-primary/5 border-2 border-primary/20 rounded-2xl p-8 flex flex-col items-center justify-center text-center space-y-4 animate-in zoom-in duration-300">
+                                                    {/* Tombol Silang to Reset */}
+                                                    <button 
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setData('video_id', null);
+                                                            setData('video_url', null);
+                                                        }}
+                                                        className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white text-gray-400 hover:text-red-500 hover:bg-red-50 shadow-sm transition-all"
+                                                        title="Ganti Video"
+                                                    >
+                                                        ✕
+                                                    </button>
+
+                                                    <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center text-3xl">🎬</div>
+                                                    <div>
+                                                        <p className="text-xs font-black text-primary uppercase tracking-widest mb-1">Video Berhasil Diupload</p>
+                                                        <p className="text-[10px] text-gray-500 font-bold mb-4 italic">ID: {data.video_id}</p>
+                                                        <div className="flex justify-center">
+                                                            <div className="bg-primary text-white px-6 py-2 rounded-xl text-[10px] font-black shadow-lg shadow-primary/20 uppercase">
+                                                                Selected & Active
+                                                            </div>
+                                                        </div>
+                                                        <p className="text-[9px] text-gray-400 mt-4 font-bold uppercase tracking-tighter">* Klik [Save All Changes] di bawah untuk menyimpan pilihan ini</p>
+                                                    </div>
+                                                </div>
+                                            ) : (lesson.video_source === 'onedrive_upload' && !data.video_id) ? (
+                                                <div className="bg-amber-50 border-2 border-dashed border-amber-200 rounded-2xl p-8 flex flex-col items-center justify-center text-center">
+                                                     <div className="text-3xl mb-3 animate-bounce">⏳</div>
+                                                     <p className="text-xs font-black text-amber-600 uppercase tracking-widest mb-2">Video Sedang Diproses</p>
+                                                     <p className="text-[10px] text-amber-500 font-bold max-w-[200px]">
+                                                        Server sedang mengirim video Bapak ke OneDrive. Silakan refresh halaman dalam 1-2 menit.
+                                                     </p>
+                                                     <button 
+                                                        type="button" 
+                                                        onClick={() => window.location.reload()}
+                                                        className="mt-4 bg-amber-600 text-white px-6 py-2 rounded-xl text-[10px] font-black shadow-lg shadow-amber-200 hover:scale-105 transition-all"
+                                                     >
+                                                        CEK STATUS SEKARANG
+                                                     </button>
+                                                </div>
+                                            ) : (
+                                                <div 
+                                                    className="relative group bg-muted border-2 border-dashed border-gray-200 rounded-2xl p-8 flex flex-col items-center justify-center hover:border-primary/50 transition-all cursor-pointer"
+                                                    onClick={() => !uploadForm.processing && document.getElementById('video-upload-input').click()}
+                                                >
+                                                    <span className="text-4xl mb-2 group-hover:scale-110 transition-transform">📤</span>
+                                                    <span className="text-xs font-extrabold uppercase tracking-widest text-gray-400 group-hover:text-primary transition-colors">
+                                                        {uploadForm.processing ? 'Uploading to Server...' : 'Drop or Browse Video'}
+                                                    </span>
+                                                    {uploadProgress > 0 && (
+                                                        <div className="absolute inset-0 bg-white/90 backdrop-blur-sm flex flex-col items-center justify-center p-6 rounded-2xl">
+                                                            <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden mb-3">
+                                                                <div className="bg-primary h-full transition-all duration-300" style={{ width: `${uploadProgress}%` }}></div>
+                                                            </div>
+                                                            <span className="text-sm font-black text-primary">{Math.round(uploadProgress)}%</span>
+                                                            <p className="text-[10px] font-bold text-gray-400 mt-2">Uploading to Server...</p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
                                             <input id="video-upload-input" type="file" className="hidden" accept="video/*" onChange={handleVideoUpload} />
                                             <InputError message={errors.video} />
                                         </div>
