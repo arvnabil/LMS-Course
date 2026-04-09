@@ -44,7 +44,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/onedrive/auth', [OneDriveAuthController::class, 'redirect'])->name('onedrive.auth');
     Route::get('/onedrive/callback', [OneDriveAuthController::class, 'callback'])->name('onedrive.callback');
     Route::get('/onedrive/stream/{itemId}', [OneDriveStreamController::class, 'stream'])->name('onedrive.stream');
-    Route::post('/dashboard/mentor/lessons/{lesson}/upload-video', [\Modules\Course\Http\Controllers\Mentor\CourseBuilderController::class, 'uploadLessonVideo'])->name('mentor.lessons.upload-video');
+    Route::post('/dashboard/mentor/lessons/{lesson}/upload-video', function($lessonId) {
+        \Illuminate\Support\Facades\Log::info("OneDrive Upload Route Hit", ['lesson_id' => $lessonId]);
+        return app(\Modules\Course\Http\Controllers\Mentor\CourseBuilderController::class)->uploadLessonVideo(request(), \Modules\Course\Models\Lesson::findOrFail($lessonId));
+    })->name('mentor.lessons.upload-video');
     
     // OneDrive Library & Shared Link Resolvers
     Route::get('/dashboard/mentor/onedrive/files/{itemId?}', [\App\Http\Controllers\Mentor\OneDriveFilesController::class, 'list'])->name('mentor.onedrive.files');
