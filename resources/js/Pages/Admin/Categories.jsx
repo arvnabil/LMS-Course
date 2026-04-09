@@ -1,8 +1,30 @@
+import Icon from '@/Components/Icon';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Head, useForm, router } from '@inertiajs/react';
 import { useState } from 'react';
 
 export default function Categories({ categories }) {
+    // Helper to get icon and clean name
+    const getCategoryDisplay = (cat) => {
+        const nameParts = cat.name.split(' ');
+        const firstWord = nameParts[0].toLowerCase();
+        
+        // List of known icon slugs we want to support from first word
+        const iconSlugs = ['code', 'bar-chart', 'smartphone', 'pen-tool', 'briefcase', 'layers', 'users', 'award', 'book-open'];
+        
+        if (iconSlugs.includes(firstWord)) {
+            return {
+                icon: firstWord,
+                name: nameParts.slice(1).join(' ')
+            };
+        }
+        
+        return {
+            icon: cat.icon,
+            name: cat.name
+        };
+    };
+
     const [showModal, setShowModal] = useState(false);
     const [editingCategory, setEditingCategory] = useState(null);
 
@@ -129,8 +151,19 @@ export default function Categories({ categories }) {
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
-                                            {cat.icon && <span className="text-lg">{cat.icon}</span>}
-                                            <span className="text-sm font-semibold text-foreground">{cat.name}</span>
+                                            {(() => {
+                                                const display = getCategoryDisplay(cat);
+                                                return (
+                                                    <>
+                                                        {display.icon && (
+                                                            <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                                                                <Icon name={display.icon} />
+                                                            </div>
+                                                        )}
+                                                        <span className="text-sm font-semibold text-foreground">{display.name}</span>
+                                                    </>
+                                                );
+                                            })()}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 text-sm text-gray-500 font-mono">{cat.slug}</td>
