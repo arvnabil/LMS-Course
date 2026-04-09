@@ -358,7 +358,25 @@ class CourseBuilderController extends Controller
         ]);
 
         $updateData = array_filter($validated, fn($v) => !is_null($v));
-        
+
+        // Cleanup conflicting video data
+        if (isset($validated['video_source']) && !empty($validated['video_source'])) {
+            if ($validated['video_source'] !== 'youtube') {
+                $updateData['video_url'] = null;
+            } else {
+                $updateData['video_id'] = null;
+            }
+        }
+
+        // Cleanup conflicting file data
+        if (isset($validated['file_source']) && !empty($validated['file_source'])) {
+            if ($validated['file_source'] === 'onedrive_shared_link') {
+                $updateData['file_id'] = null;
+            } else {
+                $updateData['file_url'] = null;
+            }
+        }
+
         if ($request->hasFile('thumbnail')) {
             if ($lesson->thumbnail) {
                 $oldPath = str_replace('/storage/', '', $lesson->thumbnail);

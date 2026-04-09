@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import InputError from '@/Components/InputError';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, router } from '@inertiajs/react';
 import axios from 'axios';
 import Toast from '@/Components/Toast';
 import ReactQuill from 'react-quill';
@@ -75,8 +75,10 @@ export default function LessonEditor({ auth, lesson, onedrive_permissions }) {
             return;
         }
 
-        uploadForm.setData('video', file);
-        uploadForm.post(route('mentor.lessons.upload-video', lesson.id), {
+        router.post(route('mentor.lessons.upload-video', lesson.id), {
+            video: file,
+            _method: 'POST'
+        }, {
             preserveScroll: true,
             forceFormData: true,
             onStart: () => {
@@ -154,8 +156,10 @@ export default function LessonEditor({ auth, lesson, onedrive_permissions }) {
             return;
         }
 
-        uploadForm.setData('file', file);
-        uploadForm.post(route('mentor.lessons.upload-file', lesson.id), {
+        router.post(route('mentor.lessons.upload-file', lesson.id), {
+            file: file,
+            _method: 'POST'
+        }, {
             preserveScroll: true,
             forceFormData: true,
             onStart: () => {

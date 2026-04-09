@@ -838,12 +838,10 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                         ) : currentLesson?.type === 'video' ? (
                             /* Video Player Area */
                             <div ref={videoContainerRef} className="w-full aspect-video bg-black flex items-center justify-center relative group overflow-hidden">
-                                    {videoId ? (
-                                        <div id="yt-player" className="w-full h-full"></div>
-                                    ) : (currentLesson?.video_source?.includes('onedrive') || 
-                                         currentLesson?.video_url?.includes('sharepoint.com') || 
-                                         currentLesson?.video_url?.includes('onedrive.live.com') ||
-                                         (currentLesson?.video_id && !videoId)) ? (
+                                    {(currentLesson?.video_source?.includes('onedrive') || 
+                                      currentLesson?.video_url?.includes('sharepoint.com') || 
+                                      currentLesson?.video_url?.includes('onedrive.live.com') ||
+                                      (currentLesson?.video_id && !videoId)) ? (
                                         <div className="w-full h-full flex items-center justify-center">
                                             <video 
                                                 ref={videoRef}
@@ -891,9 +889,12 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                                     setIsPlaying(false);
                                                     setHasStarted(false);
                                                     localStorage.removeItem(`lesson_${currentLesson.id}_resume_time`);
+                                                    markAsComplete();
                                                 }}
                                             />
                                         </div>
+                                    ) : videoId ? (
+                                        <div id="yt-player" className="w-full h-full"></div>
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center">
                                             <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-primary/10 to-gray-950"></div>
