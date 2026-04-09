@@ -809,7 +809,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                             )
                         ) : currentLesson?.type === 'video' ? (
                             /* Video Player Area */
-                            <div ref={videoContainerRef} className="w-full bg-black flex items-center justify-center relative group">
+                            <div ref={videoContainerRef} className="w-full aspect-video bg-black flex items-center justify-center relative group overflow-hidden">
                                     {videoId ? (
                                         <div id="yt-player" className="w-full h-full"></div>
                                     ) : (currentLesson?.video_source?.includes('onedrive') || 
@@ -995,7 +995,11 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                     <div className="space-y-4 flex-1 mb-8">
                                         <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-foreground tracking-tight">{currentLesson?.title || 'Welcome to the Course'}</h1>
                                         <div className="prose prose-invert prose-sm max-w-none text-gray-500 font-medium leading-relaxed">
-                                            {currentLesson?.content || 'Please select a lesson from the sidebar to begin learning.'}
+                                            {currentLesson?.content ? (
+                                                <div dangerouslySetInnerHTML={{ __html: currentLesson.content }} />
+                                            ) : (
+                                                currentLesson?.type === 'video' ? null : 'No description available for this lesson.'
+                                            )}
                                         </div>
                                     </div>
 
