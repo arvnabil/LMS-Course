@@ -24,10 +24,14 @@ class DashboardController extends Controller
         $pendingReviews = Course::where('status', 'draft')->count(); // Mocking pending review as draft
 
         // Avg Completion Rate
-        $enrollments = Enrollment::all();
+        $enrollments = Enrollment::with('course.sections.lessons')->get();
         $completionRates = $enrollments->map(function ($enrollment) {
-            $totalLessons = $enrollment->course->sections->flatMap->lessons->count();
+            $course = $enrollment->course;
+            if (!$course) return 0;
+            
+            $totalLessons = $course->sections->flatMap->lessons->count();
             if ($totalLessons === 0) return 0;
+            
             $completedLessons = $enrollment->lessonProgress()->where('is_completed', true)->count();
             return ($completedLessons / $totalLessons) * 100;
         });

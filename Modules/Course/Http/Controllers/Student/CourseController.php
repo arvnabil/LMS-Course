@@ -25,11 +25,11 @@ class CourseController extends Controller
             ->latest()
             ->get()
             ->map(function ($enrollment) {
+                $course = $enrollment->course;
+                if (!$course) return null;
+
                 // Total lessons across all sections
-                $totalLessons = 0;
-                foreach ($enrollment->course->sections as $section) {
-                    $totalLessons += $section->lessons->count();
-                }
+                $totalLessons = $course->sections->flatMap->lessons->count();
 
                 // Completed lessons for this user
                 $completedLessonsCount = $enrollment->lessonProgress()
@@ -42,7 +42,8 @@ class CourseController extends Controller
                     : 0;
                 
                 return $enrollment;
-            });
+            })
+            ->filter();
 
         return Inertia::render('Dashboard/MyCourses', [
             'enrollments' => $enrollments,
