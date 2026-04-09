@@ -7,6 +7,32 @@ import QuizPlayerInline from '@/Components/QuizPlayerInline';
 import Modal from '@/Components/Modal';
 import PrimaryButton from '@/Components/PrimaryButton';
 
+// Helper component for rendering text files
+function TextFileViewer({ url }) {
+    const [textContent, setTextContent] = useState('Loading...');
+    const [error, setError] = useState(false);
+
+    useEffect(() => {
+        fetch(url)
+            .then(res => {
+                if (!res.ok) throw new Error('Failed to load');
+                return res.text();
+            })
+            .then(text => setTextContent(text))
+            .catch(() => {
+                setError(true);
+                setTextContent('Failed to load text file content.');
+            });
+    }, [url]);
+
+    return (
+        <div className="w-full bg-gray-900 p-6 sm:p-10" style={{ maxHeight: '80vh', overflowY: 'auto' }}>
+            <pre className={`text-sm leading-relaxed font-mono whitespace-pre-wrap ${error ? 'text-red-400' : 'text-gray-200'}`}>
+                {textContent}
+            </pre>
+        </div>
+    );
+}
 
 export default function Learn({ auth, course, currentLesson, enrollment }) {
     const [toast, setToast] = useState(null);
@@ -687,6 +713,8 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                                                     {isLesson ? (
                                                                         item.type === 'video' ? (
                                                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                                                                        ) : item.type === 'file' ? (
+                                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
                                                                         ) : (
                                                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                                                                         )
@@ -986,6 +1014,55 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                     </div>
                             </div>
                         ) : null}
+
+                        {/* File Display Area */}
+                        {currentLesson?.type === 'file' && currentLesson?.file_id && (() => {
+                            const streamUrl = `/onedrive/stream/${currentLesson.file_id}?t=${new Date(currentLesson.updated_at).getTime()}`;
+                            const fileName = currentLesson.title?.toLowerCase() || '';
+                            const fileUrl = currentLesson.file_url?.toLowerCase() || '';
+                            const isPdf = fileName.endsWith('.pdf') || fileUrl.includes('.pdf');
+                            const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(fileName) || /\.(jpg|jpeg|png|gif|webp)/i.test(fileUrl);
+                            const isText = fileName.endsWith('.txt') || fileUrl.includes('.txt');
+
+                            return (
+                                <div className="w-full bg-white border-b border-gray-100">
+                                    {isPdf ? (
+                                        <div className="w-full" style={{ height: '80vh' }}>
+                                            <iframe
+                                                src={streamUrl}
+                                                className="w-full h-full border-none"
+                                                title="PDF Viewer"
+                                            />
+                                        </div>
+                                    ) : isImage ? (
+                                        <div className="w-full flex items-center justify-center bg-gray-50 p-6" style={{ minHeight: '400px', maxHeight: '80vh' }}>
+                                            <img 
+                                                src={streamUrl}
+                                                alt={currentLesson.title}
+                                                className="max-w-full max-h-[75vh] object-contain rounded-2xl shadow-2xl"
+                                                onError={(e) => {
+                                                    e.target.style.display = 'none';
+                                                    setToast({ message: 'Failed to load image.', type: 'error' });
+                                                }}
+                                            />
+                                        </div>
+                                    ) : isText ? (
+                                        <TextFileViewer url={streamUrl} />
+                                    ) : (
+                                        <div className="w-full p-10 text-center bg-gray-50">
+                                            <div className="text-4xl mb-4">📎</div>
+                                            <p className="text-sm font-bold text-gray-500 mb-4">File tersedia untuk didownload</p>
+                                            <a 
+                                                href={streamUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="inline-block bg-primary text-white px-8 py-3 rounded-2xl font-bold text-sm shadow-lg shadow-primary/20 hover:scale-105 transition-all"
+                                            >Download File</a>
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })()}
 
                         {/* Content Area Below Video */}
                         {!currentLesson?.is_quiz && (

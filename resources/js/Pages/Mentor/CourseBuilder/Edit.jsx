@@ -50,6 +50,7 @@ export default function Edit({ auth, course, categories = [], onedrive_permissio
     const [modalInputValue, setModalInputValue] = useState('');
     const [quizType, setQuizType] = useState('multiple_choice');
     const [videoSource, setVideoSource] = useState('youtube');
+    const [fileSource, setFileSource] = useState('onedrive_shared_link');
 
     // Delete Modal State
     const [deleteModal, setDeleteModal] = useState({ isOpen: false, type: '', id: null, title: '' });
@@ -94,16 +95,19 @@ export default function Edit({ auth, course, categories = [], onedrive_permissio
         e.preventDefault();
         const { type, payload } = modalState;
         if (type === 'addLesson') {
-            const finalSource = payload.type === 'video' ? (videoSource || 'youtube') : null;
+            const finalVideoSource = payload.type === 'video' ? (videoSource || 'youtube') : null;
+            const finalFileSource = payload.type === 'file' ? (fileSource || 'onedrive_shared_link') : null;
             console.log("Submitting New Lesson:", {
                 title: modalInputValue,
                 type: payload.type,
-                video_source: finalSource
+                video_source: finalVideoSource,
+                file_source: finalFileSource
             });
             router.post(route('mentor.lessons.store', payload.sectionId), { 
                 title: modalInputValue, 
                 type: payload.type,
-                video_source: finalSource
+                video_source: finalVideoSource,
+                file_source: finalFileSource
             }, { onSuccess: closeModal });
         } else if (type === 'addQuiz') {
             router.post(route('mentor.quizzes.store', payload.sectionId), { title: modalInputValue, type: quizType }, { onSuccess: closeModal });
@@ -232,6 +236,7 @@ export default function Edit({ auth, course, categories = [], onedrive_permissio
                                         <div className="flex items-center gap-4">
                                             <button onClick={() => openModal('addLesson', { sectionId: section.id, type: 'video' })} className="text-[10px] font-extrabold uppercase tracking-widest text-primary hover:underline">🎥 Video</button>
                                             <button onClick={() => openModal('addLesson', { sectionId: section.id, type: 'article' })} className="text-[10px] font-extrabold uppercase tracking-widest text-primary hover:underline">📄 Article</button>
+                                            <button onClick={() => openModal('addLesson', { sectionId: section.id, type: 'file' })} className="text-[10px] font-extrabold uppercase tracking-widest text-primary hover:underline">📎 File</button>
                                             <button onClick={() => openModal('addQuiz', { sectionId: section.id })} className="text-[10px] font-extrabold uppercase tracking-widest text-primary hover:underline">🧠 Quiz</button>
                                             <span className="w-px h-4 bg-border"></span>
                                             <button 
@@ -254,7 +259,7 @@ export default function Edit({ auth, course, categories = [], onedrive_permissio
                                                                 <img src={lesson.thumbnail} className="w-10 h-10 rounded-xl object-cover border border-gray-100 shadow-sm" alt="" />
                                                             ) : (
                                                                 <span className="text-xl">
-                                                                    {lesson.type === 'video' ? '🎥' : '📄'}
+                                                                    {lesson.type === 'video' ? '🎥' : lesson.type === 'file' ? '📎' : '📄'}
                                                                 </span>
                                                             )}
                                                             <div className="flex flex-col">
@@ -496,12 +501,18 @@ export default function Edit({ auth, course, categories = [], onedrive_permissio
                 <form onSubmit={handleModalSubmit} className="p-10">
                     <div className="flex items-center gap-4 mb-8">
                         <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-2xl shadow-inner">
-                            {modalState.type === 'addLesson' && (modalState.payload?.type === 'video' ? '🎥' : '📄')}
+                            {modalState.type === 'addLesson' && (
+                                modalState.payload?.type === 'video' ? '🎥' : 
+                                modalState.payload?.type === 'file' ? '📎' : '📄'
+                            )}
                             {modalState.type === 'addQuiz' && '🧠'}
                             {modalState.type === 'editSection' && '✏️'}
                         </div>
                         <h2 className="text-2xl font-extrabold text-foreground tracking-tight">
-                            {modalState.type === 'addLesson' && `Add ${modalState.payload?.type === 'video' ? 'Video' : 'Article'}`}
+                            {modalState.type === 'addLesson' && `Add ${
+                                modalState.payload?.type === 'video' ? 'Video' : 
+                                modalState.payload?.type === 'file' ? 'File' : 'Article'
+                            }`}
                             {modalState.type === 'addQuiz' && 'Add Quiz'}
                             {modalState.type === 'editSection' && 'Edit Section'}
                         </h2>
@@ -567,6 +578,33 @@ export default function Edit({ auth, course, categories = [], onedrive_permissio
                                         onClick={() => setVideoSource(tab.id)}
                                         className={`p-4 rounded-[24px] border-2 text-left transition-all hover:scale-[1.02] active:scale-[0.98] flex flex-col justify-between ${
                                             videoSource === tab.id 
+                                                ? 'border-primary bg-primary/5 text-primary shadow-lg shadow-primary/5' 
+                                                : 'border-gray-50 bg-muted/50 text-gray-400 hover:border-primary/20 hover:bg-white'
+                                        }`}
+                                    >
+                                        <div className="text-xl mb-3">{tab.icon}</div>
+                                        <p className="text-[10px] font-black uppercase tracking-widest italic">{tab.label}</p>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {modalState.type === 'addLesson' && modalState.payload?.type === 'file' && (
+                        <div className="space-y-4 mb-10">
+                            <label className="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest px-1">File Source</label>
+                            <div className="grid grid-cols-2 gap-4">
+                                {[
+                                    { id: 'onedrive_shared_link', label: 'OneDrive Link', icon: '🔗', permission: onedrive_permissions?.can_use_shared_link },
+                                    { id: 'onedrive_upload', label: 'Upload', icon: '☁️', permission: onedrive_permissions?.can_upload },
+                                    { id: 'onedrive_library', label: 'Library', icon: '📂', permission: onedrive_permissions?.can_use_library },
+                                ].filter(tab => tab.permission).map((tab) => (
+                                    <button
+                                        key={tab.id}
+                                        type="button"
+                                        onClick={() => setFileSource(tab.id)}
+                                        className={`p-4 rounded-[24px] border-2 text-left transition-all hover:scale-[1.02] active:scale-[0.98] flex flex-col justify-between ${
+                                            fileSource === tab.id 
                                                 ? 'border-primary bg-primary/5 text-primary shadow-lg shadow-primary/5' 
                                                 : 'border-gray-50 bg-muted/50 text-gray-400 hover:border-primary/20 hover:bg-white'
                                         }`}

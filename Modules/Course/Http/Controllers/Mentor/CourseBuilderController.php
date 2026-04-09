@@ -221,25 +221,34 @@ class CourseBuilderController extends Controller
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'type' => 'required|in:video,article',
+            'type' => 'required|in:video,article,file',
             'video_source' => 'nullable|string',
+            'file_source' => 'nullable|string',
         ]);
 
         $videoSource = $validated['video_source'] ?? null;
-        if (empty($videoSource) && $validated['type'] === 'video') {
-            $videoSource = 'youtube';
+        if (empty($videoSource)) {
+            $videoSource = 'youtube'; // Default for db to pass constraint
+        }
+        
+        $fileSource = $validated['file_source'] ?? null;
+        if (empty($fileSource) && $validated['type'] === 'file') {
+            $fileSource = 'onedrive_shared_link';
         }
 
         $lesson = $section->lessons()->create([
             'title' => $validated['title'],
             'type' => $validated['type'],
             'video_source' => $videoSource,
+            'file_source' => $fileSource,
             'order' => $section->lessons()->count() + 1,
         ]);
 
         \Illuminate\Support\Facades\Log::info("Module Lesson Created", [
             'id' => $lesson->id,
-            'video_source' => $lesson->video_source
+            'type' => $lesson->type,
+            'video_source' => $lesson->video_source,
+            'file_source' => $lesson->file_source,
         ]);
 
         return back()->with('success', 'Lesson added successfully.');
@@ -343,6 +352,9 @@ class CourseBuilderController extends Controller
             'duration_minutes' => 'nullable|integer',
             'thumbnail' => 'nullable|image|max:2048',
             'is_preview' => 'nullable|boolean',
+            'file_url' => 'nullable|string',
+            'file_source' => 'nullable|string',
+            'file_id' => 'nullable|string',
         ]);
 
         $updateData = array_filter($validated, fn($v) => !is_null($v));
@@ -361,12 +373,24 @@ class CourseBuilderController extends Controller
             $lesson->video_source = $request->video_source;
         }
 
+        // Handle file source fields
+        if ($request->has('file_source')) {
+            $lesson->file_source = $request->file_source;
+        }
+        if ($request->has('file_id')) {
+            $lesson->file_id = $request->file_id;
+        }
+        if ($request->has('file_url')) {
+            $lesson->file_url = $request->file_url;
+        }
+
         $lesson->fill($updateData);
         $lesson->save();
 
         \Illuminate\Support\Facades\Log::info("Module Lesson Updated", [
             'id' => $lesson->id,
-            'video_source' => $lesson->video_source
+            'video_source' => $lesson->video_source,
+            'file_source' => $lesson->file_source,
         ]);
 
         return back()->with('success', 'Lesson updated.');
@@ -417,6 +441,11 @@ class CourseBuilderController extends Controller
                 return back()->withErrors(['video' => 'Could not save temporary file to server. Check storage permissions.']);
             }
 
+            // Mark as processing in DB to show UI loading state safely
+            $lesson->video_source = 'onedrive_upload';
+            $lesson->video_id = 'PROCESSING';
+            $lesson->save();
+
             // Dispatch Background Job
             \Modules\Course\Jobs\UploadVideoToOneDrive::dispatch(
                 $lesson->id,
@@ -437,6 +466,65 @@ class CourseBuilderController extends Controller
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error("OneDrive Dispatch Error: " . $e->getMessage());
             return back()->withErrors(['video' => 'Server error: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Upload file (PDF/TXT/Image) to OneDrive.
+     */
+    public function uploadLessonFile(Request $request, Lesson $lesson)
+    {
+        if ($lesson->section->course->mentor_id != auth()->id()) abort(403);
+
+        try {
+            if ($request->isMethod('post') && empty($request->all()) && empty($request->file())) {
+                return back()->withErrors(['file' => 'The file is too large for the server to process. Please increase post_max_size and upload_max_filesize in your hosting PHP settings.']);
+            }
+
+            $request->validate([
+                'file' => 'required|file|mimes:pdf,txt,jpg,jpeg,png,gif,webp|max:51200', // 50MB max
+            ]);
+
+            $file = $request->file('file');
+            
+            if (!$file->isValid()) {
+                return back()->withErrors(['file' => 'Upload failed: ' . $file->getErrorMessage()]);
+            }
+
+            $extension = $file->getClientOriginalExtension();
+            $filename = \Illuminate\Support\Str::slug($lesson->title) . '-' . time() . '.' . $extension;
+            $folderName = 'Course-' . \Illuminate\Support\Str::slug($lesson->section->course->title) . '/files';
+
+            $tempPath = $file->storeAs('temp_files', $filename, 'local');
+
+            if (!$tempPath) {
+                return back()->withErrors(['file' => 'Could not save temporary file to server. Check storage permissions.']);
+            }
+
+            // Mark as processing in DB to show UI loading state safely
+            $lesson->file_source = 'onedrive_upload';
+            $lesson->file_id = 'PROCESSING';
+            $lesson->save();
+
+            \Modules\Course\Jobs\UploadFileToOneDrive::dispatch(
+                $lesson->id,
+                $tempPath,
+                $filename,
+                $folderName
+            );
+
+            \Illuminate\Support\Facades\Log::info("OneDrive File Upload Job Dispatched", [
+                'lesson_id' => $lesson->id,
+                'temp_path' => $tempPath
+            ]);
+
+            return back()->with('success', 'Upload successful! Your file is being processed in the background.');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return back()->withErrors($e->errors());
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("OneDrive File Dispatch Error: " . $e->getMessage());
+            return back()->withErrors(['file' => 'Server error: ' . $e->getMessage()]);
         }
     }
 
