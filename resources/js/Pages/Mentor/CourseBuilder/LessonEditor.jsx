@@ -57,11 +57,34 @@ export default function LessonEditor({ auth, lesson, onedrive_permissions }) {
     const handleVideoUpload = (e) => {
         const file = e.target.files[0];
         if (!file) return;
+
+        // Check file size (500MB limit matching server)
+        if (file.size > 500 * 1024 * 1024) {
+            setToast({ message: 'File is too large (max 500MB).', type: 'error' });
+            return;
+        }
+
         uploadForm.setData('video', file);
         uploadForm.post(route('mentor.lessons.upload-video', lesson.id), {
+            preserveScroll: true,
             forceFormData: true,
-            onProgress: (progress) => setUploadProgress(progress.percentage),
-            onSuccess: () => setUploadProgress(0),
+            onStart: () => {
+                setToast({ message: 'Uploading to server...', type: 'info' });
+            },
+            onProgress: (progress) => {
+                setUploadProgress(progress.percentage);
+                if (progress.percentage === 100) {
+                    setToast({ message: 'Transmitting to OneDrive, please wait...', type: 'info' });
+                }
+            },
+            onSuccess: () => {
+                setUploadProgress(0);
+                setToast({ message: 'Video uploaded and processed successfully!', type: 'success' });
+            },
+            onError: (errors) => {
+                const errorMsg = Object.values(errors)[0] || 'Upload failed. Check server limits.';
+                setToast({ message: errorMsg, type: 'error' });
+            }
         });
     };
 

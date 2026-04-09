@@ -389,35 +389,43 @@ class CourseBuilderController extends Controller
     {
         if ($lesson->section->course->mentor_id != auth()->id()) abort(403);
 
-        // Increase time limit for large video uploads (5 minutes)
-        set_time_limit(300);
-
-        $request->validate([
-            'video' => 'required|file|mimetypes:video/mp4,video/mpeg,video/quicktime,video/x-msvideo|max:102400', // 100MB max for now
-        ]);
-
-        $oneDrive = new OneDriveService();
-        if (!$oneDrive->getAccessToken()) {
-            return back()->with('error', 'OneDrive integration is not connected.');
-        }
-
-        $file = $request->file('video');
-        $filename = Str::slug($lesson->title) . '-' . time() . '.' . $file->getClientOriginalExtension();
-        $folderName = 'Course-' . Str::slug($lesson->section->course->title);
-
-        $result = $oneDrive->uploadLargeFile($file->getRealPath(), $filename, $folderName);
-
-        if ($result) {
-            $lesson->update([
-                'video_source' => 'onedrive_upload',
-                'video_id' => $result['id'],
-                'video_url' => $result['webUrl'] ?? null,
+        try {
+            $request->validate([
+                'video' => 'required|file|mimetypes:video/mp4,video/mpeg,video/quicktime,video/x-msvideo|max:512000', // 500MB max
             ]);
 
-            return back()->with('success', 'Video uploaded to OneDrive successfully!');
-        }
+            $file = $request->file('video');
+            $originalName = $file->getClientOriginalName();
+            $extension = $file->getClientOriginalExtension();
+            $filename = \Illuminate\Support\Str::slug($lesson->title) . '-' . time() . '.' . $extension;
+            $folderName = 'Course-' . \Illuminate\Support\Str::slug($lesson->section->course->title);
 
-        return back()->with('error', 'Failed to upload video to OneDrive.');
+            // Save file to local storage (app/temp_videos)
+            $tempPath = $file->storeAs('temp_videos', $filename, 'local');
+
+            if (!$tempPath) {
+                return back()->withErrors(['video' => 'Could not save temporary file to server. Check storage permissions.']);
+            }
+
+            // Dispatch Background Job
+            \Modules\Course\Jobs\UploadVideoToOneDrive::dispatch(
+                $lesson->id,
+                $tempPath,
+                $filename,
+                $folderName
+            );
+
+            \Illuminate\Support\Facades\Log::info("OneDrive Upload Job Dispatched", [
+                'lesson_id' => $lesson->id,
+                'temp_path' => $tempPath
+            ]);
+
+            return back()->with('success', 'Upload successful! Your video is being processed in the background and will appear on the lesson page in a few minutes.');
+
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("OneDrive Dispatch Error: " . $e->getMessage());
+            return back()->withErrors(['video' => 'Server error: ' . $e->getMessage()]);
+        }
     }
 
     /**
