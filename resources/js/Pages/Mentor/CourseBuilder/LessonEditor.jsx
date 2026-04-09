@@ -527,8 +527,7 @@ export default function LessonEditor({ auth, lesson, onedrive_permissions }) {
                                             <div className="text-2xl mb-4">{tab.icon}</div>
                                             <p className="text-[10px] font-black uppercase tracking-widest leading-tight">{tab.label}</p>
                                         </button>
-                                        );
-                                    })}
+                                    ))}
                                 </div>
                             </div>
 
