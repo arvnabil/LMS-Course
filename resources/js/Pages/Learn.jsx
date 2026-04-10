@@ -562,11 +562,11 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
             
             <div className="font-sans bg-white dark:bg-zinc-950 h-screen flex flex-col text-foreground overflow-hidden selection:bg-primary/10">
                 {/* Top Header Bar - Toggleable */}
-                <header className={`bg-white border-b border-border px-4 py-2 flex items-center justify-between z-50 transition-all duration-300 ${headerVisible ? 'translate-y-0' : '-translate-y-full absolute w-full'}`}>
+                <header className={`bg-white dark:bg-zinc-950 border-b border-border px-4 py-2 flex items-center justify-between z-50 transition-all duration-300 ${headerVisible ? 'translate-y-0' : '-translate-y-full absolute w-full'}`}>
                     <div className="flex items-center gap-4">
                         <button 
                             onClick={() => setSidebarOpen(!sidebarOpen)} 
-                            className="w-9 h-9 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-all cursor-pointer"
+                            className="w-9 h-9 rounded-xl bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 flex items-center justify-center transition-all cursor-pointer"
                             title={sidebarOpen ? 'Hide Sidebar' : 'Show Sidebar'}
                         >
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -601,7 +601,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                         )}
                         <button 
                             onClick={toggleTheme}
-                            className="w-9 h-9 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-all cursor-pointer"
+                            className="w-9 h-9 rounded-xl bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 flex items-center justify-center transition-all cursor-pointer"
                             title={theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
                         >
                             {theme === 'dark' ? (
@@ -612,7 +612,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                         </button>
                         <button 
                             onClick={() => setHeaderVisible(false)} 
-                            className="w-9 h-9 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-all cursor-pointer"
+                            className="w-9 h-9 rounded-xl bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 flex items-center justify-center transition-all cursor-pointer"
                             title="Hide Header"
                         >
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
