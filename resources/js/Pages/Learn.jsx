@@ -149,11 +149,16 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
         const isCompleted = isLesson 
             ? progressArray.some(lp => lp.lesson_id == item.id && (lp.is_completed || lp.completed_at))
             : (
-                (enrollment.quiz_attempts || enrollment.quizAttempts)?.some(a => a.quiz_id == item.id && a.is_passed) || 
+                (enrollment.quiz_attempts || enrollment.quizAttempts)?.some(a => 
+                    a.quiz_id == item.id && 
+                    // Strictly enforce threshold even if is_passed is true in DB
+                    (a.is_passed || a.score >= (item.passing_score || 85)) &&
+                    a.score >= (item.passing_score || 85)
+                ) || 
                 (enrollment.submissions || [])?.some(s => 
                     s.quiz_id == item.id && 
                     s.status === 'approved' && 
-                    (!item.passing_score || s.score >= item.passing_score)
+                    s.score >= (item.passing_score || 85)
                 )
             );
         
@@ -556,7 +561,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
             <ThemeStyleInjector />
             <Head title={`Learning: ${course.title}`} />
             
-            <div className="font-sans bg-muted min-h-screen flex flex-col text-foreground">
+            <div className="font-sans bg-muted h-screen flex flex-col text-foreground overflow-hidden selection:bg-primary/10">
                 {/* Top Header Bar - Toggleable */}
                 <header className={`bg-surface border-b border-border px-4 py-2 flex items-center justify-between z-50 transition-all duration-300 ${headerVisible ? 'translate-y-0' : '-translate-y-full absolute w-full'}`}>
                     <div className="flex items-center gap-4">
@@ -641,18 +646,23 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                     )}
 
                     {/* Sidebar */}
-                    <aside className={`bg-gray-50 dark:bg-gray-900/50 border-r border-border flex-shrink-0 flex flex-col transition-all duration-500 ease-out overflow-hidden z-40 h-full lg:relative absolute ${sidebarOpen ? 'w-[280px] sm:w-80 translate-x-0' : 'w-0 -translate-x-full lg:translate-x-0'}`}>
+                    <aside className={`bg-slate-50/80 dark:bg-slate-900/50 backdrop-blur-xl border-r border-border shrink-0 flex flex-col transition-all duration-500 ease-out overflow-hidden z-40 h-full lg:relative absolute shadow-2xl lg:shadow-none ${sidebarOpen ? 'w-[280px] sm:w-80 translate-x-0' : 'w-0 -translate-x-full lg:translate-x-0'}`}>
                         <div className="w-[280px] sm:w-80 flex flex-col h-full">
                             {/* Course Info */}
-                            <div className="px-6 py-6 border-b border-border space-y-4">
-                                <h2 className="text-base font-extrabold text-foreground leading-tight truncate">{course.title}</h2>
-                                <div className="space-y-2">
-                                    <div className="w-full bg-muted h-1.5 rounded-full overflow-hidden">
-                                        <div className="bg-primary h-full transition-all duration-700 ease-out" style={{ width: `${progressPercent}%` }}></div>
+                            <div className="px-6 py-8 border-b border-border/60 bg-white/40 dark:bg-white/5 space-y-5">
+                                <div className="space-y-1">
+                                    <p className="text-[10px] font-bold text-primary dark:text-primary-foreground/60 uppercase tracking-tighter">Current Course</p>
+                                    <h2 className="text-sm font-black text-foreground leading-tight line-clamp-2">{course.title}</h2>
+                                </div>
+                                <div className="space-y-2.5">
+                                    <div className="flex justify-between items-end">
+                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{completedCount}/{allCourseItems.length} Completed</p>
+                                        <p className="text-xs font-black text-primary uppercase tracking-tight">{progressPercent}%</p>
                                     </div>
-                                    <div className="flex justify-between">
-                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{completedCount}/{allCourseItems.length} Items</p>
-                                        <p className="text-[10px] font-extrabold text-primary uppercase tracking-widest">{progressPercent}%</p>
+                                    <div className="w-full bg-gray-200 dark:bg-white/10 h-2 rounded-full overflow-hidden shadow-inner">
+                                        <div className="bg-primary h-full transition-all duration-1000 ease-out relative" style={{ width: `${progressPercent}%` }}>
+                                            <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -666,11 +676,14 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                     <div key={section.id} className="space-y-2">
                                         <div 
                                             onClick={() => toggleSection(section.id)}
-                                            className="flex items-center justify-between px-3 cursor-pointer group"
+                                            className="px-6 py-4 flex items-center justify-between cursor-pointer group hover:bg-white/50 dark:hover:bg-white/5 transition-colors border-b border-border/40"
                                         >
-                                            <h3 className="text-[10px] font-extrabold text-gray-400 group-hover:text-primary transition-colors uppercase tracking-widest">Section {sIdx + 1}: {section.title}</h3>
-                                            <div className={`w-5 h-5 rounded flex items-center justify-center text-gray-400 group-hover:text-primary transition-all duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
-                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                                            <div className="space-y-0.5">
+                                                <p className="text-[9px] font-black text-primary/60 dark:text-primary-foreground/40 uppercase tracking-[0.2em]">Module {sIdx + 1}</p>
+                                                <h3 className="text-[11px] font-black text-foreground/70 group-hover:text-primary transition-colors uppercase tracking-wider line-clamp-1">{section.title}</h3>
+                                            </div>
+                                            <div className={`w-6 h-6 rounded-lg bg-muted/50 flex items-center justify-center text-gray-400 group-hover:text-primary transition-all duration-300 ${isExpanded ? 'rotate-180 bg-primary/10 text-primary' : ''}`}>
+                                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                                             </div>
                                         </div>
                                         
@@ -710,10 +723,10 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                                                 router.get(route('student.learn', [course.slug]), { quiz_id: item.id });
                                                             }
                                                         }}
-                                                        className={`w-full text-left px-4 py-3 rounded-2xl flex items-center gap-4 transition-all duration-300 group border ${
+                                                        className={`w-full text-left px-5 py-3.5 rounded-xl flex items-center gap-4 transition-all duration-500 group border-2 ${
                                                             isActive 
-                                                                ? 'bg-primary text-white shadow-lg shadow-primary/20 border-primary' 
-                                                                : 'bg-transparent border-transparent hover:bg-gray-200/50 dark:hover:bg-white/5 hover:border-border/50'
+                                                                ? 'bg-primary text-white shadow-xl shadow-primary/25 border-primary scale-[1.02] z-10' 
+                                                                : 'bg-transparent border-transparent hover:bg-white/80 dark:hover:bg-white/5 hover:border-border/30'
                                                         }`}
                                                     >
                                                         <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 ${
@@ -794,11 +807,11 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                                             return (
                                                                 <div className="flex flex-col items-center gap-2 pt-2 animate-in fade-in slide-in-from-top-2 duration-500">
                                                                     <div className="flex items-center gap-3">
-                                                                        <span className={`text-4xl font-black ${attempt.is_passed ? 'text-emerald-500' : 'text-red-500'}`}>
+                                                                        <span className={`text-4xl font-black ${attempt.score >= (currentLesson.passing_score || 85) ? 'text-emerald-500' : 'text-red-500'}`}>
                                                                             {Math.round(attempt.score)}%
                                                                         </span>
-                                                                        <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${attempt.is_passed ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-red-500/10 text-red-500 border border-red-500/20'}`}>
-                                                                            {attempt.is_passed ? 'PASSED' : 'FAILED'}
+                                                                        <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${attempt.score >= (currentLesson.passing_score || 85) ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-red-500/10 text-red-500 border border-red-500/20'}`}>
+                                                                            {attempt.score >= (currentLesson.passing_score || 85) ? 'PASSED' : 'FAILED'}
                                                                         </span>
                                                                     </div>
                                                                     <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Your Last Attempt Score</p>

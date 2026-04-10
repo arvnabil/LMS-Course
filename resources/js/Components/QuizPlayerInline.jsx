@@ -95,18 +95,25 @@ export default function QuizPlayerInline({ quiz, onCancel }) {
                 <div className="flex-1 p-6 sm:p-10 lg:p-16 overflow-y-auto scrollbar-hide">
                     {quizResult ? (
                         <div className="max-w-md mx-auto text-center space-y-10 py-10 animate-in fade-in slide-in-from-bottom duration-700">
-                            <div className={`w-32 h-32 rounded-full mx-auto flex items-center justify-center text-5xl shadow-2xl ${quizResult.is_passed ? 'bg-emerald-500 shadow-emerald-500/30' : 'bg-red-500 shadow-red-500/30'}`}>
-                                {quizResult.is_passed ? '🏆' : '💪'}
-                            </div>
-                            
-                            <div className="space-y-4">
-                                <h3 className={`text-4xl font-black tracking-tight ${quizResult.is_passed ? 'text-emerald-500' : 'text-red-500'}`}>
-                                    {quizResult.is_passed ? 'Passed!' : 'Try Again'}
-                                </h3>
-                                <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">
-                                    Your Score: {quizResult.score}%
-                                </p>
-                            </div>
+                            {(() => {
+                                const isPassed = quizResult.score >= (quizResult.passing_score || 85);
+                                return (
+                                    <>
+                                        <div className={`w-32 h-32 rounded-full mx-auto flex items-center justify-center text-5xl shadow-2xl transition-all duration-700 ${isPassed ? 'bg-emerald-500 shadow-emerald-500/30' : 'bg-red-500 shadow-red-500/30'}`}>
+                                            {isPassed ? '🏆' : '💪'}
+                                        </div>
+                                        
+                                        <div className="space-y-4">
+                                            <h3 className={`text-4xl font-black tracking-tight ${isPassed ? 'text-emerald-500' : 'text-red-500'}`}>
+                                                {isPassed ? 'Passed!' : 'Try Again'}
+                                            </h3>
+                                            <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">
+                                                Your Score: {quizResult.score}%
+                                            </p>
+                                        </div>
+                                    </>
+                                );
+                            })()}
 
                             <div className="bg-muted/50 rounded-[40px] p-10 border border-border flex flex-col gap-6">
                                 <div className="flex justify-between items-center px-2">
