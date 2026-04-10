@@ -23,16 +23,20 @@ class UploadFileToOneDrive implements ShouldQueue
     protected $tempFilePath;
     protected $filename;
     protected $folderName;
+    protected $originalFileName;
+    protected $mimeType;
 
     /**
      * Create a new job instance.
      */
-    public function __construct($lessonId, $tempFilePath, $filename, $folderName)
+    public function __construct($lessonId, $tempFilePath, $filename, $folderName, $originalFileName = null, $mimeType = null)
     {
         $this->lessonId = $lessonId;
         $this->tempFilePath = $tempFilePath;
         $this->filename = $filename;
         $this->folderName = $folderName;
+        $this->originalFileName = $originalFileName;
+        $this->mimeType = $mimeType;
     }
 
     /**
@@ -72,6 +76,8 @@ class UploadFileToOneDrive implements ShouldQueue
                     'file_source' => 'onedrive_upload',
                     'file_id' => $result['id'],
                     'file_url' => $result['webUrl'] ?? null,
+                    'file_name' => $this->originalFileName,
+                    'mime_type' => $this->mimeType,
                 ]);
 
                 Log::info("OneDrive File Upload Job Successful", ['lesson_id' => $lesson->id]);

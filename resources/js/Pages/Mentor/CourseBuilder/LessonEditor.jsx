@@ -143,7 +143,9 @@ export default function LessonEditor({ auth, lesson, onedrive_permissions }) {
             ...data,
             file_source: 'onedrive_library',
             file_id: file.id,
-            file_url: null
+            file_url: null,
+            file_name: file.name,
+            mime_type: file.name.endsWith('.pdf') ? 'application/pdf' : 'application/octet-stream'
         });
     };
 

@@ -351,10 +351,11 @@ class CourseBuilderController extends Controller
             'video_id' => 'nullable|string',
             'duration_minutes' => 'nullable|integer',
             'thumbnail' => 'nullable|image|max:2048',
-            'is_preview' => 'nullable|boolean',
             'file_url' => 'nullable|string',
             'file_source' => 'nullable|string',
             'file_id' => 'nullable|string',
+            'file_name' => 'nullable|string|max:255',
+            'mime_type' => 'nullable|string|max:100',
         ]);
 
         $updateData = array_filter($validated, fn($v) => !is_null($v));
@@ -528,7 +529,9 @@ class CourseBuilderController extends Controller
                 $lesson->id,
                 $tempPath,
                 $filename,
-                $folderName
+                $folderName,
+                $file->getClientOriginalName(),
+                $file->getMimeType()
             );
 
             \Illuminate\Support\Facades\Log::info("OneDrive File Upload Job Dispatched", [
@@ -785,5 +788,54 @@ class CourseBuilderController extends Controller
             ->setWarnings(false);
 
         return $pdf->stream('preview-certificate.pdf');
+    }
+
+    /**
+     * Reorder sections within a course.
+     */
+    public function reorderSections(Request $request, Course $course)
+    {
+        if ($course->mentor_id != auth()->id()) abort(403);
+
+        $request->validate([
+            'section_ids' => 'required|array',
+            'section_ids.*' => 'exists:sections,id'
+        ]);
+
+        foreach ($request->section_ids as $index => $id) {
+            Section::where('id', $id)
+                ->where('course_id', $course->id)
+                ->update(['order' => $index + 1]);
+        }
+
+        return back()->with('success', 'Sections reordered.');
+    }
+
+    /**
+     * Reorder items (lessons/quizzes) within a section.
+     */
+    public function reorderItems(Request $request, Section $section)
+    {
+        if ($section->course->mentor_id != auth()->id()) abort(403);
+
+        $request->validate([
+            'items' => 'required|array',
+            'items.*.id' => 'required|integer',
+            'items.*.type' => 'required|in:lesson,quiz'
+        ]);
+
+        foreach ($request->items as $index => $item) {
+            if ($item['type'] === 'lesson') {
+                Lesson::where('id', $item['id'])
+                    ->where('section_id', $section->id)
+                    ->update(['order' => $index + 1]);
+            } else {
+                Quiz::where('id', $item['id'])
+                    ->where('section_id', $section->id)
+                    ->update(['order' => $index + 1]);
+            }
+        }
+
+        return back()->with('success', 'Items reordered.');
     }
 }

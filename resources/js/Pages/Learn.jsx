@@ -1019,48 +1019,80 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                         {/* File Display Area */}
                         {currentLesson?.type === 'file' && currentLesson?.file_id && (() => {
                             const streamUrl = `/onedrive/stream/${currentLesson.file_id}?t=${new Date(currentLesson.updated_at).getTime()}`;
-                            const fileName = currentLesson.title?.toLowerCase() || '';
-                            const fileUrl = currentLesson.file_url?.toLowerCase() || '';
-                            const isPdf = fileName.endsWith('.pdf') || fileUrl.includes('.pdf');
-                            const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(fileName) || /\.(jpg|jpeg|png|gif|webp)/i.test(fileUrl);
-                            const isText = fileName.endsWith('.txt') || fileUrl.includes('.txt');
+                            const isPdf = currentLesson.file_name?.toLowerCase().endsWith('.pdf') || currentLesson.mime_type === 'application/pdf' || currentLesson.title?.toLowerCase().includes('.pdf');
+                            const isImage = currentLesson.file_name?.match(/\.(jpg|jpeg|png|gif|webp)$/i) || currentLesson.mime_type?.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp)$/i.test(currentLesson.title);
+                            const isText = currentLesson.file_name?.toLowerCase().endsWith('.txt') || currentLesson.mime_type === 'text/plain';
+                            const fileName = currentLesson.file_name || currentLesson.title;
 
                             return (
-                                <div className="w-full bg-white border-b border-gray-100">
-                                    {isPdf ? (
-                                        <div className="w-full" style={{ height: '80vh' }}>
-                                            <iframe
-                                                src={streamUrl}
+                                <div className="w-full flex-1 flex flex-col min-h-0 bg-gray-50/50">
+                                    {/* Premium File Header */}
+                                    <div className="flex items-center justify-between px-6 py-4 bg-white border-b border-gray-100 shadow-sm z-10">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-xl">
+                                                {isPdf ? '📄' : isImage ? '🖼️' : '📁'}
+                                            </div>
+                                            <div>
+                                                <h3 className="text-sm font-bold text-gray-900 truncate max-w-[200px] sm:max-w-md">
+                                                    {fileName}
+                                                </h3>
+                                                <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">
+                                                    {isPdf ? 'PDF Document' : isImage ? 'Image File' : 'Resource File'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <a 
+                                            href={streamUrl}
+                                            download={fileName}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-xl text-xs font-bold shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all group"
+                                        >
+                                            <span className="group-hover:translate-y-0.5 transition-transform">⬇️</span>
+                                            Download
+                                        </a>
+                                    </div>
+
+                                    {/* Viewer Area */}
+                                    <div className="flex-1 overflow-hidden relative flex items-center justify-center">
+                                        {isPdf ? (
+                                            <iframe 
+                                                src={`${streamUrl}#toolbar=0`}
                                                 className="w-full h-full border-none"
                                                 title="PDF Viewer"
                                             />
-                                        </div>
-                                    ) : isImage ? (
-                                        <div className="w-full flex items-center justify-center bg-gray-50 p-6" style={{ minHeight: '400px', maxHeight: '80vh' }}>
-                                            <img 
-                                                src={streamUrl}
-                                                alt={currentLesson.title}
-                                                className="max-w-full max-h-[75vh] object-contain rounded-2xl shadow-2xl"
-                                                onError={(e) => {
-                                                    e.target.style.display = 'none';
-                                                    setToast({ message: 'Failed to load image.', type: 'error' });
-                                                }}
-                                            />
-                                        </div>
-                                    ) : isText ? (
-                                        <TextFileViewer url={streamUrl} />
-                                    ) : (
-                                        <div className="w-full p-10 text-center bg-gray-50">
-                                            <div className="text-4xl mb-4">📎</div>
-                                            <p className="text-sm font-bold text-gray-500 mb-4">File tersedia untuk didownload</p>
-                                            <a 
-                                                href={streamUrl}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="inline-block bg-primary text-white px-8 py-3 rounded-2xl font-bold text-sm shadow-lg shadow-primary/20 hover:scale-105 transition-all"
-                                            >Download File</a>
-                                        </div>
-                                    )}
+                                        ) : isImage ? (
+                                            <div className="p-8 w-full h-full flex items-center justify-center">
+                                                <img 
+                                                    src={streamUrl}
+                                                    alt={fileName}
+                                                    className="max-w-full max-h-full object-contain rounded-xl shadow-2xl transition-transform hover:scale-[1.01]"
+                                                    onError={(e) => {
+                                                        e.target.style.display = 'none';
+                                                        setToast({ message: 'Gagal memuat gambar.', type: 'error' });
+                                                    }}
+                                                />
+                                            </div>
+                                        ) : isText ? (
+                                            <div className="w-full h-full bg-gray-900 overflow-auto">
+                                                <TextFileViewer url={streamUrl} />
+                                            </div>
+                                        ) : (
+                                            <div className="w-full p-20 text-center">
+                                                <div className="w-20 h-20 bg-gray-100 rounded-3xl flex items-center justify-center text-4xl mx-auto mb-6">
+                                                    📎
+                                                </div>
+                                                <h4 className="text-lg font-bold text-gray-900 mb-2">File tersedia</h4>
+                                                <p className="text-sm text-gray-400 mb-8 max-w-xs mx-auto">Pratinjau tidak tersedia untuk tipe file ini. Silakan download untuk melihat isi file.</p>
+                                                <a 
+                                                    href={streamUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="inline-flex items-center px-10 py-4 bg-gray-900 text-white rounded-2xl font-bold text-sm shadow-xl hover:bg-black transition-all"
+                                                >Unduh Sekarang</a>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             );
                         })()}

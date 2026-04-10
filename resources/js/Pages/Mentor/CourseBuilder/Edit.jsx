@@ -3,6 +3,23 @@ import InputError from '@/Components/InputError';
 import { Head, Link, useForm, router } from '@inertiajs/react';
 import { useState } from 'react';
 import Modal from '@/Components/Modal';
+import {
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+} from '@dnd-kit/core';
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
+    useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 
 export default function Edit({ auth, course, categories = [], onedrive_permissions }) {
     const [activeTab, setActiveTab] = useState('curriculum'); // Default to curriculum
@@ -120,6 +137,93 @@ export default function Edit({ auth, course, categories = [], onedrive_permissio
         }
     };
 
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 8,
+            },
+        }),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
+
+    const handleSectionDragEnd = (event) => {
+        const { active, over } = event;
+        if (over && active.id !== over.id) {
+            const oldIndex = course.sections.findIndex((s) => s.id === active.id);
+            const newIndex = course.sections.findIndex((s) => s.id === over.id);
+            const newSections = arrayMove(course.sections, oldIndex, newIndex);
+            
+            // Optimistic update
+            course.sections = newSections;
+
+            router.post(route('mentor.courses.reorder-sections', course.id), {
+                section_ids: newSections.map(s => s.id)
+            }, { preserveScroll: true });
+        }
+    };
+
+    const handleItemDragEnd = (section, event) => {
+        const { active, over } = event;
+        if (over && active.id !== over.id) {
+            const combinedItems = [
+                ...section.lessons.map(l => ({ ...l, sortId: `lesson-${l.id}`, sortType: 'lesson' })),
+                ...section.quizzes.map(q => ({ ...q, sortId: `quiz-${q.id}`, sortType: 'quiz' }))
+            ].sort((a, b) => a.order - b.order);
+
+            const oldIndex = combinedItems.findIndex((i) => i.sortId === active.id);
+            const newIndex = combinedItems.findIndex((i) => i.sortId === over.id);
+            const newItemsOrder = arrayMove(combinedItems, oldIndex, newIndex);
+
+            router.post(route('mentor.sections.reorder-items', section.id), {
+                items: newItemsOrder.map(i => ({ id: i.id, type: i.sortType }))
+            }, { preserveScroll: true });
+        }
+    };
+
+    // Helper components for sorting
+    const SortableItem = ({ id, children }) => {
+        const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+        const style = {
+            transform: CSS.Transform.toString(transform),
+            transition,
+            zIndex: isDragging ? 50 : 'auto',
+            opacity: isDragging ? 0.5 : 1,
+        };
+        return (
+            <div ref={setNodeRef} style={style} className="relative group/sortable">
+                <div {...attributes} {...listeners} className="absolute left-2 top-1/2 -translate-y-1/2 p-2 cursor-grab active:cursor-grabbing opacity-0 group-hover/sortable:opacity-100 transition-opacity z-10 text-gray-400 hover:text-primary">
+                    <svg width="12" height="18" viewBox="0 0 12 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="2" cy="2" r="2" fill="currentColor"/><circle cx="2" cy="9" r="2" fill="currentColor"/><circle cx="2" cy="16" r="2" fill="currentColor"/>
+                        <circle cx="10" cy="2" r="2" fill="currentColor"/><circle cx="10" cy="9" r="2" fill="currentColor"/><circle cx="10" cy="16" r="2" fill="currentColor"/>
+                    </svg>
+                </div>
+                {children}
+            </div>
+        );
+    };
+
+    const SortableSectionWrapper = ({ id, children }) => {
+        const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+        const style = {
+            transform: CSS.Transform.toString(transform),
+            transition,
+            zIndex: isDragging ? 40 : 'auto',
+        };
+        return (
+            <div ref={setNodeRef} style={style} className="relative group/section-sortable">
+                <div {...attributes} {...listeners} className="absolute -left-10 top-8 p-2 cursor-grab active:cursor-grabbing opacity-0 group-hover/section-sortable:opacity-100 transition-opacity z-10 text-gray-400 hover:text-primary hidden lg:block">
+                    <svg width="16" height="24" viewBox="0 0 12 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="2" cy="2" r="2" fill="currentColor"/><circle cx="2" cy="9" r="2" fill="currentColor"/><circle cx="2" cy="16" r="2" fill="currentColor"/>
+                        <circle cx="10" cy="2" r="2" fill="currentColor"/><circle cx="10" cy="9" r="2" fill="currentColor"/><circle cx="10" cy="16" r="2" fill="currentColor"/>
+                    </svg>
+                </div>
+                {children}
+            </div>
+        );
+    };
+
     return (
         <DashboardLayout user={auth.user}>
             <Head title={`Edit: ${course.title}`} />
@@ -223,127 +327,162 @@ export default function Edit({ auth, course, categories = [], onedrive_permissio
                         )}
 
                         <div className="space-y-6">
-                            {course.sections?.map((section, sIdx) => (
-                                <div key={section.id} className="bg-surface rounded-[40px] border border-border shadow-xl shadow-gray-200/10 dark:shadow-none overflow-hidden hover:border-primary/20 transition-colors group/section">
-                                    <div className="bg-muted/50 px-10 py-6 flex items-center justify-between border-b border-border">
-                                        <h3 className="font-extrabold text-foreground flex items-center gap-3">
-                                            <span className="text-foreground/30">Section {sIdx + 1}:</span> 
-                                            {section.title}
-                                            <button onClick={() => openModal('editSection', { sectionId: section.id, initialValue: section.title })} className="p-2 rounded-lg hover:bg-primary/10 text-foreground/20 hover:text-primary transition-all">
-                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
-                                            </button>
-                                        </h3>
-                                        <div className="flex items-center gap-4">
-                                            <button onClick={() => openModal('addLesson', { sectionId: section.id, type: 'video' })} className="text-[10px] font-extrabold uppercase tracking-widest text-primary hover:underline">🎥 Video</button>
-                                            <button onClick={() => openModal('addLesson', { sectionId: section.id, type: 'article' })} className="text-[10px] font-extrabold uppercase tracking-widest text-primary hover:underline">📄 Article</button>
-                                            <button onClick={() => openModal('addLesson', { sectionId: section.id, type: 'file' })} className="text-[10px] font-extrabold uppercase tracking-widest text-primary hover:underline">📎 File</button>
-                                            <button onClick={() => openModal('addQuiz', { sectionId: section.id })} className="text-[10px] font-extrabold uppercase tracking-widest text-primary hover:underline">🧠 Quiz</button>
-                                            <span className="w-px h-4 bg-border"></span>
-                                            <button 
-                                                onClick={() => openDeleteModal('section', section.id, section.title)}
-                                                className="p-2 rounded-lg hover:bg-rose-500/10 text-foreground/20 hover:text-rose-500 transition-all cursor-pointer"
-                                            >
-                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div className="p-6 space-y-3">
-                                        {(section.lessons?.length > 0 || section.quizzes?.length > 0) ? (
-                                            <>
-                                                {/* Lessons */}
-                                                {section.lessons?.map((lesson, lIdx) => (
-                                                    <div key={`lesson-${lesson.id}`} className="flex items-center justify-between bg-surface border border-border p-5 rounded-3xl hover:border-primary/30 transition-all group/item">
-                                                        <div className="flex items-center gap-4">
-                                                            <span className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-bold text-gray-400">{lIdx + 1}</span>
-                                                            {lesson.thumbnail ? (
-                                                                <img src={lesson.thumbnail} className="w-10 h-10 rounded-xl object-cover border border-gray-100 shadow-sm" alt="" />
-                                                            ) : (
-                                                                <span className="text-xl">
-                                                                    {lesson.type === 'video' ? '🎥' : lesson.type === 'file' ? '📎' : '📄'}
-                                                                </span>
-                                                            )}
-                                                            <div className="flex flex-col">
-                                                                <div className="flex items-center gap-2">
-                                                                    <span className="text-sm font-bold text-foreground/70 group-hover/item:text-foreground transition-colors">{lesson.title}</span>
-                                                                    <button onClick={() => openModal('editLesson', { id: lesson.id, initialValue: lesson.title })} className="opacity-0 group-hover/item:opacity-100 transition-opacity p-1 rounded hover:bg-primary/10 hover:text-primary">
-                                                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
-                                                                    </button>
-                                                                </div>
-                                                                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-                                                                    {lesson.type} {lesson.duration_minutes ? `• ${lesson.duration_minutes}m` : ''}
-                                                                    {lesson.is_preview ? <span className="ml-2 text-blue-500 font-extrabold tracking-tighter italic">Preview On</span> : ''}
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                        <div className="flex items-center gap-3">
-                                                            <button
-                                                                onClick={() => router.patch(route('mentor.lessons.toggle-preview', lesson.id))}
-                                                                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
-                                                                    lesson.is_preview 
-                                                                        ? 'bg-blue-50 text-blue-500 shadow-inner' 
-                                                                        : 'text-gray-300 hover:text-gray-400 hover:bg-gray-50'
-                                                                }`}
-                                                                title={lesson.is_preview ? "Disable Preview" : "Enable Preview"}
-                                                            >
-                                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                                                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>
-                                                                </svg>
-                                                            </button>
-                                                            <Link 
-                                                                href={route('mentor.lessons.edit', lesson.id)} 
-                                                                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white text-[10px] font-extrabold uppercase tracking-widest hover:bg-primary-hover hover:scale-105 transition-all shadow-lg shadow-primary/20"
-                                                            >
-                                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
-                                                                Edit Content
-                                                            </Link>
-                                                            <button 
-                                                                onClick={() => openDeleteModal('lesson', lesson.id, lesson.title)}
-                                                                className="w-10 h-10 rounded-xl flex items-center justify-center text-foreground/20 hover:bg-rose-500/10 hover:text-rose-500 transition-all cursor-pointer"
-                                                            >
-                                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-                                                            </button>
-                                                        </div>
+                            <DndContext 
+                                sensors={sensors} 
+                                collisionDetection={closestCenter} 
+                                onDragEnd={handleSectionDragEnd}
+                                modifiers={[restrictToVerticalAxis]}
+                            >
+                                <SortableContext items={course.sections.map(s => s.id)} strategy={verticalListSortingStrategy}>
+                                    {course.sections?.map((section, sIdx) => (
+                                        <SortableSectionWrapper key={section.id} id={section.id}>
+                                            <div className="bg-surface rounded-[40px] border border-border shadow-xl shadow-gray-200/10 dark:shadow-none overflow-hidden hover:border-primary/20 transition-colors group/section">
+                                                <div className="bg-muted/50 px-10 py-6 flex items-center justify-between border-b border-border">
+                                                    <h3 className="font-extrabold text-foreground flex items-center gap-3">
+                                                        <span className="text-foreground/30">Section {sIdx + 1}:</span> 
+                                                        {section.title}
+                                                        <button onClick={() => openModal('editSection', { sectionId: section.id, initialValue: section.title })} className="p-2 rounded-lg hover:bg-primary/10 text-foreground/20 hover:text-primary transition-all">
+                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                                                        </button>
+                                                    </h3>
+                                                    <div className="flex items-center gap-4">
+                                                        <button onClick={() => openModal('addLesson', { sectionId: section.id, type: 'video' })} className="text-[10px] font-extrabold uppercase tracking-widest text-primary hover:underline">🎥 Video</button>
+                                                        <button onClick={() => openModal('addLesson', { sectionId: section.id, type: 'article' })} className="text-[10px] font-extrabold uppercase tracking-widest text-primary hover:underline">📄 Article</button>
+                                                        <button onClick={() => openModal('addLesson', { sectionId: section.id, type: 'file' })} className="text-[10px] font-extrabold uppercase tracking-widest text-primary hover:underline">📎 File</button>
+                                                        <button onClick={() => openModal('addQuiz', { sectionId: section.id })} className="text-[10px] font-extrabold uppercase tracking-widest text-primary hover:underline">🧠 Quiz</button>
+                                                        <span className="w-px h-4 bg-border"></span>
+                                                        <button 
+                                                            onClick={() => openDeleteModal('section', section.id, section.title)}
+                                                            className="p-2 rounded-lg hover:bg-rose-500/10 text-foreground/20 hover:text-rose-500 transition-all cursor-pointer"
+                                                        >
+                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                                                        </button>
                                                     </div>
-                                                ))}
+                                                </div>
+                                                <div className="p-6 space-y-3">
+                                                    {(() => {
+                                                        const combinedItems = [
+                                                            ...(section.lessons || []).map(l => ({ ...l, sortId: `lesson-${l.id}`, sortType: 'lesson' })),
+                                                            ...(section.quizzes || []).map(q => ({ ...q, sortId: `quiz-${q.id}`, sortType: 'quiz' }))
+                                                        ].sort((a, b) => a.order - b.order);
 
-                                                {/* Quizzes */}
-                                                {section.quizzes?.map((quiz) => (
-                                                    <div key={`quiz-${quiz.id}`} className="flex items-center justify-between bg-accent-lime/5 border border-accent-lime/10 p-5 rounded-3xl hover:border-accent-lime/30 transition-all group">
-                                                        <div className="flex items-center gap-4">
-                                                            <span className="w-8 h-8 rounded-full bg-accent-lime/20 flex items-center justify-center text-[10px] font-bold text-accent-lime">Q</span>
-                                                            <span className="text-xl">🧠</span>
-                                                            <div className="flex flex-col">
-                                                                <div className="flex items-center gap-2">
-                                                                    <span className="text-sm font-bold text-gray-600 group-hover:text-foreground transition-colors">{quiz.title}</span>
-                                                                    <button onClick={() => openModal('editQuiz', { id: quiz.id, initialValue: quiz.title, quizType: quiz.type })} className="opacity-0 group-hover:opacity-100 transition-opacity text-[10px] hover:text-accent-lime">✏️</button>
-                                                                </div>
-                                                                <span className="text-[10px] text-accent-lime font-bold uppercase tracking-widest">Quiz • {quiz.type.replace('_', ' ')}</span>
-                                                            </div>
-                                                        </div>
-                                                        <div className="flex items-center gap-3">
-                                                            <Link 
-                                                                href={route('mentor.quizzes.edit', quiz.id)} 
-                                                                className="flex items-center gap-3 px-4 py-2 rounded-xl bg-accent-lime text-black text-[10px] font-extrabold uppercase tracking-widest hover:bg-accent-lime/90 hover:scale-105 transition-all shadow-lg shadow-accent-lime/20"
+                                                        if (combinedItems.length === 0) {
+                                                            return <p className="text-center py-6 text-xs font-bold text-gray-300 uppercase tracking-widest">No content in this section</p>;
+                                                        }
+
+                                                        return (
+                                                            <DndContext 
+                                                                sensors={sensors} 
+                                                                collisionDetection={closestCenter} 
+                                                                onDragEnd={(e) => handleItemDragEnd(section, e)}
+                                                                modifiers={[restrictToVerticalAxis]}
                                                             >
-                                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
-                                                                Edit Questions
-                                                            </Link>
-                                                            <button 
-                                                                onClick={() => openDeleteModal('quiz', quiz.id, quiz.title)}
-                                                                className="w-8 h-8 flex items-center justify-center text-accent-lime/40 hover:text-red-500 transition-colors cursor-pointer"
-                                                            >
-                                                                🗑️
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </>
-                                        ) : (
-                                            <p className="text-center py-6 text-xs font-bold text-gray-300 uppercase tracking-widest">No content in this section</p>
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
+                                                                <SortableContext items={combinedItems.map(i => i.sortId)} strategy={verticalListSortingStrategy}>
+                                                                    <div className="space-y-3">
+                                                                        {combinedItems.map((item, index) => {
+                                                                            if (item.sortType === 'lesson') {
+                                                                                return (
+                                                                                    <SortableItem key={item.sortId} id={item.sortId}>
+                                                                                        <div className="flex items-center justify-between bg-surface border border-border p-5 pl-12 rounded-3xl hover:border-primary/30 transition-all group/item">
+                                                                                            <div className="flex items-center gap-4">
+                                                                                                <span className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-bold text-gray-400">{index + 1}</span>
+                                                                                                {item.thumbnail ? (
+                                                                                                    <img src={item.thumbnail} className="w-10 h-10 rounded-xl object-cover border border-gray-100 shadow-sm" alt="" />
+                                                                                                ) : (
+                                                                                                    <span className="text-xl">
+                                                                                                        {item.type === 'video' ? '🎥' : item.type === 'file' ? '📎' : '📄'}
+                                                                                                    </span>
+                                                                                                )}
+                                                                                                <div className="flex flex-col">
+                                                                                                    <div className="flex items-center gap-2">
+                                                                                                        <span className="text-sm font-bold text-foreground/70 group-hover/item:text-foreground transition-colors">{item.title}</span>
+                                                                                                        <button onClick={() => openModal('editLesson', { id: item.id, initialValue: item.title })} className="opacity-0 group-hover/item:opacity-100 transition-opacity p-1 rounded hover:bg-primary/10 hover:text-primary">
+                                                                                                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                                                                                                        </button>
+                                                                                                    </div>
+                                                                                                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                                                                                                        {item.type} {item.duration_minutes ? `• ${item.duration_minutes}m` : ''}
+                                                                                                        {item.is_preview ? <span className="ml-2 text-blue-500 font-extrabold tracking-tighter italic">Preview On</span> : ''}
+                                                                                                    </span>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                            <div className="flex items-center gap-3">
+                                                                                                <button
+                                                                                                    onClick={() => router.patch(route('mentor.lessons.toggle-preview', item.id))}
+                                                                                                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+                                                                                                        item.is_preview 
+                                                                                                            ? 'bg-blue-50 text-blue-500 shadow-inner' 
+                                                                                                            : 'text-gray-300 hover:text-gray-400 hover:bg-gray-50'
+                                                                                                    }`}
+                                                                                                    title={item.is_preview ? "Disable Preview" : "Enable Preview"}
+                                                                                                >
+                                                                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                                                                                        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>
+                                                                                                    </svg>
+                                                                                                </button>
+                                                                                                <Link 
+                                                                                                    href={route('mentor.lessons.edit', item.id)} 
+                                                                                                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white text-[10px] font-extrabold uppercase tracking-widest hover:bg-primary-hover hover:scale-105 transition-all shadow-lg shadow-primary/20"
+                                                                                                >
+                                                                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                                                                                                    Edit Content
+                                                                                                </Link>
+                                                                                                <button 
+                                                                                                    onClick={() => openDeleteModal('lesson', item.id, item.title)}
+                                                                                                    className="w-10 h-10 rounded-xl flex items-center justify-center text-foreground/20 hover:bg-rose-500/10 hover:text-rose-500 transition-all cursor-pointer"
+                                                                                                >
+                                                                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                                                                                                </button>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </SortableItem>
+                                                                                );
+                                                                            } else {
+                                                                                return (
+                                                                                    <SortableItem key={item.sortId} id={item.sortId}>
+                                                                                        <div className="flex items-center justify-between bg-accent-lime/5 border border-accent-lime/10 p-5 pl-12 rounded-3xl hover:border-accent-lime/30 transition-all group">
+                                                                                            <div className="flex items-center gap-4">
+                                                                                                <span className="w-8 h-8 rounded-full bg-accent-lime/20 flex items-center justify-center text-[10px] font-bold text-accent-lime">Q</span>
+                                                                                                <span className="text-xl">🧠</span>
+                                                                                                <div className="flex flex-col">
+                                                                                                    <div className="flex items-center gap-2">
+                                                                                                        <span className="text-sm font-bold text-gray-600 group-hover:text-foreground transition-colors">{item.title}</span>
+                                                                                                        <button onClick={() => openModal('editQuiz', { id: item.id, initialValue: item.title, quizType: item.type })} className="opacity-0 group-hover:opacity-100 transition-opacity text-[10px] hover:text-accent-lime">✏️</button>
+                                                                                                    </div>
+                                                                                                    <span className="text-[10px] text-accent-lime font-bold uppercase tracking-widest">Quiz • {item.type.replace('_', ' ')}</span>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                            <div className="flex items-center gap-3">
+                                                                                                <Link 
+                                                                                                    href={route('mentor.quizzes.edit', item.id)} 
+                                                                                                    className="flex items-center gap-3 px-4 py-2 rounded-xl bg-accent-lime text-black text-[10px] font-extrabold uppercase tracking-widest hover:bg-accent-lime/90 hover:scale-105 transition-all shadow-lg shadow-accent-lime/20"
+                                                                                                >
+                                                                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                                                                                                    Edit Questions
+                                                                                                </Link>
+                                                                                                <button 
+                                                                                                    onClick={() => openDeleteModal('quiz', item.id, item.title)}
+                                                                                                    className="w-10 h-10 rounded-xl flex items-center justify-center text-accent-lime/40 hover:text-red-500 transition-colors cursor-pointer"
+                                                                                                >
+                                                                                                    🗑️
+                                                                                                </button>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </SortableItem>
+                                                                                );
+                                                                            }
+                                                                        })}
+                                                                    </div>
+                                                                </SortableContext>
+                                                            </DndContext>
+                                                        );
+                                                    })()}
+                                                </div>
+                                            </div>
+                                        </SortableSectionWrapper>
+                                    ))}
+                                </SortableContext>
+                            </DndContext>
                         </div>
                     </div>
                 )}

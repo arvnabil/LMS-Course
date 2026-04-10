@@ -52,6 +52,8 @@ Route::middleware('web')->group(function () {
             Route::put('lessons/{lesson}', [CourseBuilderController::class, 'updateLesson'])->name('lessons.update');
             Route::patch('lessons/{lesson}/toggle-preview', [CourseBuilderController::class, 'toggleLessonPreview'])->name('lessons.toggle-preview');
             Route::delete('lessons/{lesson}', [CourseBuilderController::class, 'destroyLesson'])->name('lessons.destroy');
+            Route::post('courses/{course}/reorder-sections', [CourseBuilderController::class, 'reorderSections'])->name('courses.reorder-sections');
+            Route::post('sections/{section}/reorder-items', [CourseBuilderController::class, 'reorderItems'])->name('sections.reorder-items');
 
             Route::post('sections/{section}/quizzes', [CourseBuilderController::class, 'storeQuiz'])->name('quizzes.store');
             Route::put('quizzes/{quiz}', [CourseBuilderController::class, 'updateQuiz'])->name('quizzes.update');
