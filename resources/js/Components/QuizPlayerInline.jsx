@@ -77,8 +77,8 @@ export default function QuizPlayerInline({ quiz, onCancel }) {
     };
 
     return (
-        <div className="w-full aspect-video overflow-hidden flex flex-col items-center justify-center bg-muted/30 relative p-4 sm:p-8 lg:p-12">
-            <div className="max-w-4xl w-full h-full bg-surface rounded-[40px] shadow-2xl shadow-gray-200/20 dark:shadow-black/20 border border-border overflow-hidden flex flex-col animate-in fade-in zoom-in duration-500 relative">
+        <div className="w-full h-full flex flex-col bg-muted/30 relative">
+            <div className="w-full h-full bg-surface border-b border-border flex flex-col animate-in fade-in duration-500 relative">
                 {/* Header */}
                 <div className="px-10 py-8 border-b border-border flex items-center justify-between bg-surface sticky top-0 z-10">
                     <div className="space-y-1">
@@ -92,7 +92,7 @@ export default function QuizPlayerInline({ quiz, onCancel }) {
                     </button>
                 </div>
 
-                <div className="flex-1 p-10 sm:p-16 space-y-10">
+                <div className="flex-1 p-6 sm:p-10 lg:p-16 overflow-y-auto scrollbar-hide">
                     {quizResult ? (
                         <div className="max-w-md mx-auto text-center space-y-10 py-10 animate-in fade-in slide-in-from-bottom duration-700">
                             <div className={`w-32 h-32 rounded-full mx-auto flex items-center justify-center text-5xl shadow-2xl ${quizResult.is_passed ? 'bg-emerald-500 shadow-emerald-500/30' : 'bg-red-500 shadow-red-500/30'}`}>

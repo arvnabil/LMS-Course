@@ -300,8 +300,10 @@ class CourseController extends Controller
         }
 
         $score = ($correctAnswers / $totalQuestions) * 100;
-        $passingThreshold = (float) ($quiz->passing_score ?? 70);
-        $isPassed = (float) $score >= $passingThreshold;
+        $passingThreshold = (float)($quiz->passing_score ?? 70);
+        
+        // Use rounded comparison to avoid floating point precision issues
+        $isPassed = round($score, 2) >= round($passingThreshold, 2);
 
         // Debug logging for auditing
         \Illuminate\Support\Facades\Log::info('Quiz Submission Audit', [
@@ -316,7 +318,7 @@ class CourseController extends Controller
 
         $attempt->update([
             'score' => $score,
-            'is_passed' => $isPassed
+            'is_passed' => $isPassed ? 1 : 0
         ]);
 
         $resultData = [

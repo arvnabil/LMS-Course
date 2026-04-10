@@ -641,7 +641,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                     )}
 
                     {/* Sidebar */}
-                    <aside className={`bg-surface border-r border-border flex-shrink-0 flex flex-col transition-all duration-500 ease-out overflow-hidden z-40 h-full lg:relative absolute ${sidebarOpen ? 'w-[280px] sm:w-80 translate-x-0' : 'w-0 -translate-x-full lg:translate-x-0'}`}>
+                    <aside className={`bg-gray-50 dark:bg-gray-900/50 border-r border-border flex-shrink-0 flex flex-col transition-all duration-500 ease-out overflow-hidden z-40 h-full lg:relative absolute ${sidebarOpen ? 'w-[280px] sm:w-80 translate-x-0' : 'w-0 -translate-x-full lg:translate-x-0'}`}>
                         <div className="w-[280px] sm:w-80 flex flex-col h-full">
                             {/* Course Info */}
                             <div className="px-6 py-6 border-b border-border space-y-4">
@@ -713,7 +713,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                                         className={`w-full text-left px-4 py-3 rounded-2xl flex items-center gap-4 transition-all duration-300 group border ${
                                                             isActive 
                                                                 ? 'bg-primary text-white shadow-lg shadow-primary/20 border-primary' 
-                                                                : 'bg-transparent border-transparent hover:bg-muted hover:border-border/50'
+                                                                : 'bg-transparent border-transparent hover:bg-gray-200/50 dark:hover:bg-white/5 hover:border-border/50'
                                                         }`}
                                                     >
                                                         <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 ${
@@ -771,7 +771,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                             isQuizPlaying ? (
                                 <QuizPlayerInline quiz={currentLesson} onCancel={() => setIsQuizPlaying(false)} />
                             ) : (
-                                    <div className="w-full aspect-video bg-muted/30 flex items-center justify-center p-4 sm:p-8 lg:p-12 overflow-hidden relative">
+                                    <div className="w-full flex-1 bg-muted/30 flex items-center justify-center p-4 sm:p-8 lg:p-12 overflow-hidden relative min-h-[600px]">
                                         <div className="max-w-2xl w-full h-full bg-surface p-10 sm:p-16 rounded-[48px] shadow-2xl shadow-black/5 border border-border text-center space-y-10 animate-in fade-in zoom-in duration-500 overflow-y-auto scrollbar-hide">
                                             <div className="w-24 h-24 bg-primary/10 rounded-[32px] flex items-center justify-center mx-auto mb-6 shadow-inner">
                                                 <span className="text-4xl">{currentLesson.type === 'submission' ? '📥' : '🧠'}</span>
