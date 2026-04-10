@@ -96,7 +96,7 @@ export default function QuizPlayerInline({ quiz, onCancel }) {
                     {quizResult ? (
                         <div className="max-w-md mx-auto text-center space-y-10 py-10 animate-in fade-in slide-in-from-bottom duration-700">
                             {(() => {
-                                const isPassed = quizResult.score >= (quizResult.passing_score || 85);
+                                const isPassed = Number(quizResult.score) >= Number(quizResult.passing_score || 85);
                                 return (
                                     <>
                                         <div className={`w-32 h-32 rounded-full mx-auto flex items-center justify-center text-5xl shadow-2xl transition-all duration-700 ${isPassed ? 'bg-emerald-500 shadow-emerald-500/30' : 'bg-red-500 shadow-red-500/30'}`}>

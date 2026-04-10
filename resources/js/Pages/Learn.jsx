@@ -149,17 +149,16 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
         const isCompleted = isLesson 
             ? progressArray.some(lp => lp.lesson_id == item.id && (lp.is_completed || lp.completed_at))
             : (
-                (enrollment.quiz_attempts || enrollment.quizAttempts)?.some(a => 
-                    a.quiz_id == item.id && 
-                    // Strictly enforce threshold even if is_passed is true in DB
-                    (a.is_passed || a.score >= (item.passing_score || 85)) &&
-                    a.score >= (item.passing_score || 85)
-                ) || 
-                (enrollment.submissions || [])?.some(s => 
-                    s.quiz_id == item.id && 
-                    s.status === 'approved' && 
-                    s.score >= (item.passing_score || 85)
-                )
+                (enrollment.quiz_attempts || enrollment.quizAttempts || [])?.some(a => {
+                    const score = Number(a.score || 0);
+                    const threshold = Number(item.passing_score || 85);
+                    return a.quiz_id == item.id && (a.is_passed || score >= threshold) && score >= threshold;
+                }) || 
+                (enrollment.submissions || [])?.some(s => {
+                    const score = Number(s.score || 0);
+                    const threshold = Number(item.passing_score || 85);
+                    return s.quiz_id == item.id && s.status === 'approved' && score >= threshold;
+                })
             );
         
         const isCurrentlyActive = item.id == currentLesson?.id && item.itemType === currentItemType;
@@ -561,9 +560,9 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
             <ThemeStyleInjector />
             <Head title={`Learning: ${course.title}`} />
             
-            <div className="font-sans bg-muted h-screen flex flex-col text-foreground overflow-hidden selection:bg-primary/10">
+            <div className="font-sans bg-white h-screen flex flex-col text-foreground overflow-hidden selection:bg-primary/10">
                 {/* Top Header Bar - Toggleable */}
-                <header className={`bg-surface border-b border-border px-4 py-2 flex items-center justify-between z-50 transition-all duration-300 ${headerVisible ? 'translate-y-0' : '-translate-y-full absolute w-full'}`}>
+                <header className={`bg-white border-b border-border px-4 py-2 flex items-center justify-between z-50 transition-all duration-300 ${headerVisible ? 'translate-y-0' : '-translate-y-full absolute w-full'}`}>
                     <div className="flex items-center gap-4">
                         <button 
                             onClick={() => setSidebarOpen(!sidebarOpen)} 
@@ -646,10 +645,10 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                     )}
 
                     {/* Sidebar */}
-                    <aside className={`bg-slate-50/80 dark:bg-slate-900/50 backdrop-blur-xl border-r border-border shrink-0 flex flex-col transition-all duration-500 ease-out overflow-hidden z-40 h-full lg:relative absolute shadow-2xl lg:shadow-none ${sidebarOpen ? 'w-[280px] sm:w-80 translate-x-0' : 'w-0 -translate-x-full lg:translate-x-0'}`}>
+                    <aside className={`bg-white dark:bg-slate-900 border-r border-border shrink-0 flex flex-col transition-all duration-500 ease-out overflow-hidden z-40 h-full lg:relative absolute shadow-2xl lg:shadow-none ${sidebarOpen ? 'w-[280px] sm:w-80 translate-x-0' : 'w-0 -translate-x-full lg:translate-x-0'}`}>
                         <div className="w-[280px] sm:w-80 flex flex-col h-full">
                             {/* Course Info */}
-                            <div className="px-6 py-8 border-b border-border/60 bg-white/40 dark:bg-white/5 space-y-5">
+                            <div className="px-6 py-8 border-b border-border/60 bg-white dark:bg-white/5 space-y-5">
                                 <div className="space-y-1">
                                     <p className="text-[10px] font-bold text-primary dark:text-primary-foreground/60 uppercase tracking-tighter">Current Course</p>
                                     <h2 className="text-sm font-black text-foreground leading-tight line-clamp-2">{course.title}</h2>
@@ -676,13 +675,13 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                     <div key={section.id} className="space-y-2">
                                         <div 
                                             onClick={() => toggleSection(section.id)}
-                                            className="px-6 py-4 flex items-center justify-between cursor-pointer group hover:bg-white/50 dark:hover:bg-white/5 transition-colors border-b border-border/40"
+                                            className="px-6 py-4 flex items-center justify-between cursor-pointer group hover:bg-gray-50 dark:hover:bg-white/5 transition-colors border-b border-border/40"
                                         >
                                             <div className="space-y-0.5">
                                                 <p className="text-[9px] font-black text-primary/60 dark:text-primary-foreground/40 uppercase tracking-[0.2em]">Module {sIdx + 1}</p>
                                                 <h3 className="text-[11px] font-black text-foreground/70 group-hover:text-primary transition-colors uppercase tracking-wider line-clamp-1">{section.title}</h3>
                                             </div>
-                                            <div className={`w-6 h-6 rounded-lg bg-muted/50 flex items-center justify-center text-gray-400 group-hover:text-primary transition-all duration-300 ${isExpanded ? 'rotate-180 bg-primary/10 text-primary' : ''}`}>
+                                            <div className={`w-6 h-6 rounded-lg bg-gray-100 dark:bg-muted/50 flex items-center justify-center text-gray-400 group-hover:text-primary transition-all duration-300 ${isExpanded ? 'rotate-180 bg-primary/10 text-primary' : ''}`}>
                                                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                                             </div>
                                         </div>
@@ -701,7 +700,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                                     return (
                                                         <div 
                                                             key={`${item.itemType}-${item.id}`} 
-                                                            className="w-full text-left px-4 py-3 rounded-2xl flex items-center gap-4 bg-muted/20 opacity-60 transition-all border border-transparent"
+                                                            className="w-full text-left px-4 py-3 rounded-2xl flex items-center gap-4 bg-gray-50/30 opacity-60 transition-all border border-transparent"
                                                         >
                                                             <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center shrink-0 border border-border/50">
                                                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
@@ -784,7 +783,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                             isQuizPlaying ? (
                                 <QuizPlayerInline quiz={currentLesson} onCancel={() => setIsQuizPlaying(false)} />
                             ) : (
-                                    <div className="w-full flex-1 bg-muted/30 flex items-center justify-center p-4 sm:p-8 lg:p-12 overflow-hidden relative min-h-[600px]">
+                                    <div className="w-full flex-1 bg-gray-50/50 dark:bg-muted/30 flex items-center justify-center p-4 sm:p-8 lg:p-12 overflow-hidden relative min-h-[600px]">
                                         <div className="max-w-2xl w-full h-full bg-surface p-10 sm:p-16 rounded-[48px] shadow-2xl shadow-black/5 border border-border text-center space-y-10 animate-in fade-in zoom-in duration-500 overflow-y-auto scrollbar-hide">
                                             <div className="w-24 h-24 bg-primary/10 rounded-[32px] flex items-center justify-center mx-auto mb-6 shadow-inner">
                                                 <span className="text-4xl">{currentLesson.type === 'submission' ? '📥' : '🧠'}</span>
@@ -807,11 +806,11 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                                             return (
                                                                 <div className="flex flex-col items-center gap-2 pt-2 animate-in fade-in slide-in-from-top-2 duration-500">
                                                                     <div className="flex items-center gap-3">
-                                                                        <span className={`text-4xl font-black ${attempt.score >= (currentLesson.passing_score || 85) ? 'text-emerald-500' : 'text-red-500'}`}>
-                                                                            {Math.round(attempt.score)}%
+                                                                        <span className={`text-4xl font-black ${Number(attempt.score) >= Number(currentLesson.passing_score || 85) ? 'text-emerald-500' : 'text-red-500'}`}>
+                                                                            {Math.round(Number(attempt.score))}%
                                                                         </span>
-                                                                        <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${attempt.score >= (currentLesson.passing_score || 85) ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-red-500/10 text-red-500 border border-red-500/20'}`}>
-                                                                            {attempt.score >= (currentLesson.passing_score || 85) ? 'PASSED' : 'FAILED'}
+                                                                        <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${Number(attempt.score) >= Number(currentLesson.passing_score || 85) ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-red-500/10 text-red-500 border border-red-500/20'}`}>
+                                                                            {Number(attempt.score) >= Number(currentLesson.passing_score || 85) ? 'PASSED' : 'FAILED'}
                                                                         </span>
                                                                     </div>
                                                                     <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Your Last Attempt Score</p>
@@ -827,7 +826,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                                             ?.sort((a, b) => b.id - a.id)?.[0];
                                                             
                                                         if (submission) {
-                                                            const isPassed = submission.status === 'approved' && (!currentLesson.passing_score || submission.score >= currentLesson.passing_score);
+                                                            const isPassed = submission.status === 'approved' && (!currentLesson.passing_score || Number(submission.score) >= Number(currentLesson.passing_score));
                                                             return (
                                                                 <div className="flex flex-col items-center gap-2 pt-2 animate-in fade-in slide-in-from-top-2 duration-500">
                                                                     <div className={`inline-flex items-center gap-2 px-6 py-2 rounded-full text-xs font-extrabold uppercase tracking-widest ${
@@ -839,7 +838,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                                                     {submission.status === 'approved' && (
                                                                         <div className="flex items-center gap-3">
                                                                             <span className={`text-3xl font-black ${isPassed ? 'text-emerald-500' : 'text-red-500'}`}>
-                                                                                {submission.score || 0}%
+                                                                                {Math.round(Number(submission.score || 0))}%
                                                                             </span>
                                                                             <span className={`px-4 py-1 rounded-full text-[8px] font-bold uppercase tracking-widest ${isPassed ? 'bg-emerald-500/20 text-emerald-500' : 'bg-red-500/20 text-red-500'}`}>
                                                                                 {isPassed ? 'PASSED' : 'FAILED'}
