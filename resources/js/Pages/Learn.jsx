@@ -83,17 +83,19 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
             ? (
                 currentLesson.type === 'submission'
                     ? enrollment.submissions?.some(s => 
-                        s.quiz_id === currentLesson.id && 
+                        s.quiz_id == currentLesson.id && 
                         s.status === 'approved' && 
                         (!currentLesson.passing_score || s.score >= currentLesson.passing_score)
                     )
-                    : (completedQuizzes.includes(currentLesson.id) || enrollment.submissions?.some(s => 
-                        s.quiz_id === currentLesson.id && 
+                    : (completedQuizzes.some(qid => qid == currentLesson.id) || enrollment.submissions?.some(s => 
+                        s.quiz_id == currentLesson.id && 
                         s.status === 'approved' && 
                         (!currentLesson.passing_score || s.score >= currentLesson.passing_score)
                     ))
             )
-            : completedLessons.includes(currentLesson.id)
+            : (enrollment.lesson_progress || enrollment.lessonProgress || []).some(lp => 
+                lp.lesson_id == currentLesson.id && (lp.is_completed || lp.completed_at)
+            )
     );
 
     useEffect(() => {
