@@ -560,7 +560,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
             <ThemeStyleInjector />
             <Head title={`Learning: ${course.title}`} />
             
-            <div className="font-sans bg-body dark:bg-white h-screen flex flex-col text-foreground overflow-hidden selection:bg-primary/10">
+            <div className="font-sans bg-white dark:bg-zinc-950 h-screen flex flex-col text-foreground overflow-hidden selection:bg-primary/10">
                 {/* Top Header Bar - Toggleable */}
                 <header className={`bg-white border-b border-border px-4 py-2 flex items-center justify-between z-50 transition-all duration-300 ${headerVisible ? 'translate-y-0' : '-translate-y-full absolute w-full'}`}>
                     <div className="flex items-center gap-4">
@@ -1198,7 +1198,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
 
                         {/* Content Area Below Video */}
                         {!currentLesson?.is_quiz && (
-                            <div className="flex-1 bg-body p-4 sm:p-10 lg:p-14 flex flex-col overflow-y-auto">
+                            <div className="flex-1 bg-white dark:bg-zinc-900 p-4 sm:p-10 lg:p-14 flex flex-col overflow-y-auto">
                                 <div className="max-w-4xl mx-auto w-full flex-1 flex flex-col">
                                     {/* Lesson Title & Content */}
                                     <div className="space-y-4 flex-1 mb-8">
@@ -1244,7 +1244,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
 
                         {/* Navigation Footer for Quizzes (Only when NOT playing) */}
                         {currentLesson?.is_quiz && !isQuizPlaying && (
-                            <div className="bg-body px-6 sm:px-10 lg:px-14 pb-8 w-full mt-auto">
+                            <div className="bg-white dark:bg-zinc-900 px-6 sm:px-10 lg:px-14 pb-8 w-full mt-auto">
                                 <div className="max-w-4xl mx-auto w-full">
                                     <div className="flex items-center justify-between gap-4">
                                         <button 

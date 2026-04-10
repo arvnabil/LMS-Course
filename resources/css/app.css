@@ -28,12 +28,12 @@
     --brand-primary-hover: #d63608;
     --brand-foreground: #0c1c3c;
     --brand-sidebar-active: #276874;
-    --brand-muted: #f7f7f7;
-    --bg-body: #f7f7f7;
+    --brand-muted: #ffffff;
+    --bg-body: #ffffff;
     --bg-surface: #ffffff;
-    --bg-surface-secondary: #f7f7f7;
-    --bg-sidebar: #f7f7f7;
-    --bg-input: #f7f7f7;
+    --bg-surface-secondary: #ffffff;
+    --bg-sidebar: #ffffff;
+    --bg-input: #ffffff;
     --text-primary: #0c1c3c;
     --text-secondary: #6b7280;
     --text-muted: #9ca3af;
