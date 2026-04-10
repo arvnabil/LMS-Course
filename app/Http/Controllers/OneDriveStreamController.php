@@ -26,34 +26,44 @@ class OneDriveStreamController extends Controller
     {
         \Illuminate\Support\Facades\Log::info("OneDrive Stream Request", ['item_id' => $itemId]);
         
-        $downloadUrl = $this->oneDrive->getDownloadUrl($itemId);
-
-        if (!$downloadUrl) {
-            \Illuminate\Support\Facades\Log::error("OneDrive Stream Failed: Could not get download URL", ['item_id' => $itemId]);
+        // Fetch metadata to accurately identify mime type and filename
+        $metadata = $this->oneDrive->getDriveItem($itemId);
+        
+        if (!$metadata) {
+            \Illuminate\Support\Facades\Log::error("OneDrive Stream Failed: Could not get metadata", ['item_id' => $itemId]);
             abort(404, 'File not found or access denied.');
         }
 
-        // Check if it's a video file based on common video extensions or by calling Graph API for metadata
-        // For simplicity and performance, we'll check the download URL's query params or the extension if available.
-        // But since we want the best UX, let's proxy documents/images and redirect videos.
+        $downloadUrl = $metadata['@microsoft.graph.downloadUrl'] ?? null;
+        if (!$downloadUrl) {
+            \Illuminate\Support\Facades\Log::error("OneDrive Stream Failed: No download URL in metadata", ['item_id' => $itemId]);
+            abort(404, 'Download link unavailable.');
+        }
+
+        $fileName = $metadata['name'] ?? 'file';
+        $mimeType = $metadata['file']['mimeType'] ?? '';
         
-        $isPdf = str_contains(strtolower($downloadUrl), '.pdf');
-        $isImage = preg_match('/\.(jpg|jpeg|png|gif|webp|svg|bmp)/i', $downloadUrl);
+        // Accurate detection for PDFs and common browser-supported images
+        $isPdf = str_ends_with(strtolower($fileName), '.pdf') || $mimeType === 'application/pdf';
+        $isImage = str_starts_with($mimeType, 'image/') && preg_match('/\.(jpg|jpeg|png|gif|webp|svg|bmp)/i', $fileName);
 
         if ($isPdf || $isImage) {
             $response = Http::get($downloadUrl);
             if ($response->successful()) {
-                $contentType = $response->header('Content-Type');
+                // Determine the correct content type (prefer application/pdf for PDFs)
+                $finalContentType = $isPdf ? 'application/pdf' : ($response->header('Content-Type') ?: $mimeType);
+                
                 return response($response->body(), 200, [
-                    'Content-Type' => $contentType,
-                    'Content-Disposition' => 'inline',
+                    'Content-Type' => $finalContentType,
+                    'Content-Disposition' => 'inline; filename="' . $fileName . '"',
                     'Cache-Control' => 'public, max-age=3600',
                 ]);
             }
         }
 
-        // Redirecting to the pre-signed URL is much better for video playback
-        // as it supports Range requests and chunked streaming natively.
+        // Redirecting to the pre-signed URL for video files
+        // (Redirect usually triggers a download for non-browser-handled types, 
+        // but for videos it's needed for Range support).
         return redirect()->away($downloadUrl);
     }
 }

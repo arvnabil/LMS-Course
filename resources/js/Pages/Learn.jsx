@@ -785,9 +785,9 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                                 {(() => {
                                                     // Handle Quiz Attempts
                                                     if (currentLesson.type !== 'submission') {
-                                                        const attempts = enrollment.quiz_attempts || enrollment.quizAttempts || [];
+                                                        const attempts = enrollment?.quiz_attempts || enrollment?.quizAttempts || [];
                                                         const attempt = attempts
-                                                            ?.filter(a => a.quiz_id === currentLesson.id)
+                                                            ?.filter(a => String(a.quiz_id) == String(currentLesson.id))
                                                             ?.sort((a, b) => b.id - a.id)?.[0];
                                                         
                                                         if (attempt) {
@@ -808,9 +808,9 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                                     } 
                                                     // Handle Assignment Submissions
                                                     else {
-                                                        const submissions = enrollment.submissions || [];
+                                                        const submissions = enrollment?.submissions || [];
                                                         const submission = submissions
-                                                            ?.filter(s => s.quiz_id === currentLesson.id)
+                                                            ?.filter(s => String(s.quiz_id) == String(currentLesson.id))
                                                             ?.sort((a, b) => b.id - a.id)?.[0];
                                                             
                                                         if (submission) {
