@@ -645,7 +645,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                     )}
 
                     {/* Sidebar */}
-                    <aside className={`bg-white dark:bg-slate-900 border-r border-border shrink-0 flex flex-col transition-all duration-500 ease-out overflow-hidden z-40 h-full lg:relative absolute shadow-2xl lg:shadow-none ${sidebarOpen ? 'w-[280px] sm:w-80 translate-x-0' : 'w-0 -translate-x-full lg:translate-x-0'}`}>
+                    <aside className={`bg-white dark:bg-zinc-950 border-r border-border/50 shrink-0 flex flex-col transition-all duration-500 ease-out overflow-hidden z-40 h-full lg:relative absolute shadow-2xl lg:shadow-none ${sidebarOpen ? 'w-[280px] sm:w-80 translate-x-0' : 'w-0 -translate-x-full lg:translate-x-0'}`}>
                         <div className="w-[280px] sm:w-80 flex flex-col h-full">
                             {/* Course Info */}
                             <div className="px-6 py-8 border-b border-border/60 bg-white dark:bg-white/5 space-y-5">
@@ -725,7 +725,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                                         className={`w-full text-left px-5 py-3.5 rounded-xl flex items-center gap-4 transition-all duration-500 group border-2 ${
                                                             isActive 
                                                                 ? 'bg-primary text-white shadow-xl shadow-primary/25 border-primary scale-[1.02] z-10' 
-                                                                : 'bg-transparent border-transparent hover:bg-white/80 dark:hover:bg-white/5 hover:border-border/30'
+                                                                : 'bg-transparent border-transparent hover:bg-gray-50 dark:hover:bg-white/5 hover:border-border/30'
                                                         }`}
                                                     >
                                                         <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 ${
@@ -760,7 +760,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                                             <span className={`ml-auto text-[8px] font-black uppercase tracking-[0.1em] px-2 py-1 rounded-lg border transition-all ${
                                                                 isActive 
                                                                     ? 'bg-white/10 text-white border-white/20 backdrop-blur-sm'
-                                                                    : (theme === 'dark' ? 'bg-white/5 text-white/50 border-white/10' : 'bg-primary/10 text-primary border-primary/20')
+                                                                    : (theme === 'dark' ? 'bg-white/5 text-white/50 border-white/10' : 'bg-primary/5 text-primary border-primary/20')
                                                             }`}>
                                                                 {item.type === 'submission' ? 'Assign' : 'Quiz'}
                                                             </span>
@@ -777,13 +777,13 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                     </aside>
 
                     {/* Main Content Area */}
-                    <main className="flex-1 overflow-y-auto flex flex-col relative">
+                    <main className="flex-1 overflow-y-auto flex flex-col relative bg-white dark:bg-zinc-950 scroll-smooth">
                         {/* Quiz/Assignment Content Area */}
                         {currentLesson?.is_quiz ? (
                             isQuizPlaying ? (
                                 <QuizPlayerInline quiz={currentLesson} onCancel={() => setIsQuizPlaying(false)} />
                             ) : (
-                                    <div className="w-full flex-1 bg-gray-50/50 dark:bg-muted/30 flex items-center justify-center p-4 sm:p-8 lg:p-12 overflow-hidden relative min-h-[600px]">
+                                    <div className="w-full flex-1 bg-white dark:bg-zinc-900/30 flex items-center justify-center p-4 sm:p-8 lg:p-12 overflow-hidden relative min-h-[600px]">
                                         <div className="max-w-2xl w-full h-full bg-surface p-10 sm:p-16 rounded-[48px] shadow-2xl shadow-black/5 border border-border text-center space-y-10 animate-in fade-in zoom-in duration-500 overflow-y-auto scrollbar-hide">
                                             <div className="w-24 h-24 bg-primary/10 rounded-[32px] flex items-center justify-center mx-auto mb-6 shadow-inner">
                                                 <span className="text-4xl">{currentLesson.type === 'submission' ? '📥' : '🧠'}</span>
@@ -1121,9 +1121,9 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                             });
 
                             return (
-                                <div className="w-full flex flex-col bg-gray-50/50">
+                                <div className="w-full flex flex-col bg-white dark:bg-zinc-900/30">
                                     {/* Premium File Header */}
-                                    <div className="flex items-center justify-between px-6 py-4 bg-white border-b border-gray-100 shadow-sm z-10">
+                                    <div className="flex items-center justify-between px-6 py-4 bg-white dark:bg-zinc-950 border-b border-gray-100 dark:border-white/5 shadow-sm z-10">
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-xl">
                                                 {isPdf ? '📄' : isImage ? '🖼️' : '📁'}
@@ -1198,12 +1198,12 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
 
                         {/* Content Area Below Video */}
                         {!currentLesson?.is_quiz && (
-                            <div className="flex-1 bg-white dark:bg-zinc-900 p-4 sm:p-10 lg:p-14 flex flex-col overflow-y-auto">
+                            <div className="flex-1 bg-white dark:bg-zinc-950 p-4 sm:p-10 lg:p-14 flex flex-col">
                                 <div className="max-w-4xl mx-auto w-full flex-1 flex flex-col">
                                     {/* Lesson Title & Content */}
                                     <div className="space-y-4 flex-1 mb-8">
                                         <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-foreground tracking-tight">{currentLesson?.title || 'Welcome to the Course'}</h1>
-                                        <div className="prose prose-invert prose-sm max-w-none text-gray-500 font-medium leading-relaxed">
+                                        <div className={`prose ${theme === 'dark' ? 'prose-invert' : ''} prose-sm max-w-none text-gray-500 dark:text-gray-400 font-medium leading-relaxed`}>
                                             {currentLesson?.content ? (
                                                 <div dangerouslySetInnerHTML={{ __html: currentLesson.content }} />
                                             ) : (
@@ -1244,7 +1244,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
 
                         {/* Navigation Footer for Quizzes (Only when NOT playing) */}
                         {currentLesson?.is_quiz && !isQuizPlaying && (
-                            <div className="bg-white dark:bg-zinc-900 px-6 sm:px-10 lg:px-14 pb-8 w-full mt-auto">
+                            <div className="bg-white dark:bg-zinc-950 px-6 sm:px-10 lg:px-14 pb-8 w-full mt-auto">
                                 <div className="max-w-4xl mx-auto w-full">
                                     <div className="flex items-center justify-between gap-4">
                                         <button 
