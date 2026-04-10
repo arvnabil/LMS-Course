@@ -781,65 +781,65 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                                 <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">
                                                     {currentLesson.type === 'submission' ? 'Final Assignment Submission' : `Multiple Choice Quiz • Passing Score: ${currentLesson.passing_score}%`}
                                                 </p>
-                                            </div>
-
-                                            {/* Results Section */}
-                                            {(() => {
-                                                const attempt = enrollment.quiz_attempts
-                                                    ?.filter(a => a.quiz_id === currentLesson.id)
-                                                    ?.sort((a, b) => b.id - a.id)?.[0];
-                                                    
-                                                if (attempt) {
-                                                    return (
-                                                        <div className="bg-primary/5 border border-primary/10 rounded-[32px] p-8 space-y-6 animate-in slide-in-from-bottom-4 duration-700">
-                                                            <div className="flex flex-col items-center gap-2">
-                                                                <span className="text-[10px] font-black uppercase text-primary tracking-widest opacity-60">Status Terakhir / Last Status</span>
-                                                                <div className="flex flex-col items-center gap-1">
-                                                                    <span className={`text-3xl font-black ${attempt.is_passed ? 'text-accent-teal' : 'text-red-500'}`}>
-                                                                        {Math.round(attempt.score)}%
-                                                                    </span>
-                                                                    <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${attempt.is_passed ? 'bg-accent-teal/10 text-accent-teal' : 'bg-red-500/10 text-red-500'}`}>
-                                                                        {attempt.is_passed ? 'LULUS / PASSED' : 'GAGAL / FAILED'}
-                                                                    </span>
-                                                                </div>
-                                                            </div>
-                                                            <div className="h-px bg-primary/10 w-full" />
-                                                            <p className="text-[10px] font-bold text-gray-400">
-                                                                Diselesaikan pada {new Date(attempt.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
-                                                            </p>
-                                                        </div>
-                                                    );
-                                                }
-                                                const submission = enrollment.submissions
-                                                    ?.filter(s => s.quiz_id === currentLesson.id)
-                                                    ?.sort((a, b) => b.id - a.id)?.[0];
-                                                if (submission) {
-                                                    const isPassed = submission.status === 'approved' && (!currentLesson.passing_score || submission.score >= currentLesson.passing_score);
-                                                    return (
-                                                        <div className="bg-primary/5 border border-primary/10 rounded-[32px] p-8 space-y-6 animate-in slide-in-from-bottom-4 duration-700 text-center">
-                                                            <div className="flex flex-col items-center gap-2">
-                                                                <span className="text-[10px] font-black uppercase text-primary tracking-widest opacity-60">Status Tugas / Submission Status</span>
-                                                                <div className={`inline-flex items-center gap-2 px-6 py-2 rounded-full text-xs font-extrabold uppercase tracking-widest ${
-                                                                    submission.status === 'approved' ? 'bg-success text-white' : 
-                                                                    submission.status === 'rejected' ? 'bg-red-500 text-white' : 'bg-amber-500/10 text-amber-500'
-                                                                }`}>
-                                                                    {submission.status === 'approved' ? '✅ Approved' : submission.status === 'rejected' ? '❌ Rejected' : '🕒 Pending Review'}
-                                                                </div>
-                                                                {submission.status === 'approved' && (
-                                                                    <div className={`mt-2 text-2xl font-black ${isPassed ? 'text-accent-teal' : 'text-red-500'}`}>
-                                                                        {submission.score || 0}%
+                                                
+                                                {(() => {
+                                                    // Handle Quiz Attempts
+                                                    if (currentLesson.type !== 'submission') {
+                                                        const attempts = enrollment.quiz_attempts || enrollment.quizAttempts || [];
+                                                        const attempt = attempts
+                                                            ?.filter(a => a.quiz_id === currentLesson.id)
+                                                            ?.sort((a, b) => b.id - a.id)?.[0];
+                                                        
+                                                        if (attempt) {
+                                                            return (
+                                                                <div className="flex flex-col items-center gap-2 pt-2 animate-in fade-in slide-in-from-top-2 duration-500">
+                                                                    <div className="flex items-center gap-3">
+                                                                        <span className={`text-4xl font-black ${attempt.is_passed ? 'text-emerald-500' : 'text-red-500'}`}>
+                                                                            {Math.round(attempt.score)}%
+                                                                        </span>
+                                                                        <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${attempt.is_passed ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-red-500/10 text-red-500 border border-red-500/20'}`}>
+                                                                            {attempt.is_passed ? 'PASSED' : 'FAILED'}
+                                                                        </span>
                                                                     </div>
-                                                                )}
-                                                            </div>
-                                                            <div className="h-px bg-primary/10 w-full" />
-                                                            <p className="text-[10px] font-bold text-gray-400 text-center">
-                                                                Diserahkan pada {new Date(submission.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
-                                                            </p>
-                                                        </div>
-                                                    );
-                                                }
-                                                return null;
-                                            })()}
+                                                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Your Last Attempt Score</p>
+                                                                </div>
+                                                            );
+                                                        }
+                                                    } 
+                                                    // Handle Assignment Submissions
+                                                    else {
+                                                        const submissions = enrollment.submissions || [];
+                                                        const submission = submissions
+                                                            ?.filter(s => s.quiz_id === currentLesson.id)
+                                                            ?.sort((a, b) => b.id - a.id)?.[0];
+                                                            
+                                                        if (submission) {
+                                                            const isPassed = submission.status === 'approved' && (!currentLesson.passing_score || submission.score >= currentLesson.passing_score);
+                                                            return (
+                                                                <div className="flex flex-col items-center gap-2 pt-2 animate-in fade-in slide-in-from-top-2 duration-500">
+                                                                    <div className={`inline-flex items-center gap-2 px-6 py-2 rounded-full text-xs font-extrabold uppercase tracking-widest ${
+                                                                        submission.status === 'approved' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 
+                                                                        submission.status === 'rejected' ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+                                                                    }`}>
+                                                                        {submission.status === 'approved' ? '✅ Approved' : submission.status === 'rejected' ? '❌ Rejected' : '🕒 Pending Review'}
+                                                                    </div>
+                                                                    {submission.status === 'approved' && (
+                                                                        <div className="flex items-center gap-3">
+                                                                            <span className={`text-3xl font-black ${isPassed ? 'text-emerald-500' : 'text-red-500'}`}>
+                                                                                {submission.score || 0}%
+                                                                            </span>
+                                                                            <span className={`px-4 py-1 rounded-full text-[8px] font-bold uppercase tracking-widest ${isPassed ? 'bg-emerald-500/20 text-emerald-500' : 'bg-red-500/20 text-red-500'}`}>
+                                                                                {isPassed ? 'PASSED' : 'FAILED'}
+                                                                            </span>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        }
+                                                    }
+                                                    return null;
+                                                })()}
+                                            </div>
 
                                             <div className="space-y-4 pt-4">
                                                 <button 

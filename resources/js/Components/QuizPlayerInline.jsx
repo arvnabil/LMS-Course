@@ -191,7 +191,7 @@ export default function QuizPlayerInline({ quiz, onCancel }) {
                             <div className="max-w-3xl mx-auto space-y-12">
                                 <div className="space-y-8">
                                     <h3 className="text-2xl font-extrabold text-foreground leading-tight tracking-tight">
-                                        {currentQuestion?.question_text}
+                                        {currentQuestion?.question}
                                     </h3>
                                     
                                     {currentQuestion?.options?.filter(o => o.is_correct).length > 1 ? (
