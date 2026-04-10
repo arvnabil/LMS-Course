@@ -101,7 +101,13 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
 
     useEffect(() => {
         setIsQuizPlaying(false);
+        setIsBuffering(false);
         
+        // Reset buffering for files
+        if (currentLesson?.lesson_type === 'file') {
+            setIsBuffering(true);
+        }
+
         // Check for resume time on video lessons
         if (currentLesson?.type === 'video') {
             if (isAlreadyCompleted) {
@@ -360,7 +366,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                     // Prevent fast forward beyond what was already watched
                     if (!isAlreadyCompleted && current > lastMaxTime.current + 2) {
                         playerRef.current.seekTo(lastMaxTime.current, true);
-                        setToast({ message: "Fast forwarding is disabled for this course.", type: 'warning' });
+                        setToast({ message: "Selesaikan materi ini dulu sebelum skip!", type: 'warning' });
                     } else if (isAlreadyCompleted || current > lastMaxTime.current) {
                         lastMaxTime.current = isAlreadyCompleted ? dur : current;
                     }
@@ -387,6 +393,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
             if (event.data === 3) {
                 setIsBuffering(true);
             } else {
+                // Only hide buffering if we aren't in a state where it's actually still loading
                 setIsBuffering(false);
             }
             if (progressInterval.current) clearInterval(progressInterval.current);
@@ -426,14 +433,15 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
     };
 
     const seekTo = (seconds) => {
-        if (isAlreadyCompleted || seconds <= lastMaxTime.current) {
+        if (isAlreadyCompleted || seconds <= lastMaxTime.current + 2) {
             if (playerRef.current && typeof playerRef.current.seekTo === 'function') {
                 playerRef.current.seekTo(seconds, true);
             } else if (videoRef.current) {
                 videoRef.current.currentTime = seconds;
             }
+            setCurrentTime(seconds);
         } else {
-            setToast({ message: "You can only seek back to parts you've already watched.", type: 'warning' });
+            setToast({ message: "Selesaikan materi ini dulu sebelum skip!", type: 'warning' });
         }
     };
 
@@ -900,7 +908,8 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                                     if (!isAlreadyCompleted && current > lastMaxTime.current + 2) {
                                                         e.target.currentTime = lastMaxTime.current;
                                                     } else if (isAlreadyCompleted || current > lastMaxTime.current) {
-                                                        lastMaxTime.current = isAlreadyCompleted ? dur : current;
+                                                        // If already completed, we allow seeking anywhere by keeping lastMaxTime ahead
+                                                        lastMaxTime.current = isAlreadyCompleted ? Math.max(dur, current) : current;
                                                     }
                                                     
                                                     setCurrentTime(current);
@@ -911,9 +920,6 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                                         if (pct >= 98) setVideoWatched(true);
                                                         if (current > 10) localStorage.setItem(`lesson_${currentLesson.id}_resume_time`, current);
                                                     }
-                                                }}
-                                                onLoadedMetadata={(e) => {
-                                                    setDuration(e.target.duration);
                                                 }}
                                                 onEnded={() => {
                                                     setVideoWatched(true);
@@ -935,7 +941,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                     )}
 
                                     {/* Buffering Spinner Overlay */}
-                                    {isBuffering && hasStarted && (
+                                    {isBuffering && (hasStarted || currentLesson?.lesson_type === 'file') && (
                                         <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/20 backdrop-blur-[2px] transition-all duration-300">
                                             <div className="relative">
                                                 <div className="w-16 h-16 rounded-full border-4 border-white/10 border-t-primary animate-spin"></div>
@@ -1070,7 +1076,8 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                           currentLesson.file_url?.toLowerCase().includes('.pdf') ||
                                           currentLesson.file_url?.toLowerCase().includes('pdf') ||
                                           currentLesson.file_url?.toLowerCase().includes('.pdf?') ||
-                                          currentLesson.file_url?.toLowerCase().includes('application/pdf');
+                                          currentLesson.file_url?.toLowerCase().includes('application/pdf') ||
+                                          (currentLesson.type === 'file' && currentLesson.file_id?.length > 20 && !currentLesson.mime_type); // Fallback for OneDrive IDs
 
                             const isImage = currentLesson.file_name?.match(/\.(jpg|jpeg|png|gif|webp|svg|bmp)$/i) || 
                                             currentLesson.mime_type?.startsWith('image/') || 
@@ -1078,7 +1085,9 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                             /\.(jpg|jpeg|png|gif|webp|svg|bmp)$/i.test(currentLesson.file_url) ||
                                             currentLesson.file_url?.toLowerCase().includes('image') ||
                                             currentLesson.file_url?.toLowerCase().includes('picture') ||
-                                            currentLesson.file_url?.toLowerCase().includes('/img/');
+                                            currentLesson.file_url?.toLowerCase().includes('/img/') ||
+                                            currentLesson.mime_type === 'image/jpeg' || 
+                                            currentLesson.mime_type === 'image/png';
 
                             const isText = currentLesson.file_name?.toLowerCase().endsWith('.txt') || 
                                            currentLesson.mime_type === 'text/plain' || 
@@ -1135,6 +1144,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                                 src={`${streamUrl}#toolbar=0`}
                                                 className="w-full h-full border-none"
                                                 title="PDF Viewer"
+                                                onLoad={() => setIsBuffering(false)}
                                             />
                                         ) : isImage ? (
                                             <div className="p-8 w-full h-full flex items-center justify-center">
@@ -1142,8 +1152,10 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                                     src={streamUrl}
                                                     alt={fileName}
                                                     className="max-w-full max-h-full object-contain rounded-xl shadow-2xl transition-transform hover:scale-[1.01]"
+                                                    onLoad={() => setIsBuffering(false)}
                                                     onError={(e) => {
                                                         e.target.style.display = 'none';
+                                                        setIsBuffering(false);
                                                         setToast({ message: 'Gagal memuat gambar.', type: 'error' });
                                                     }}
                                                 />

@@ -9,6 +9,7 @@ export default function QuizPlayerInline({ quiz, onCancel }) {
     const [selectedOptions, setSelectedOptions] = useState({});
     const [isFinished, setIsFinished] = useState(false);
     const [submitting, setSubmitting] = useState(false);
+    const [quizResult, setQuizResult] = useState(null);
 
     // Submission Form
     const { data, setData, post, processing, errors } = useForm({
@@ -54,8 +55,13 @@ export default function QuizPlayerInline({ quiz, onCancel }) {
         router.post(route('student.quizzes.submit', quiz.id), {
             answers: selectedOptions
         }, {
-            onSuccess: () => {
-                onCancel();
+            onSuccess: (page) => {
+                const result = page.props.flash?.quiz_result;
+                if (result) {
+                    setQuizResult(result);
+                } else {
+                    onCancel();
+                }
             },
             onFinish: () => {
                 setSubmitting(false);
@@ -78,7 +84,7 @@ export default function QuizPlayerInline({ quiz, onCancel }) {
                     <div className="space-y-1">
                         <h2 className="text-xl font-extrabold text-foreground tracking-tight">{quiz.title}</h2>
                         <p className="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest">
-                            {isSubmission ? 'Assignment Submission' : `Question ${isFinished ? questions.length : currentQuestionIdx + 1} of ${questions.length}`}
+                            {quizResult ? 'Result' : (isSubmission ? 'Assignment Submission' : `Question ${isFinished ? questions.length : currentQuestionIdx + 1} of ${questions.length}`)}
                         </p>
                     </div>
                     <button onClick={onCancel} className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-gray-400 hover:text-red-500 transition-all font-bold">
@@ -87,7 +93,47 @@ export default function QuizPlayerInline({ quiz, onCancel }) {
                 </div>
 
                 <div className="flex-1 p-10 sm:p-16 space-y-10">
-                    {isSubmission ? (
+                    {quizResult ? (
+                        <div className="max-w-md mx-auto text-center space-y-10 py-10 animate-in fade-in slide-in-from-bottom duration-700">
+                            <div className={`w-32 h-32 rounded-full mx-auto flex items-center justify-center text-5xl shadow-2xl ${quizResult.is_passed ? 'bg-emerald-500 shadow-emerald-500/30' : 'bg-red-500 shadow-red-500/30'}`}>
+                                {quizResult.is_passed ? '🏆' : '💪'}
+                            </div>
+                            
+                            <div className="space-y-4">
+                                <h3 className={`text-4xl font-black tracking-tight ${quizResult.is_passed ? 'text-emerald-500' : 'text-red-500'}`}>
+                                    {quizResult.is_passed ? 'Passed!' : 'Try Again'}
+                                </h3>
+                                <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">
+                                    Your Score: {quizResult.score}%
+                                </p>
+                            </div>
+
+                            <div className="bg-muted/50 rounded-[40px] p-10 border border-border flex flex-col gap-6">
+                                <div className="flex justify-between items-center px-2">
+                                    <span className="text-gray-400 font-bold text-xs uppercase tracking-widest">Correct Answers</span>
+                                    <span className="text-foreground font-black text-xl">{quizResult.correct_answers} / {quizResult.total_questions}</span>
+                                </div>
+                                <div className="h-2 w-full bg-border rounded-full overflow-hidden">
+                                    <div 
+                                        className={`h-full rounded-full transition-all duration-1000 ${quizResult.is_passed ? 'bg-emerald-500' : 'bg-red-500'}`}
+                                        style={{ width: `${quizResult.score}%` }}
+                                    ></div>
+                                </div>
+                                <div className="flex justify-between items-center px-2">
+                                    <span className="text-gray-400 font-bold text-xs uppercase tracking-widest">Passing Grade</span>
+                                    <span className="text-foreground font-bold text-sm tracking-widest">{quizResult.passing_score}%</span>
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={onCancel}
+                                className="bg-foreground text-surface w-full py-6 rounded-full font-black uppercase tracking-widest shadow-2xl hover:scale-[1.02] transition-all cursor-pointer"
+                            >
+                                Continue Watching
+                            </button>
+                        </div>
+                    ) : (
+                        isSubmission ? (
                         <div className="max-w-3xl mx-auto space-y-10">
                             <div className="space-y-6">
                                 <h3 className="text-2xl font-extrabold text-foreground leading-tight tracking-tight">Instructions</h3>
@@ -133,23 +179,28 @@ export default function QuizPlayerInline({ quiz, onCancel }) {
                                     <button
                                         type="submit"
                                         disabled={processing}
-                                        className="w-full bg-primary text-white py-6 rounded-full font-extrabold shadow-xl shadow-primary/20 hover:bg-primary-hover transition-all translate-y-0 hover:-translate-y-1 disabled:opacity-50 cursor-pointer"
+                                        className="bg-primary text-white w-full py-5 rounded-full font-extrabold shadow-xl shadow-primary/20 hover:bg-primary-hover transition-all translate-y-0 hover:-translate-y-1 disabled:opacity-50 cursor-pointer"
                                     >
-                                        {processing ? 'Submitting...' : 'Submit Assignment'}
+                                        {processing ? 'Uploading Submission...' : 'Send Submission'}
                                     </button>
                                 </div>
                             </form>
                         </div>
                     ) : (
                         !isFinished ? (
-                            <div className="max-w-3xl mx-auto space-y-10">
-                                <div className="space-y-6">
+                            <div className="max-w-3xl mx-auto space-y-12">
+                                <div className="space-y-8">
                                     <h3 className="text-2xl font-extrabold text-foreground leading-tight tracking-tight">
-                                        {currentQuestion?.question_text || currentQuestion?.question}
+                                        {currentQuestion?.question_text}
                                     </h3>
-                                    {currentQuestion?.options?.filter(o => o.is_correct).length > 1 && (
+                                    
+                                    {currentQuestion?.options?.filter(o => o.is_correct).length > 1 ? (
                                         <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full animate-pulse">
                                             <span className="text-[10px] font-black uppercase text-primary tracking-widest">Jawaban Ganda / Multiple Answers</span>
+                                        </div>
+                                    ) : (
+                                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
+                                            <span className="text-[10px] font-black uppercase text-emerald-500 tracking-widest">Jawaban Tunggal / Single Correct</span>
                                         </div>
                                     )}
                                 </div>
@@ -208,10 +259,11 @@ export default function QuizPlayerInline({ quiz, onCancel }) {
                                 </div>
                             </div>
                         )
-                    )}
+                    )
+                )}
                 </div>
 
-                {!isSubmission && !isFinished && (
+                {!isSubmission && !isFinished && !quizResult && (
                     <div className="px-10 py-8 bg-muted/30 border-t border-border flex justify-end">
                         <button
                             onClick={nextQuestion}

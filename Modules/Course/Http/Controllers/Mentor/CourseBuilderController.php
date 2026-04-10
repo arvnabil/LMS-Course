@@ -619,12 +619,13 @@ class CourseBuilderController extends Controller
 
         $validated = $request->validate([
             'option_text' => 'required|string',
-            'is_correct' => 'required|boolean',
+            'is_correct' => 'required',
         ]);
 
-        $data = $validated;
-        $data['is_correct'] = (bool) $validated['is_correct'];
-        $question->options()->create($data);
+        $question->options()->create([
+            'option_text' => $validated['option_text'],
+            'is_correct' => filter_var($request->is_correct, FILTER_VALIDATE_BOOLEAN)
+        ]);
 
         return back()->with('success', 'Option added successfully.');
     }
@@ -638,12 +639,13 @@ class CourseBuilderController extends Controller
 
         $validated = $request->validate([
             'option_text' => 'required|string',
-            'is_correct' => 'required|boolean',
+            'is_correct' => 'required',
         ]);
 
-        $data = $validated;
-        $data['is_correct'] = (bool) $validated['is_correct'];
-        $option->update($data);
+        $option->update([
+            'option_text' => $validated['option_text'],
+            'is_correct' => filter_var($request->is_correct, FILTER_VALIDATE_BOOLEAN)
+        ]);
 
         return back()->with('success', 'Option updated successfully.');
     }

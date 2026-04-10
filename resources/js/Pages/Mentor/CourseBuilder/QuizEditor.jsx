@@ -268,18 +268,18 @@ export default function QuizEditor({ auth, quiz }) {
                                                                     className="w-full bg-white border-none rounded-2xl px-5 py-3 text-sm font-bold focus:ring-4 focus:ring-primary/10 transition-all"
                                                                 />
                                                                 <div className="flex items-center justify-between">
-                                                                    <label className="flex items-center gap-2 cursor-pointer">
+                                                                    <label className="flex items-center gap-2 cursor-pointer group">
                                                                         <input 
                                                                             type="checkbox" 
                                                                             checked={editingOption.isCorrect} 
                                                                             onChange={(e) => setEditingOption({...editingOption, isCorrect: e.target.checked})}
-                                                                            className="rounded text-primary focus:ring-primary"
+                                                                            className="rounded-lg text-primary focus:ring-primary w-5 h-5 transition-all cursor-pointer"
                                                                         />
-                                                                        <span className="text-[10px] font-black uppercase text-gray-400">Mark as Correct</span>
+                                                                        <span className="text-[10px] font-black uppercase text-gray-500 group-hover:text-primary transition-colors">Mark as Correct</span>
                                                                     </label>
                                                                     <div className="flex gap-3">
-                                                                        <button type="button" onClick={() => setEditingOption(null)} className="text-[10px] font-black uppercase text-gray-400">Cancel</button>
-                                                                        <button type="submit" className="text-[10px] font-black uppercase text-primary">Save Changes</button>
+                                                                        <button type="button" onClick={() => setEditingOption(null)} className="text-[10px] font-black uppercase text-gray-400 hover:text-gray-600">Cancel</button>
+                                                                        <button type="submit" disabled={!editingOption.text.trim()} className="text-[10px] font-black uppercase text-primary">Save Changes</button>
                                                                     </div>
                                                                 </div>
                                                             </form>
@@ -323,28 +323,33 @@ export default function QuizEditor({ auth, quiz }) {
                                                                 type="text"
                                                                 value={newOptionState.text}
                                                                 onChange={(e) => setNewOptionState({...newOptionState, text: e.target.value})}
-                                                                placeholder="Enter option text..."
+                                                                placeholder="Masukkan teks jawaban..."
                                                                 className="w-full bg-white border-none rounded-2xl px-5 py-3 text-sm font-bold focus:ring-4 focus:ring-primary/10 transition-all"
                                                             />
                                                             <div className="flex items-center justify-between">
-                                                                <label className="flex items-center gap-2 cursor-pointer">
-                                                                    <input 
-                                                                        type="checkbox" 
-                                                                        checked={newOptionState.isCorrect} 
-                                                                        onChange={(e) => setNewOptionState({...newOptionState, isCorrect: e.target.checked})}
-                                                                        className="rounded text-primary focus:ring-primary"
-                                                                    />
-                                                                    <span className="text-[10px] font-black uppercase text-gray-400">Mark as Correct</span>
+                                                                <label className="flex items-center gap-2 cursor-pointer group">
+                                                                    <div className="relative">
+                                                                        <input 
+                                                                            type="checkbox" 
+                                                                            checked={newOptionState.isCorrect} 
+                                                                            onChange={(e) => setNewOptionState({...newOptionState, isCorrect: e.target.checked})}
+                                                                            className="rounded-lg text-primary focus:ring-primary w-5 h-5 transition-all cursor-pointer"
+                                                                        />
+                                                                    </div>
+                                                                    <span className="text-[10px] font-black uppercase text-gray-500 group-hover:text-primary transition-colors">Mark as Correct</span>
                                                                 </label>
                                                                 <div className="flex gap-3">
-                                                                    <button type="button" onClick={() => setAddingOptionTo(null)} className="text-[10px] font-black uppercase text-gray-400">Cancel</button>
-                                                                    <button type="submit" className="text-[10px] font-black uppercase text-primary">Add Option</button>
+                                                                    <button type="button" onClick={() => setAddingOptionTo(null)} className="text-[10px] font-black uppercase text-gray-400 hover:text-gray-600 transition-colors">Cancel</button>
+                                                                    <button type="submit" disabled={!newOptionState.text.trim()} className="text-[10px] font-black uppercase text-primary disabled:opacity-50">Add Option</button>
                                                                 </div>
                                                             </div>
                                                         </form>
                                                     ) : (
                                                         <button 
-                                                            onClick={() => setAddingOptionTo(q.id)}
+                                                            onClick={() => {
+                                                                setNewOptionState({ text: '', isCorrect: false });
+                                                                setAddingOptionTo(q.id);
+                                                            }}
                                                             className="p-5 rounded-3xl border border-dashed border-gray-200 text-gray-400 text-[10px] font-black uppercase hover:border-primary/30 hover:text-primary transition-all tracking-widest flex items-center justify-center gap-2"
                                                         >
                                                             <span>+</span> Add Option

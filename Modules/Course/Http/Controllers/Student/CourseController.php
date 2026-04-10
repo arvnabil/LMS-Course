@@ -256,22 +256,47 @@ class CourseController extends Controller
         ]);
 
         foreach ($quiz->questions as $question) {
-            $selectedOptionId = $answers[$question->id] ?? null;
+            $selectedOptionIds = $answers[$question->id] ?? null;
+            
+            // Normalize to array for consistent processing
+            $selectedIds = is_array($selectedOptionIds) ? $selectedOptionIds : ($selectedOptionIds ? [$selectedOptionIds] : []);
+            
+            // Get all correct options for this question
+            $correctOptionIds = $question->options()->where('is_correct', true)->pluck('id')->toArray();
+            
+            // Logic for a question being "Correct":
+            // 1. Must have selected at least one answer if it's multiple choice? (Handled by UI)
+            // 2. The set of selected IDs must exactly match the set of correct IDs.
             $isCorrect = false;
-
-            if ($selectedOptionId) {
-                $option = $question->options()->find($selectedOptionId);
-                if ($option && $option->is_correct) {
+            if (!empty($selectedIds)) {
+                $isCorrect = count($selectedIds) === count($correctOptionIds) && 
+                            empty(array_diff($selectedIds, $correctOptionIds)) &&
+                            empty(array_diff($correctOptionIds, $selectedIds));
+                
+                if ($isCorrect) {
                     $correctAnswers++;
-                    $isCorrect = true;
                 }
             }
 
-            $attempt->answers()->create([
-                'quiz_question_id' => $question->id,
-                'quiz_option_id' => $selectedOptionId,
-                'is_correct' => $isCorrect,
-            ]);
+            // Record each selected option in quiz_answers
+            if (empty($selectedIds)) {
+                $attempt->answers()->create([
+                    'quiz_question_id' => $question->id,
+                    'quiz_option_id' => null,
+                    'is_correct' => false,
+                ]);
+            } else {
+                foreach ($selectedIds as $optionId) {
+                    $attempt->answers()->create([
+                        'quiz_question_id' => $question->id,
+                        'quiz_option_id' => $optionId,
+                        // Note: is_correct in quiz_answers usually means "was this specific option correct?" 
+                        // or "was the whole question correct?". 
+                        // Looking at the migration and usage, it seems to store if the WHOLE question was correct for this attempt answer row.
+                        'is_correct' => $isCorrect,
+                    ]);
+                }
+            }
         }
 
         $score = ($correctAnswers / $totalQuestions) * 100;
@@ -282,19 +307,30 @@ class CourseController extends Controller
             'is_passed' => $isPassed
         ]);
 
+        $resultData = [
+            'quiz_id' => $quiz->id,
+            'score' => round($score, 2),
+            'total_questions' => $totalQuestions,
+            'correct_answers' => $correctAnswers,
+            'is_passed' => $isPassed,
+            'passing_score' => $quiz->passing_score ?? 70
+        ];
+
         // Notify student
         Notification::create([
             'user_id' => $user->id,
             'title' => 'Quiz Submitted',
             'message' => 'You have submitted the quiz: ' . $quiz->title . '. Result: ' . ($isPassed ? 'Passed' : 'Failed') . ' (' . round($score) . '%)',
             'type' => $isPassed ? 'success' : 'warning',
-            'data' => ['quiz_id' => $quiz->id, 'score' => $score, 'is_passed' => $isPassed],
+            'data' => $resultData,
         ]);
 
         app(CourseCompletionService::class)->checkAndComplete($enrollment);
 
-        return redirect()->route('student.learn', ['course' => $quiz->course->slug, 'quiz_id' => $quiz->id])
-            ->with('success', "Quiz submitted! Your score: " . round($score) . "%" . ($isPassed ? " (Passed)" : " (Failed)"));
+        return back()->with([
+            'success' => 'Quiz submitted successfully.',
+            'quiz_result' => $resultData
+        ]);
     }
 
     /**
