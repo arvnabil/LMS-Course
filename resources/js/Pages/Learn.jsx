@@ -1019,9 +1019,9 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                         {/* File Display Area */}
                         {currentLesson?.type === 'file' && currentLesson?.file_id && (() => {
                             const streamUrl = `/onedrive/stream/${currentLesson.file_id}?t=${new Date(currentLesson.updated_at).getTime()}`;
-                            const isPdf = currentLesson.file_name?.toLowerCase().endsWith('.pdf') || currentLesson.mime_type === 'application/pdf' || currentLesson.title?.toLowerCase().includes('.pdf');
-                            const isImage = currentLesson.file_name?.match(/\.(jpg|jpeg|png|gif|webp)$/i) || currentLesson.mime_type?.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp)$/i.test(currentLesson.title);
-                            const isText = currentLesson.file_name?.toLowerCase().endsWith('.txt') || currentLesson.mime_type === 'text/plain';
+                            const isPdf = currentLesson.file_name?.toLowerCase().endsWith('.pdf') || currentLesson.mime_type === 'application/pdf' || currentLesson.title?.toLowerCase().includes('.pdf') || currentLesson.file_url?.toLowerCase().includes('.pdf');
+                            const isImage = currentLesson.file_name?.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i) || currentLesson.mime_type?.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(currentLesson.title) || /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(currentLesson.file_url);
+                            const isText = currentLesson.file_name?.toLowerCase().endsWith('.txt') || currentLesson.mime_type === 'text/plain' || currentLesson.file_url?.toLowerCase().includes('.txt');
                             const fileName = currentLesson.file_name || currentLesson.title;
 
                             return (
@@ -1088,7 +1088,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                                     href={streamUrl}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="inline-flex items-center px-10 py-4 bg-gray-900 text-white rounded-2xl font-bold text-sm shadow-xl hover:bg-black transition-all"
+                                                    className="inline-flex items-center px-10 py-4 bg-primary text-white rounded-2xl font-bold text-sm shadow-xl shadow-primary/20 hover:bg-primary-hover hover:scale-105 transition-all"
                                                 >Unduh Sekarang</a>
                                             </div>
                                         )}
