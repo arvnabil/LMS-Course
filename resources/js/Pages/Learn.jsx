@@ -26,7 +26,7 @@ function TextFileViewer({ url }) {
     }, [url]);
 
     return (
-        <div className="w-full bg-gray-900 p-6 sm:p-10" style={{ maxHeight: '80vh', overflowY: 'auto' }}>
+        <div className="w-full h-full bg-gray-900 p-6 sm:p-10 overflow-y-auto">
             <pre className={`text-sm leading-relaxed font-mono whitespace-pre-wrap ${error ? 'text-red-400' : 'text-gray-200'}`}>
                 {textContent}
             </pre>
@@ -771,8 +771,8 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                             isQuizPlaying ? (
                                 <QuizPlayerInline quiz={currentLesson} onCancel={() => setIsQuizPlaying(false)} />
                             ) : (
-                                    <div className="flex-1 flex flex-col items-center justify-center p-12 bg-muted/30">
-                                        <div className="max-w-2xl w-full bg-surface p-10 sm:p-16 rounded-[48px] shadow-2xl shadow-black/5 border border-border text-center space-y-10 animate-in fade-in zoom-in duration-500">
+                                    <div className="w-full aspect-video bg-muted/30 flex items-center justify-center p-4 sm:p-8 lg:p-12 overflow-hidden relative">
+                                        <div className="max-w-2xl w-full h-full bg-surface p-10 sm:p-16 rounded-[48px] shadow-2xl shadow-black/5 border border-border text-center space-y-10 animate-in fade-in zoom-in duration-500 overflow-y-auto scrollbar-hide">
                                             <div className="w-24 h-24 bg-primary/10 rounded-[32px] flex items-center justify-center mx-auto mb-6 shadow-inner">
                                                 <span className="text-4xl">{currentLesson.type === 'submission' ? '📥' : '🧠'}</span>
                                             </div>
@@ -1109,7 +1109,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                             });
 
                             return (
-                                <div className="w-full flex-1 flex flex-col min-h-0 bg-gray-50/50">
+                                <div className="w-full flex flex-col bg-gray-50/50">
                                     {/* Premium File Header */}
                                     <div className="flex items-center justify-between px-6 py-4 bg-white border-b border-gray-100 shadow-sm z-10">
                                         <div className="flex items-center gap-3">
@@ -1138,7 +1138,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                     </div>
 
                                     {/* Viewer Area */}
-                                    <div className="flex-1 overflow-hidden relative flex items-center justify-center">
+                                    <div className="w-full aspect-video overflow-hidden relative flex items-center justify-center bg-gray-900 shadow-inner">
                                         {isPdf ? (
                                             <iframe 
                                                 src={`${streamUrl}#toolbar=0`}

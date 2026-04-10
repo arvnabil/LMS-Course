@@ -77,8 +77,8 @@ export default function QuizPlayerInline({ quiz, onCancel }) {
     };
 
     return (
-        <div className="flex-1 overflow-y-auto flex flex-col p-6 sm:p-12 items-center justify-center bg-muted/30">
-            <div className="max-w-4xl w-full bg-surface rounded-[40px] shadow-2xl shadow-gray-200/20 dark:shadow-black/20 border border-border overflow-hidden flex flex-col my-10 animate-in fade-in zoom-in duration-500">
+        <div className="w-full aspect-video overflow-hidden flex flex-col items-center justify-center bg-muted/30 relative p-4 sm:p-8 lg:p-12">
+            <div className="max-w-4xl w-full h-full bg-surface rounded-[40px] shadow-2xl shadow-gray-200/20 dark:shadow-black/20 border border-border overflow-hidden flex flex-col animate-in fade-in zoom-in duration-500 relative">
                 {/* Header */}
                 <div className="px-10 py-8 border-b border-border flex items-center justify-between bg-surface sticky top-0 z-10">
                     <div className="space-y-1">

@@ -240,7 +240,19 @@ class CourseController extends Controller
         }
 
         $score = ($correctAnswers / $totalQuestions) * 100;
-        $isPassed = $score >= ($quiz->passing_score ?? 70);
+        $passingThreshold = (float) ($quiz->passing_score ?? 70);
+        $isPassed = (float) $score >= $passingThreshold;
+
+        // Debug logging for auditing
+        \Illuminate\Support\Facades\Log::info('Legacy Quiz Submission Audit', [
+            'quiz_id' => $quiz->id,
+            'student_id' => $user->id,
+            'correct_answers' => $correctAnswers,
+            'total_questions' => $totalQuestions,
+            'calculated_score' => $score,
+            'passing_threshold' => $passingThreshold,
+            'is_passed_result' => $isPassed
+        ]);
 
         $attempt->update([
             'score' => $score,
