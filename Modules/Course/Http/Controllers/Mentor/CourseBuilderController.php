@@ -622,7 +622,9 @@ class CourseBuilderController extends Controller
             'is_correct' => 'required|boolean',
         ]);
 
-        $question->options()->create($validated);
+        $data = $validated;
+        $data['is_correct'] = (bool) $validated['is_correct'];
+        $question->options()->create($data);
 
         return back()->with('success', 'Option added successfully.');
     }
@@ -639,7 +641,9 @@ class CourseBuilderController extends Controller
             'is_correct' => 'required|boolean',
         ]);
 
-        $option->update($validated);
+        $data = $validated;
+        $data['is_correct'] = (bool) $validated['is_correct'];
+        $option->update($data);
 
         return back()->with('success', 'Option updated successfully.');
     }

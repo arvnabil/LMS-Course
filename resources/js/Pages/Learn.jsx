@@ -38,6 +38,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
     const [toast, setToast] = useState(null);
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const [headerVisible, setHeaderVisible] = useState(true);
+    const [isBuffering, setIsBuffering] = useState(false);
 
     const [expandedSections, setExpandedSections] = useState(() => {
         if (!course?.sections || !currentLesson) return [];
@@ -348,6 +349,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
         if (event.data === 1) {
             setIsPlaying(true);
             setHasStarted(true);
+            setIsBuffering(false);
             if (progressInterval.current) clearInterval(progressInterval.current);
             progressInterval.current = setInterval(() => {
                 if (!playerRef.current) return;
@@ -382,6 +384,11 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
             }, 500);
         } else {
             setIsPlaying(false);
+            if (event.data === 3) {
+                setIsBuffering(true);
+            } else {
+                setIsBuffering(false);
+            }
             if (progressInterval.current) clearInterval(progressInterval.current);
         }
 
@@ -756,86 +763,100 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                             isQuizPlaying ? (
                                 <QuizPlayerInline quiz={currentLesson} onCancel={() => setIsQuizPlaying(false)} />
                             ) : (
-                                <div className="flex-1 flex flex-col items-center justify-center p-12 bg-muted/30">
-                                    <div className="max-w-2xl w-full bg-surface p-12 rounded-[48px] shadow-2xl shadow-black/5 border border-border text-center space-y-10">
-                                        <div className="w-24 h-24 bg-primary rounded-[32px] flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-primary/30">
-                                            <span className="text-4xl text-white">{currentLesson.type === 'submission' ? '📤' : '🧠'}</span>
-                                        </div>
-                                        <div className="space-y-4">
-                                            <h2 className="text-3xl font-extrabold text-foreground tracking-tight">{currentLesson.title}</h2>
-                                            <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">
-                                                {currentLesson.type === 'submission' ? 'Final Assignment Submission' : `Multiple Choice Quiz • Passing Score: ${currentLesson.passing_score}%`}
-                                            </p>
-                                        </div>
+                                    <div className="flex-1 flex flex-col items-center justify-center p-12 bg-muted/30">
+                                        <div className="max-w-2xl w-full bg-surface p-10 sm:p-16 rounded-[48px] shadow-2xl shadow-black/5 border border-border text-center space-y-10 animate-in fade-in zoom-in duration-500">
+                                            <div className="w-24 h-24 bg-primary/10 rounded-[32px] flex items-center justify-center mx-auto mb-6 shadow-inner">
+                                                <span className="text-4xl">{currentLesson.type === 'submission' ? '📥' : '🧠'}</span>
+                                            </div>
+                                            <div className="space-y-4">
+                                                <h2 className="text-3xl font-extrabold text-foreground tracking-tight">{currentLesson.title}</h2>
+                                                <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">
+                                                    {currentLesson.type === 'submission' ? 'Final Assignment Submission' : `Multiple Choice Quiz • Passing Score: ${currentLesson.passing_score}%`}
+                                                </p>
+                                            </div>
 
-                                        {/* Status Badge */}
-                                        {(() => {
-                                            const attempt = enrollment.quiz_attempts
-                                                ?.filter(a => a.quiz_id === currentLesson.id)
-                                                ?.sort((a, b) => b.id - a.id)?.[0];
-                                                
-                                            if (attempt) {
-                                                return (
-                                                    <div className={`inline-flex items-center gap-2 px-6 py-2 rounded-full text-xs font-extrabold uppercase tracking-widest ${
-                                                        attempt.is_passed ? 'bg-success text-white' : 'bg-red-500/10 text-red-500'
-                                                    }`}>
-                                                        {attempt.is_passed ? '✅ Passed' : '❌ Failed'} • Score: {Math.round(attempt.score)}%
-                                                    </div>
-                                                );
-                                            }
-                                            const submission = enrollment.submissions
-                                                ?.filter(s => s.quiz_id === currentLesson.id)
-                                                ?.sort((a, b) => b.id - a.id)?.[0];
-                                            if (submission) {
-                                                const isPassed = submission.status === 'approved' && (!currentLesson.passing_score || submission.score >= currentLesson.passing_score);
-                                                return (
-                                                    <div className="flex flex-col items-center gap-3">
-                                                        <div className={`inline-flex items-center gap-2 px-6 py-2 rounded-full text-xs font-extrabold uppercase tracking-widest ${
-                                                            submission.status === 'approved' ? 'bg-success text-white' : 
-                                                            submission.status === 'rejected' ? 'bg-red-500 text-white' : 'bg-yellow-500/10 text-yellow-500'
-                                                        }`}>
-                                                            {submission.status === 'approved' ? '✅ Approved' : submission.status === 'rejected' ? '❌ Rejected' : '🕒 Pending Review'}
-                                                        </div>
-                                                        {submission.status === 'approved' && (
-                                                            <div className={`text-[10px] font-black uppercase tracking-widest ${isPassed ? 'text-success' : 'text-red-500'}`}>
-                                                                Score: {submission.score || 0} / 100 
-                                                                {!isPassed && ` (Required: ${currentLesson.passing_score})`}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                );
-                                            }
-                                            return null;
-                                        })()}
-
-                                        <div className="pt-6">
-                                            <button 
-                                                onClick={() => {
-                                                    if (isSubmissionPending) {
-                                                        setToast({ message: "Submission is still under review! Please wait for a mentor to approve or reject your work.", type: 'warning' });
-                                                        return;
-                                                    }
-                                                    // Only block if passing_score is met (or no passing_score exists)
-                                                    const hasPassed = isSubmissionApproved && (!currentLesson.passing_score || (currentSubmission?.score || 0) >= currentLesson.passing_score);
+                                            {/* Results Section */}
+                                            {(() => {
+                                                const attempt = enrollment.quiz_attempts
+                                                    ?.filter(a => a.quiz_id === currentLesson.id)
+                                                    ?.sort((a, b) => b.id - a.id)?.[0];
                                                     
-                                                    if (hasPassed) {
-                                                        setToast({ message: "This assignment has already been approved and you've passed! 🎉", type: 'success' });
-                                                        return;
-                                                    }
-                                                    setIsQuizPlaying(true);
-                                                }}
-                                                className={`inline-flex items-center gap-4 px-10 py-5 rounded-full font-extrabold shadow-xl transition-all hover:scale-105 cursor-pointer ${
-                                                    isSubmissionPending ? 'bg-gray-400 text-white cursor-not-allowed opacity-50' : 'bg-primary text-white shadow-primary/20 hover:bg-primary-hover'
-                                                }`}
-                                            >
-                                                <span className="text-sm font-extrabold uppercase tracking-widest">
-                                                    {isSubmissionPending ? 'Pending Review' : (currentLesson.type === 'submission' ? 'Start Submission' : 'Start Quiz')}
-                                                </span>
-                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
-                                            </button>
+                                                if (attempt) {
+                                                    return (
+                                                        <div className="bg-primary/5 border border-primary/10 rounded-[32px] p-8 space-y-6 animate-in slide-in-from-bottom-4 duration-700">
+                                                            <div className="flex flex-col items-center gap-2">
+                                                                <span className="text-[10px] font-black uppercase text-primary tracking-widest opacity-60">Status Terakhir / Last Status</span>
+                                                                <div className="flex flex-col items-center gap-1">
+                                                                    <span className={`text-3xl font-black ${attempt.is_passed ? 'text-accent-teal' : 'text-red-500'}`}>
+                                                                        {Math.round(attempt.score)}%
+                                                                    </span>
+                                                                    <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${attempt.is_passed ? 'bg-accent-teal/10 text-accent-teal' : 'bg-red-500/10 text-red-500'}`}>
+                                                                        {attempt.is_passed ? 'LULUS / PASSED' : 'GAGAL / FAILED'}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                            <div className="h-px bg-primary/10 w-full" />
+                                                            <p className="text-[10px] font-bold text-gray-400">
+                                                                Diselesaikan pada {new Date(attempt.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                                            </p>
+                                                        </div>
+                                                    );
+                                                }
+                                                const submission = enrollment.submissions
+                                                    ?.filter(s => s.quiz_id === currentLesson.id)
+                                                    ?.sort((a, b) => b.id - a.id)?.[0];
+                                                if (submission) {
+                                                    const isPassed = submission.status === 'approved' && (!currentLesson.passing_score || submission.score >= currentLesson.passing_score);
+                                                    return (
+                                                        <div className="bg-primary/5 border border-primary/10 rounded-[32px] p-8 space-y-6 animate-in slide-in-from-bottom-4 duration-700 text-center">
+                                                            <div className="flex flex-col items-center gap-2">
+                                                                <span className="text-[10px] font-black uppercase text-primary tracking-widest opacity-60">Status Tugas / Submission Status</span>
+                                                                <div className={`inline-flex items-center gap-2 px-6 py-2 rounded-full text-xs font-extrabold uppercase tracking-widest ${
+                                                                    submission.status === 'approved' ? 'bg-success text-white' : 
+                                                                    submission.status === 'rejected' ? 'bg-red-500 text-white' : 'bg-amber-500/10 text-amber-500'
+                                                                }`}>
+                                                                    {submission.status === 'approved' ? '✅ Approved' : submission.status === 'rejected' ? '❌ Rejected' : '🕒 Pending Review'}
+                                                                </div>
+                                                                {submission.status === 'approved' && (
+                                                                    <div className={`mt-2 text-2xl font-black ${isPassed ? 'text-accent-teal' : 'text-red-500'}`}>
+                                                                        {submission.score || 0}%
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            <div className="h-px bg-primary/10 w-full" />
+                                                            <p className="text-[10px] font-bold text-gray-400 text-center">
+                                                                Diserahkan pada {new Date(submission.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                                            </p>
+                                                        </div>
+                                                    );
+                                                }
+                                                return null;
+                                            })()}
+
+                                            <div className="space-y-4 pt-4">
+                                                <button 
+                                                    onClick={() => {
+                                                        if (isSubmissionPending) {
+                                                            setToast({ message: "Submission is still under review! Please wait.", type: 'warning' });
+                                                            return;
+                                                        }
+                                                        setIsQuizPlaying(true);
+                                                    }}
+                                                    className={`w-full inline-flex items-center justify-center gap-4 px-10 py-6 rounded-full font-extrabold shadow-xl transition-all hover:scale-[1.02] active:scale-95 cursor-pointer ${
+                                                        isSubmissionPending ? 'bg-gray-400 text-white cursor-not-allowed opacity-50' : 'bg-primary text-white shadow-primary/20 hover:bg-primary-hover'
+                                                    }`}
+                                                >
+                                                    <span className="text-sm font-extrabold uppercase tracking-widest">
+                                                        {isSubmissionPending ? 'Pending Review' : (isAlreadyCompleted ? 'RETAKE ASSESSMENT' : 'START ASSESSMENT')}
+                                                    </span>
+                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
+                                                </button>
+                                                {isAlreadyCompleted && (
+                                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Anda dapat mengerjakan ulang untuk meningkatkan skor.</p>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
                             )
                         ) : currentLesson?.type === 'video' ? (
                             /* Video Player Area */
@@ -856,6 +877,15 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                                     setHasStarted(true);
                                                 }}
                                                 onPause={() => setIsPlaying(false)}
+                                                onWaiting={() => setIsBuffering(true)}
+                                                onPlaying={() => setIsBuffering(false)}
+                                                onCanPlay={() => setIsBuffering(false)}
+                                                onLoadStart={() => setIsBuffering(true)}
+                                                onLoadedData={() => setIsBuffering(false)}
+                                                onLoadedMetadata={(e) => {
+                                                    setDuration(e.target.duration);
+                                                    setIsBuffering(false);
+                                                }}
                                                 onError={(e) => {
                                                     console.error("Video Playback Error:", e);
                                                     setToast({ 
@@ -901,6 +931,19 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                         <div className="w-full h-full flex items-center justify-center">
                                             <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-primary/10 to-gray-950"></div>
                                             <p className="mt-6 text-gray-400 text-[10px] font-extrabold uppercase tracking-[0.2em] relative z-10">Waiting for Video Source...</p>
+                                        </div>
+                                    )}
+
+                                    {/* Buffering Spinner Overlay */}
+                                    {isBuffering && hasStarted && (
+                                        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/20 backdrop-blur-[2px] transition-all duration-300">
+                                            <div className="relative">
+                                                <div className="w-16 h-16 rounded-full border-4 border-white/10 border-t-primary animate-spin"></div>
+                                                <div className="absolute inset-0 flex items-center justify-center">
+                                                    <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                                                </div>
+                                            </div>
+                                            <p className="mt-4 text-[10px] font-black text-white uppercase tracking-[0.3em] animate-pulse">Buffering...</p>
                                         </div>
                                     )}
 
@@ -1021,10 +1064,40 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                         {/* File Display Area */}
                         {currentLesson?.type === 'file' && currentLesson?.file_id && (() => {
                             const streamUrl = `/onedrive/stream/${currentLesson.file_id}?t=${new Date(currentLesson.updated_at).getTime()}`;
-                            const isPdf = currentLesson.file_name?.toLowerCase().endsWith('.pdf') || currentLesson.mime_type === 'application/pdf' || currentLesson.title?.toLowerCase().includes('.pdf') || currentLesson.file_url?.toLowerCase().includes('.pdf');
-                            const isImage = currentLesson.file_name?.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i) || currentLesson.mime_type?.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(currentLesson.title) || /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(currentLesson.file_url);
-                            const isText = currentLesson.file_name?.toLowerCase().endsWith('.txt') || currentLesson.mime_type === 'text/plain' || currentLesson.file_url?.toLowerCase().includes('.txt');
+                            const isPdf = currentLesson.file_name?.toLowerCase().endsWith('.pdf') || 
+                                          currentLesson.mime_type === 'application/pdf' || 
+                                          currentLesson.title?.toLowerCase().includes('.pdf') || 
+                                          currentLesson.file_url?.toLowerCase().includes('.pdf') ||
+                                          currentLesson.file_url?.toLowerCase().includes('pdf') ||
+                                          currentLesson.file_url?.toLowerCase().includes('.pdf?') ||
+                                          currentLesson.file_url?.toLowerCase().includes('application/pdf');
+
+                            const isImage = currentLesson.file_name?.match(/\.(jpg|jpeg|png|gif|webp|svg|bmp)$/i) || 
+                                            currentLesson.mime_type?.startsWith('image/') || 
+                                            /\.(jpg|jpeg|png|gif|webp|svg|bmp)$/i.test(currentLesson.title) || 
+                                            /\.(jpg|jpeg|png|gif|webp|svg|bmp)$/i.test(currentLesson.file_url) ||
+                                            currentLesson.file_url?.toLowerCase().includes('image') ||
+                                            currentLesson.file_url?.toLowerCase().includes('picture') ||
+                                            currentLesson.file_url?.toLowerCase().includes('/img/');
+
+                            const isText = currentLesson.file_name?.toLowerCase().endsWith('.txt') || 
+                                           currentLesson.mime_type === 'text/plain' || 
+                                           currentLesson.file_url?.toLowerCase().includes('.txt') ||
+                                           currentLesson.title?.toLowerCase().includes('.txt') ||
+                                           currentLesson.file_url?.toLowerCase().includes('text/plain');
                             const fileName = currentLesson.file_name || currentLesson.title;
+                            
+                            // Debug logs to help identify why preview might be failing
+                            console.log('File Detection Debug:', {
+                                id: currentLesson.id,
+                                title: currentLesson.title,
+                                file_name: currentLesson.file_name,
+                                mime_type: currentLesson.mime_type,
+                                file_url: currentLesson.file_url,
+                                isPdf,
+                                isImage,
+                                isText
+                            });
 
                             return (
                                 <div className="w-full flex-1 flex flex-col min-h-0 bg-gray-50/50">

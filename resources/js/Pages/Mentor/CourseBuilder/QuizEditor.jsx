@@ -286,7 +286,7 @@ export default function QuizEditor({ auth, quiz }) {
                                                         ) : (
                                                             <div 
                                                                 key={opt.id} 
-                                                                onClick={() => setEditingOption({id: opt.id, text: opt.option_text, isCorrect: opt.is_correct})}
+                                                                onClick={() => setEditingOption({id: opt.id, text: opt.option_text, isCorrect: !!opt.is_correct})}
                                                                 className={`group/opt p-5 rounded-3xl border transition-all cursor-pointer ${opt.is_correct ? 'bg-accent-teal/10 border-accent-teal/30 text-foreground' : 'bg-muted border-gray-100 text-gray-400'} text-sm font-bold flex items-center justify-between`}
                                                             >
                                                                 <div className="flex items-center gap-3">

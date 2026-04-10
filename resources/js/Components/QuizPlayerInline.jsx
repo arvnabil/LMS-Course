@@ -19,11 +19,26 @@ export default function QuizPlayerInline({ quiz, onCancel }) {
     const questions = quiz.questions || [];
     const currentQuestion = questions[currentQuestionIdx];
 
-    const handleSelectOption = (questionId, optionId) => {
-        setSelectedOptions({
-            ...selectedOptions,
-            [questionId]: optionId
-        });
+    const handleSelectOption = (questionId, optionId, isMultiple = false) => {
+        if (isMultiple) {
+            const currentSelected = selectedOptions[questionId] || [];
+            if (currentSelected.includes(optionId)) {
+                setSelectedOptions({
+                    ...selectedOptions,
+                    [questionId]: currentSelected.filter(id => id !== optionId)
+                });
+            } else {
+                setSelectedOptions({
+                    ...selectedOptions,
+                    [questionId]: [...currentSelected, optionId]
+                });
+            }
+        } else {
+            setSelectedOptions({
+                ...selectedOptions,
+                [questionId]: optionId
+            });
+        }
     };
 
     const nextQuestion = () => {
@@ -132,29 +147,41 @@ export default function QuizPlayerInline({ quiz, onCancel }) {
                                     <h3 className="text-2xl font-extrabold text-foreground leading-tight tracking-tight">
                                         {currentQuestion?.question_text || currentQuestion?.question}
                                     </h3>
+                                    {currentQuestion?.options?.filter(o => o.is_correct).length > 1 && (
+                                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full animate-pulse">
+                                            <span className="text-[10px] font-black uppercase text-primary tracking-widest">Jawaban Ganda / Multiple Answers</span>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="grid grid-cols-1 gap-4">
-                                    {currentQuestion?.options?.map((option) => (
-                                        <button
-                                            key={option.id}
-                                            onClick={() => handleSelectOption(currentQuestion.id, option.id)}
-                                            className={`p-6 rounded-[32px] border-2 text-left transition-all flex items-center gap-4 group cursor-pointer ${
-                                                selectedOptions[currentQuestion.id] === option.id
-                                                    ? 'border-primary bg-primary/5 text-primary'
-                                                    : 'border-border bg-muted/50 text-foreground hover:border-primary/20 hover:bg-primary/5'
-                                            }`}
-                                        >
-                                            <span className={`w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-[10px] transition-colors ${
-                                                selectedOptions[currentQuestion.id] === option.id
-                                                    ? 'border-primary bg-primary text-white'
-                                                    : 'border-border bg-surface text-gray-300 group-hover:border-primary/50'
-                                            }`}>
-                                                {selectedOptions[currentQuestion.id] === option.id ? '✓' : ''}
-                                            </span>
-                                            <span className="font-bold text-sm">{option.option_text}</span>
-                                        </button>
-                                    ))}
+                                    {currentQuestion?.options?.map((option) => {
+                                        const isMultiple = currentQuestion.options.filter(o => o.is_correct).length > 1;
+                                        const isSelected = isMultiple 
+                                            ? (selectedOptions[currentQuestion.id] || []).includes(option.id)
+                                            : selectedOptions[currentQuestion.id] === option.id;
+
+                                        return (
+                                            <button
+                                                key={option.id}
+                                                onClick={() => handleSelectOption(currentQuestion.id, option.id, isMultiple)}
+                                                className={`p-6 rounded-[32px] border-2 text-left transition-all flex items-center gap-4 group cursor-pointer ${
+                                                    isSelected
+                                                        ? 'border-primary bg-primary/5 text-primary'
+                                                        : 'border-border bg-muted/50 text-foreground hover:border-primary/20 hover:bg-primary/5'
+                                                }`}
+                                            >
+                                                <span className={`w-8 h-8 ${isMultiple ? 'rounded-lg' : 'rounded-full'} border-2 flex items-center justify-center font-bold text-[10px] transition-colors ${
+                                                    isSelected
+                                                        ? 'border-primary bg-primary text-white'
+                                                        : 'border-border bg-surface text-gray-300 group-hover:border-primary/50'
+                                                }`}>
+                                                    {isSelected ? '✓' : ''}
+                                                </span>
+                                                <span className="font-bold text-sm">{option.option_text}</span>
+                                            </button>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         ) : (
@@ -188,7 +215,7 @@ export default function QuizPlayerInline({ quiz, onCancel }) {
                     <div className="px-10 py-8 bg-muted/30 border-t border-border flex justify-end">
                         <button
                             onClick={nextQuestion}
-                            disabled={!selectedOptions[currentQuestion?.id]}
+                            disabled={!selectedOptions[currentQuestion?.id] || (Array.isArray(selectedOptions[currentQuestion?.id]) && selectedOptions[currentQuestion?.id].length === 0)}
                             className="bg-primary text-white px-10 py-4 rounded-full font-extrabold text-sm shadow-xl shadow-primary/20 hover:bg-primary-hover transition-all disabled:opacity-50 disabled:translate-y-0 cursor-pointer"
                         >
                             {currentQuestionIdx < questions.length - 1 ? 'Next Question →' : 'Finish Quiz'}
