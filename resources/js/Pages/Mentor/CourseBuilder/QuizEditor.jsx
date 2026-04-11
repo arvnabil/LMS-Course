@@ -170,7 +170,7 @@ export default function QuizEditor({ auth, quiz }) {
                                 ) : (
                                     <div className="bg-muted/30 rounded-[32px] p-8 min-h-[150px] flex flex-col">
                                         {quiz.description ? (
-                                            <p className="text-gray-600 font-medium leading-relaxed whitespace-pre-wrap">{quiz.description}</p>
+                                            <div className="text-gray-600 font-medium leading-relaxed prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: quiz.description }} />
                                         ) : (
                                             <div className="flex-1 flex flex-col items-center justify-center text-center space-y-4 py-10 opacity-50">
                                                 <div className="text-4xl">📝</div>

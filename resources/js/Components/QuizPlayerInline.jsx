@@ -145,9 +145,7 @@ export default function QuizPlayerInline({ quiz, onCancel }) {
                             <div className="space-y-6">
                                 <h3 className="text-2xl font-extrabold text-foreground leading-tight tracking-tight">Instructions</h3>
                                 <div className="bg-primary/5 border border-primary/10 rounded-[32px] p-8">
-                                    <p className="text-foreground/80 font-medium leading-relaxed whitespace-pre-wrap">
-                                        {quiz.description || "No instructions provided. Please submit your work as requested."}
-                                    </p>
+                                    <div className="text-foreground/80 font-medium leading-relaxed prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: quiz.description || "No instructions provided. Please submit your work as requested." }} />
                                 </div>
                             </div>
 

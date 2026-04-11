@@ -111,8 +111,13 @@ export default function CourseDetail({ course = {}, isDashboard = false, isEnrol
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const [hasStarted, setHasStarted] = useState(false);
-    const playerRef = useRef(null);
     const progressInterval = useRef(null);
+
+    const stripHtml = (html) => {
+        if (!html) return '';
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        return doc.body.textContent || "";
+    };
 
     const getYouTubeId = (url) => {
         if (!url) return null;
@@ -371,7 +376,7 @@ export default function CourseDetail({ course = {}, isDashboard = false, isEnrol
                                 {course.title}
                             </h1>
                             <p className={`text-lg font-medium leading-relaxed max-w-xl ${course.cover_image ? 'text-white/80' : 'text-muted-foreground'}`}>
-                                {course.description?.substring(0, 160)}...
+                                {stripHtml(course.description).substring(0, 160)}...
                             </p>
                             <div className="flex items-center gap-8 pt-2">
                                 <div className="flex items-center gap-2.5">
@@ -412,9 +417,7 @@ export default function CourseDetail({ course = {}, isDashboard = false, isEnrol
                         {/* Description */}
                         <section className="space-y-6">
                             <h2 className="text-2xl font-extrabold text-foreground tracking-tight">ABOUT THIS COURSE</h2>
-                            <p className="text-muted-foreground font-medium leading-[1.8] text-[15px]">
-                                {course.description}
-                            </p>
+                            <div className="prose dark:prose-invert max-w-none text-muted-foreground font-medium leading-[1.8] text-[15px] space-y-4" dangerouslySetInnerHTML={{ __html: course.description }} />
                         </section>
 
                         {/* Curriculum */}
