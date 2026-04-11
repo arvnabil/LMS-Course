@@ -318,8 +318,21 @@ class CourseBuilderController extends Controller
     {
         if ($lesson->section->course->mentor_id != auth()->id()) abort(403);
 
+        $initialFolderId = 'root';
+        $selectedId = ($lesson->video_source === 'onedrive_library') ? $lesson->video_id : (($lesson->file_source === 'onedrive_library') ? $lesson->file_id : null);
+        
+        if ($selectedId && $selectedId !== 'PROCESSING') {
+            try {
+                $oneDrive = new OneDriveService();
+                $initialFolderId = $oneDrive->getParentFolderId($selectedId) ?? 'root';
+            } catch (\Exception $e) {
+                \Log::error("Failed to resolve initial folder for OneDrive Browser: " . $e->getMessage());
+            }
+        }
+
         return Inertia::render('Mentor/CourseBuilder/LessonEditor', [
             'lesson' => $lesson->load('section.course'),
+            'initial_folder_id' => $initialFolderId,
             'onedrive_permissions' => OneDrivePermission::where('user_id', auth()->id())->first() ?? [
                 'can_use_shared_link' => false,
                 'can_upload' => false,

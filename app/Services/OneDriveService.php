@@ -480,6 +480,15 @@ class OneDriveService
     }
 
     /**
+     * Get the parent folder ID of a specific item.
+     */
+    public function getParentFolderId(string $itemId): ?string
+    {
+        $item = $this->getDriveItem($itemId);
+        return $item['parentReference']['id'] ?? 'root';
+    }
+
+    /**
      * Resolve the readable path for a folder given its Item ID.
      */
     public function getItemPath(string $itemId): ?string

@@ -8,7 +8,7 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
 
-export default function LessonEditor({ auth, lesson, onedrive_permissions }) {
+export default function LessonEditor({ auth, lesson, onedrive_permissions, initial_folder_id }) {
     console.log("Lesson Data Loaded:", lesson);
     const initialSource = lesson.type === 'file' 
         ? ((lesson.file_source && lesson.file_source !== '') ? lesson.file_source : 'onedrive_shared_link')
@@ -47,12 +47,12 @@ export default function LessonEditor({ auth, lesson, onedrive_permissions }) {
 
     // OneDrive Library State
     const [files, setFiles] = useState([]);
-    const [currentFolderId, setCurrentFolderId] = useState('root');
+    const [currentFolderId, setCurrentFolderId] = useState(initial_folder_id || 'root');
     const [isLoadingFiles, setIsLoadingFiles] = useState(false);
-    const [navStack, setNavStack] = useState(['root']);
+    const [navStack, setNavStack] = useState(initial_folder_id && initial_folder_id !== 'root' ? ['root', initial_folder_id] : ['root']);
 
     // Shared Link State
-    const [sharedLink, setSharedLink] = useState(lesson.video_source === 'onedrive_shared_link' ? lesson.video_url : '');
+    const [sharedLink, setSharedLink] = useState((lesson.video_source === 'onedrive_shared_link' ? lesson.video_url : '') || (lesson.file_source === 'onedrive_shared_link' ? lesson.file_url : ''));
     const [isResolvingLink, setIsResolvingLink] = useState(false);
     const [toast, setToast] = useState(null);
 
@@ -221,7 +221,7 @@ export default function LessonEditor({ auth, lesson, onedrive_permissions }) {
     useEffect(() => {
         setData('video_source', activeSource);
         if (activeSource === 'onedrive_library' && files.length === 0) {
-            fetchFiles();
+            fetchFiles(currentFolderId);
         }
     }, [activeSource]);
 
