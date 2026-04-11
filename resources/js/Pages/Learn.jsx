@@ -76,28 +76,89 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
     const videoRef = useRef(null);
 
     const completedLessons = enrollment.lesson_progress?.map(lp => lp.lesson_id) || [];
-    const completedQuizzes = enrollment.quiz_attempts?.filter(a => a.is_passed).map(a => a.quiz_id) || [];
-    const completedSubmissions = enrollment.submissions?.filter(s => s.status === 'approved').map(s => s.quiz_id) || [];
     
-    const isAlreadyCompleted = currentLesson?.id && (
-        currentLesson.is_quiz 
-            ? (
-                currentLesson.type === 'submission'
-                    ? enrollment.submissions?.some(s => 
-                        s.quiz_id == currentLesson.id && 
-                        s.status === 'approved' && 
-                        (!currentLesson.passing_score || s.score >= currentLesson.passing_score)
-                    )
-                    : (completedQuizzes.some(qid => qid == currentLesson.id) || enrollment.submissions?.some(s => 
-                        s.quiz_id == currentLesson.id && 
-                        s.status === 'approved' && 
-                        (!currentLesson.passing_score || s.score >= currentLesson.passing_score)
-                    ))
-            )
-            : (enrollment.lesson_progress || enrollment.lessonProgress || []).some(lp => 
-                lp.lesson_id == currentLesson.id && (lp.is_completed || lp.completed_at)
-            )
-    );
+    // Helper to check if a specific item (lesson/quiz/submission) is passed based on LATEST data
+    const checkItemProgress = (item) => {
+        if (!item) return false;
+        const isLesson = !item.is_quiz && item.itemType === 'lesson';
+        
+        if (isLesson) {
+            const progressArray = enrollment.lesson_progress || enrollment.lessonProgress || [];
+            return progressArray.some(lp => lp.lesson_id == item.id && (lp.is_completed || lp.completed_at));
+        }
+        
+        // Quizzes & Submissions: Must pass the LATEST attempt
+        const threshold = Number(item.passing_score || 85);
+        if (item.type === 'submission') {
+            const subs = enrollment.submissions?.filter(s => String(s.quiz_id) == String(item.id)) || [];
+            const latest = subs.sort((a, b) => b.id - a.id)[0];
+            return latest?.status === 'approved' && Number(latest.score || 0) >= threshold;
+        } else {
+            const attempts = (enrollment.quiz_attempts || enrollment.quizAttempts || [])?.filter(a => String(a.quiz_id) == String(item.id)) || [];
+            const latest = attempts.sort((a, b) => b.id - a.id)[0];
+            return latest && (latest.is_passed || Number(latest.score) >= threshold) && Number(latest.score) >= threshold;
+        }
+    };
+    
+    // Pre-calculate items and states first so we have a single source of truth
+    const allCourseItems = course.sections?.flatMap(s => {
+        const items = [
+            ...(s.lessons || []).map(l => ({ ...l, itemType: 'lesson' })),
+            ...(s.quizzes || []).map(q => ({ ...q, itemType: 'quiz' }))
+        ].sort((a, b) => a.order - b.order);
+        return items;
+    }) || [];
+
+    const currentItemType = currentLesson?.is_quiz ? 'quiz' : 'lesson';
+    const currentIndex = allCourseItems.findIndex(l => l.id === currentLesson?.id && l.itemType === currentItemType);
+    const nextLesson = allCourseItems[currentIndex + 1];
+    const prevLesson = allCourseItems[currentIndex - 1];
+
+    const itemStates = {};
+    let previousIncomplete = false;
+
+    allCourseItems.forEach((item, index) => {
+        const itemKey = `${item.itemType}-${item.id}`;
+        const isCompleted = checkItemProgress(item);
+        const isCurrentlyActive = item.id == currentLesson?.id && (item.is_quiz ? 'quiz' : 'lesson') === currentItemType;
+
+        itemStates[itemKey] = {
+            isCompleted,
+            isLocked: index > 0 && previousIncomplete && !isCurrentlyActive
+        };
+
+        if (!isCompleted) {
+            previousIncomplete = true;
+        }
+    });
+
+    const completedCount = allCourseItems.filter(item => itemStates[`${item.itemType}-${item.id}`].isCompleted).length;
+    const progressPercent = allCourseItems.length > 0 ? Math.round((completedCount / allCourseItems.length) * 100) : 0;
+
+    const currentItemKey = `${currentItemType}-${currentLesson?.id}`;
+    const isAlreadyCompleted = itemStates[currentItemKey]?.isCompleted || false;
+
+    // Foolproof check for quiz/submission failure
+    const isAnyQuizItem = !!(currentLesson?.is_quiz || currentLesson?.type === 'quiz' || currentLesson?.type === 'submission');
+    const forceBlockProgress = isAnyQuizItem && (() => {
+        const threshold = Number(currentLesson?.passing_score || 85);
+        if (currentLesson?.type === 'submission') {
+            const subs = enrollment.submissions?.filter(s => String(s.quiz_id) == String(currentLesson.id)) || [];
+            const latest = subs.sort((a, b) => Number(b.id) - Number(a.id))[0];
+            return latest && (latest.status !== 'approved' || Number(latest.score || 0) < threshold);
+        } else {
+            const attempts = (enrollment.quiz_attempts || enrollment.quizAttempts || [])
+                ?.filter(a => String(a.quiz_id) == String(currentLesson?.id))
+                ?.sort((a, b) => Number(b.id) - Number(a.id));
+            const latest = attempts[0];
+            return latest && (Number(latest.score || 0) < threshold);
+        }
+    })();
+
+    // Export for debugging
+    if (typeof window !== 'undefined') {
+        window.quizDebug = { currentItemKey, isAlreadyCompleted, forceBlockProgress, itemState: itemStates[currentItemKey], currentLessonId: currentLesson?.id, enrollment };
+    }
 
     useEffect(() => {
         setIsQuizPlaying(false);
@@ -122,62 +183,6 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
             }
         }
     }, [currentLesson?.id, isAlreadyCompleted]);
-
-    // Navigation logic
-    const allCourseItems = course.sections?.flatMap(s => {
-        const items = [
-            ...(s.lessons || []).map(l => ({ ...l, itemType: 'lesson' })),
-            ...(s.quizzes || []).map(q => ({ ...q, itemType: 'quiz' }))
-        ].sort((a, b) => a.order - b.order);
-        return items;
-    }) || [];
-    const currentItemType = currentLesson?.is_quiz ? 'quiz' : 'lesson';
-    const currentIndex = allCourseItems.findIndex(l => l.id === currentLesson?.id && l.itemType === currentItemType);
-    const nextLesson = allCourseItems[currentIndex + 1];
-    const prevLesson = allCourseItems[currentIndex - 1];
-
-    // Pre-calculate completion and lock status for all items
-    const itemStates = {};
-    let previousIncomplete = false;
-
-    allCourseItems.forEach((item, index) => {
-        const itemKey = `${item.itemType}-${item.id}`;
-        const isLesson = item.itemType === 'lesson';
-        
-        // Use either snake_case or camelCase to be safe
-        const progressArray = enrollment.lesson_progress || enrollment.lessonProgress || [];
-        const isCompleted = isLesson 
-            ? progressArray.some(lp => lp.lesson_id == item.id && (lp.is_completed || lp.completed_at))
-            : (
-                (enrollment.quiz_attempts || enrollment.quizAttempts || [])?.some(a => {
-                    const score = Number(a.score || 0);
-                    const threshold = Number(item.passing_score || 85);
-                    return a.quiz_id == item.id && (a.is_passed || score >= threshold) && score >= threshold;
-                }) || 
-                (enrollment.submissions || [])?.some(s => {
-                    const score = Number(s.score || 0);
-                    const threshold = Number(item.passing_score || 85);
-                    return s.quiz_id == item.id && s.status === 'approved' && score >= threshold;
-                })
-            );
-        
-        const isCurrentlyActive = item.id == currentLesson?.id && item.itemType === currentItemType;
-
-        itemStates[itemKey] = {
-            isCompleted,
-            // item is locked if it's not the first one, previous wasn't completed, and it's NOT the current lesson
-            isLocked: index > 0 && 
-                      previousIncomplete && 
-                      !isCurrentlyActive
-        };
-
-        if (!isCompleted) {
-            previousIncomplete = true;
-        }
-    });
-
-    const completedCount = allCourseItems.filter(item => itemStates[`${item.itemType}-${item.id}`].isCompleted).length;
-    const progressPercent = allCourseItems.length > 0 ? Math.round((completedCount / allCourseItems.length) * 100) : 0;
 
     console.log('Enrollment Data Debug:', {
         lessonProgress: enrollment.lesson_progress || enrollment.lessonProgress,
@@ -1212,39 +1217,14 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                         </div>
                                     </div>
 
-                                    {/* Navigation Footer for Lessons */}
-                                    <div className="pt-8 border-t border-gray-100 flex items-center justify-between gap-3 mt-auto">
-                                        <button 
-                                            onClick={goToPrevious}
-                                            disabled={!prevLesson}
-                                            className="grow sm:grow-0 px-4 sm:px-6 py-3 rounded-2xl border border-gray-200 bg-gray-100 text-gray-400 font-bold text-[10px] sm:text-xs uppercase tracking-widest hover:border-gray-200 hover:text-foreground/70 transition-all disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer"
-                                        >
-                                            ← Prev
-                                        </button>
-                                        <button 
-                                            onClick={markAsComplete}
-                                            disabled={currentLesson?.type === 'video' && !isAlreadyCompleted && !videoWatched}
-                                            className={`grow sm:grow-0 px-6 sm:px-8 py-3 rounded-2xl font-bold text-[10px] sm:text-xs uppercase tracking-widest transition-all cursor-pointer ${
-                                                currentLesson?.type === 'video' && !isAlreadyCompleted && !videoWatched
-                                                    ? 'bg-gray-100 text-gray-300 border border-gray-100 cursor-not-allowed'
-                                                    : 'bg-primary text-white shadow-xl shadow-primary/20 hover:bg-primary-hover hover:scale-[1.02] active:scale-95'
-                                            }`}
-                                        >
-                                            {isAlreadyCompleted ? (nextLesson ? 'Continue Next →' : 'Finish Course 🏆') : (
-                                                currentLesson?.type === 'video' && !videoWatched 
-                                                    ? `Watch to Unlock (${watchProgress}%)` 
-                                                    : (nextLesson ? 'Complete & Next →' : 'Complete & Finish 🏆')
-                                            )}
-                                        </button>
-                                    </div>
-                                    {toast && <Toast {...toast} onClose={() => setToast(null)} />}
+
                                 </div>
                             </div>
                         )}
 
-                        {/* Navigation Footer for Quizzes (Only when NOT playing) */}
-                        {currentLesson?.is_quiz && !isQuizPlaying && (
-                            <div className="bg-white dark:bg-zinc-950 px-6 sm:px-10 lg:px-14 pb-8 w-full mt-auto">
+                        {/* Unified Navigation Footer */}
+                        {!isQuizPlaying && (
+                            <div className="bg-white dark:bg-zinc-950 px-6 sm:px-10 lg:px-14 pb-8 w-full mt-auto border-t border-gray-50 pt-8 dark:border-white/5">
                                 <div className="max-w-4xl mx-auto w-full">
                                     <div className="flex items-center justify-between gap-4">
                                         <button 
@@ -1256,20 +1236,31 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                         </button>
                                         <button 
                                             onClick={markAsComplete}
-                                            disabled={!isAlreadyCompleted}
+                                            disabled={
+                                                (currentLesson?.type === 'video' && !isAlreadyCompleted && !videoWatched) || 
+                                                forceBlockProgress || 
+                                                (!currentLesson?.is_quiz && !isAlreadyCompleted && currentLesson?.type !== 'video')
+                                            }
                                             className={`px-8 py-3 rounded-2xl font-bold text-xs uppercase tracking-widest transition-all cursor-pointer ${
-                                                !isAlreadyCompleted 
+                                                ((currentLesson?.type === 'video' && !isAlreadyCompleted && !videoWatched) || forceBlockProgress || (!currentLesson?.is_quiz && !isAlreadyCompleted && currentLesson?.type !== 'video'))
                                                     ? 'bg-gray-100 text-gray-300 border border-gray-100 cursor-not-allowed' 
                                                     : 'bg-primary text-white shadow-xl shadow-primary/20 hover:bg-primary-hover hover:scale-[1.02] active:scale-95'
                                             }`}
                                         >
-                                            {isAlreadyCompleted ? (nextLesson ? 'Continue Next →' : 'Finish Course 🏆') : 'Finish Quiz First'}
+                                            {forceBlockProgress ? 'Finish Quiz First' : (
+                                                isAlreadyCompleted ? (nextLesson ? 'Continue Next →' : 'Finish Course 🏆') : (
+                                                    currentLesson?.type === 'video' && !videoWatched 
+                                                        ? `Watch to Unlock (${watchProgress}%)` 
+                                                        : (nextLesson ? 'Complete & Next →' : 'Complete & Finish 🏆')
+                                                )
+                                            )}
                                         </button>
                                     </div>
                                     {toast && <Toast {...toast} onClose={() => setToast(null)} />}
                                 </div>
                             </div>
                         )}
+                        
                         
                         {/* Always render toast container in case it wasn't rendered above */}
                         {isQuizPlaying && toast && <Toast {...toast} onClose={() => setToast(null)} />}
