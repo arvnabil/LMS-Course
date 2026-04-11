@@ -319,7 +319,14 @@ class CourseBuilderController extends Controller
         if ($lesson->section->course->mentor_id != auth()->id()) abort(403);
 
         $initialFolderId = 'root';
-        $selectedId = ($lesson->video_source === 'onedrive_library') ? $lesson->video_id : (($lesson->file_source === 'onedrive_library') ? $lesson->file_id : null);
+        
+        // Pick any ID that belongs to OneDrive, regardless of source type (upload or library)
+        $selectedId = null;
+        if (str_starts_with($lesson->video_source, 'onedrive_')) {
+            $selectedId = $lesson->video_id;
+        } elseif (str_starts_with($lesson->file_source, 'onedrive_')) {
+            $selectedId = $lesson->file_id;
+        }
         
         if ($selectedId && $selectedId !== 'PROCESSING') {
             try {
