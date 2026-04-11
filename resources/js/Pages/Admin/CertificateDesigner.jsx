@@ -221,7 +221,7 @@ function DraggableQrElement({ data, isSelected, onSelect, onChange, containerRef
 }
 
 
-export default function CertificateDesigner({ template, course }) {
+export default function CertificateDesigner({ template, course, other_templates = [] }) {
     const defaultLayout = {
         'student_name': {x: 50, y: 50, fontSize: 36, color: '#000000', align: 'center', fontFamily: 'sans-serif', fontWeight: 'bold'},
         'course_title': {x: 50, y: 60, fontSize: 24, color: '#4b5563', align: 'center', fontFamily: 'sans-serif', fontWeight: 'normal'},
@@ -248,10 +248,13 @@ export default function CertificateDesigner({ template, course }) {
     const [previewImage, setPreviewImage] = useState(template.background_image);
     const [signaturePreview, setSignaturePreview] = useState(template.signature_image);
 
+    const [importSourceId, setImportSourceId] = useState(null);
+
     const { data, setData, post, processing, errors } = useForm({
         background_image: null,
         signature_image: null,
         layout_data: JSON.stringify({ ..._l, signature: initialSignatureLayout, qr_code: initialQrLayout }),
+        import_source_id: null,
     });
 
     // Sync layout changes to form string
@@ -260,11 +263,14 @@ export default function CertificateDesigner({ template, course }) {
         setData('layout_data', JSON.stringify(merged));
     }, [layout, signatureLayout, qrLayout]);
 
+    // Handle Image changes
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         if (file) {
             setData('background_image', file);
             setPreviewImage(URL.createObjectURL(file));
+            setImportSourceId(null); // Clear import source if manual change
+            setData('import_source_id', null);
         }
     };
 
@@ -273,6 +279,8 @@ export default function CertificateDesigner({ template, course }) {
         if (file) {
             setData('signature_image', file);
             setSignaturePreview(URL.createObjectURL(file));
+            setImportSourceId(null);
+            setData('import_source_id', null);
         }
     };
 
@@ -280,6 +288,8 @@ export default function CertificateDesigner({ template, course }) {
         setData('signature_image', null);
         setSignaturePreview(null);
         if (selectedId === 'signature') setSelectedId(null);
+        setImportSourceId(null);
+        setData('import_source_id', null);
     };
 
     const updateElement = (id, newProps) => {
@@ -293,6 +303,37 @@ export default function CertificateDesigner({ template, course }) {
                 [id]: newProps
             }));
         }
+    };
+
+    // --- Import Logic ---
+    const handleImportDesign = (sourceCourseId) => {
+        if (!sourceCourseId) return;
+        const source = other_templates.find(t => t.id === parseInt(sourceCourseId));
+        if (!source || !source.template) return;
+
+        const sourceTemplate = source.template;
+        const sourceLayout = sourceTemplate.layout_data || defaultLayout;
+
+        // Apply Layouts
+        setLayout({ ...defaultLayout, ...sourceLayout });
+        setSignatureLayout(sourceLayout.signature || defaultSignatureLayout);
+        setQrLayout(sourceLayout.qr_code || defaultQrLayout);
+
+        // Apply Previews
+        setPreviewImage(sourceTemplate.background_image);
+        setSignaturePreview(sourceTemplate.signature_image);
+
+        // Prep form for submission
+        setImportSourceId(sourceCourseId);
+        setData(d => ({
+            ...d,
+            import_source_id: sourceCourseId,
+            background_image: null, // We are importing, not uploading
+            signature_image: null,
+        }));
+        
+        setSelectedId(null);
+        // Toast feedback could be added here
     };
 
     const handleSave = (e) => {
@@ -420,6 +461,33 @@ export default function CertificateDesigner({ template, course }) {
                     </div>
                     
                     <div className="flex-1 overflow-y-auto p-5 space-y-6">
+                        {/* Import from another course */}
+                        <div className="space-y-3 p-3 bg-muted/50 border border-dashed border-border rounded-xl">
+                            <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 11V7a5 5 0 0 1 10 0v4"></path><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M12 18v-3"></path></svg>
+                                Import Design
+                            </h3>
+                            <div className="space-y-2">
+                                {other_templates.length > 0 ? (
+                                    <>
+                                        <select 
+                                            className="w-full px-3 py-1.5 text-xs bg-surface border border-border rounded-lg focus:outline-none focus:border-primary shadow-sm"
+                                            onChange={(e) => handleImportDesign(e.target.value)}
+                                            value={importSourceId || ""}
+                                        >
+                                            <option value="">Select a course to copy...</option>
+                                            {other_templates.map(item => (
+                                                <option key={item.id} value={item.id}>{item.title}</option>
+                                            ))}
+                                        </select>
+                                        <p className="text-[9px] text-gray-400 leading-tight">Pick a course to copy its background, signature, and layout.</p>
+                                    </>
+                                ) : (
+                                    <p className="text-[10px] text-gray-500 italic py-1">No other course templates found to import from.</p>
+                                )}
+                            </div>
+                        </div>
+
                         {/* Background Upload */}
                         <div className="space-y-3">
                             <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Background Layer</h3>

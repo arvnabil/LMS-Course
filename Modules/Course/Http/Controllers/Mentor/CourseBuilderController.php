@@ -678,9 +678,23 @@ class CourseBuilderController extends Controller
         if ($course->mentor_id != auth()->id()) abort(403);
 
         $template = $course->certificateTemplate;
+        
+        // Fetch other courses owned by this mentor that have a certificate template
+        $otherTemplates = Course::where('mentor_id', auth()->id())
+            ->where('id', '!=', $course->id)
+            ->whereHas('certificateTemplate')
+            ->with('certificateTemplate')
+            ->get()
+            ->map(function ($c) {
+                return [
+                    'id' => $c->id,
+                    'title' => $c->title,
+                    'template' => $c->certificateTemplate
+                ];
+            });
 
         if (!$template) {
-            // Default layout parameters for a new template
+            // ... (rest of the default layout logic)
             $defaultLayout = [
                 'student_name' => ['x' => 50, 'y' => 50, 'fontSize' => 36, 'color' => '#000000', 'align' => 'center', 'fontFamily' => 'sans-serif', 'fontWeight' => 'bold'],
                 'course_title' => ['x' => 50, 'y' => 60, 'fontSize' => 24, 'color' => '#4b5563', 'align' => 'center', 'fontFamily' => 'sans-serif', 'fontWeight' => 'normal'],
@@ -700,12 +714,10 @@ class CourseBuilderController extends Controller
         return Inertia::render('Admin/CertificateDesigner', [
             'template' => $template,
             'course' => $course,
+            'other_templates' => $otherTemplates,
         ]);
     }
 
-    /**
-     * Update course certificate template.
-     */
     public function updateCertificateTemplate(Request $request, Course $course)
     {
         if ($course->mentor_id != auth()->id()) abort(403);
@@ -714,11 +726,28 @@ class CourseBuilderController extends Controller
             'background_image' => 'nullable|image|max:10240',
             'signature_image' => 'nullable|image|max:5120',
             'layout_data' => 'required|string',
+            'import_source_id' => 'nullable|exists:courses,id',
         ]);
 
         $template = $course->certificateTemplate;
         $imagePath = $template ? $template->background_image : null;
         $signaturePath = $template ? $template->signature_image : null;
+
+        // Handle Import from another course
+        if ($request->import_source_id && !$request->hasFile('background_image') && !$request->hasFile('signature_image')) {
+            $sourceCourse = Course::find($request->import_source_id);
+            if ($sourceCourse && $sourceCourse->mentor_id == auth()->id() && $sourceCourse->certificateTemplate) {
+                $sourceTemplate = $sourceCourse->certificateTemplate;
+                
+                // If we are currently empty or user hasn't uploaded a NEW replacement, we copy from source
+                if (!$request->hasFile('background_image')) {
+                    $imagePath = $this->ensureFileCopy($sourceTemplate->background_image, 'certificates/templates');
+                }
+                if (!$request->hasFile('signature_image')) {
+                    $signaturePath = $this->ensureFileCopy($sourceTemplate->signature_image, 'certificates/signatures');
+                }
+            }
+        }
 
         if ($request->hasFile('background_image')) {
             FileStorageService::delete($template ? $template->background_image : null);
@@ -751,6 +780,31 @@ class CourseBuilderController extends Controller
         }
 
         return redirect()->route('mentor.courses.edit', $course->id)->with('success', 'Certificate template updated.');
+    }
+
+    /**
+     * Safely copy a file in storage OR return the path if it's already a URL.
+     */
+    private function ensureFileCopy(?string $path, string $targetFolder)
+    {
+        if (!$path) return null;
+
+        // OneDrive items are URLs, we just reuse the sharing URL
+        if (str_starts_with($path, 'https://')) {
+            return $path;
+        }
+
+        // Local storage copy
+        $localPath = str_replace('/storage/', '', $path);
+        if (\Illuminate\Support\Facades\Storage::disk('public')->exists($localPath)) {
+            $extension = pathinfo($localPath, PATHINFO_EXTENSION);
+            $newPath = $targetFolder . '/' . \Illuminate\Support\Str::random(40) . '.' . $extension;
+            
+            \Illuminate\Support\Facades\Storage::disk('public')->copy($localPath, $newPath);
+            return '/storage/' . $newPath;
+        }
+
+        return $path;
     }
 
     /**
