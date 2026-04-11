@@ -138,22 +138,9 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
     const currentItemKey = `${currentItemType}-${currentLesson?.id}`;
     const isAlreadyCompleted = itemStates[currentItemKey]?.isCompleted || false;
 
-    // Foolproof check for quiz/submission failure
+    // Foolproof check for quiz/submission failure (or not yet passed)
     const isAnyQuizItem = !!(currentLesson?.is_quiz || currentLesson?.type === 'quiz' || currentLesson?.type === 'submission');
-    const forceBlockProgress = isAnyQuizItem && (() => {
-        const threshold = Number(currentLesson?.passing_score || 85);
-        if (currentLesson?.type === 'submission') {
-            const subs = enrollment.submissions?.filter(s => String(s.quiz_id) == String(currentLesson.id)) || [];
-            const latest = subs.sort((a, b) => Number(b.id) - Number(a.id))[0];
-            return latest && (latest.status !== 'approved' || Number(latest.score || 0) < threshold);
-        } else {
-            const attempts = (enrollment.quiz_attempts || enrollment.quizAttempts || [])
-                ?.filter(a => String(a.quiz_id) == String(currentLesson?.id))
-                ?.sort((a, b) => Number(b.id) - Number(a.id));
-            const latest = attempts[0];
-            return latest && (Number(latest.score || 0) < threshold);
-        }
-    })();
+    const forceBlockProgress = isAnyQuizItem && !isAlreadyCompleted;
 
     // Export for debugging
     if (typeof window !== 'undefined') {
