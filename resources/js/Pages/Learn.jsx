@@ -769,7 +769,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                     </aside>
 
                     {/* Main Content Area */}
-                    <main className="flex-1 overflow-y-auto flex flex-col relative bg-white dark:bg-zinc-950 scroll-smooth">
+                    <main className="flex-1 overflow-y-auto relative bg-white dark:bg-zinc-950 scroll-smooth">
                         {/* Quiz/Assignment Content Area */}
                         {currentLesson?.is_quiz ? (
                             isQuizPlaying ? (
