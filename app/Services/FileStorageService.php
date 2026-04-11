@@ -27,8 +27,11 @@ class FileStorageService
                 if ($oneDrive->getAccessToken()) {
                     $filename = Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '-' . time() . '.' . $file->getClientOriginalExtension();
                     
-                    // Normalize folder path for OneDrive (remove trailing/leading slashes)
+                    // Normalize folder path for OneDrive (ensure it starts with storage/)
                     $normalizedFolder = trim($folderPath, '/');
+                    if (!str_starts_with($normalizedFolder, 'storage')) {
+                        $normalizedFolder = 'storage/' . $normalizedFolder;
+                    }
                     
                     // OneDrive upload
                     $result = $oneDrive->uploadFile($file->get(), $filename, $normalizedFolder);

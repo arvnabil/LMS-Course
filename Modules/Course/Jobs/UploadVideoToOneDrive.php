@@ -66,7 +66,12 @@ class UploadVideoToOneDrive implements ShouldQueue
 
             $absolutePath = Storage::disk('local')->path($this->tempFilePath);
 
-            $result = $oneDrive->uploadLargeFile($absolutePath, $this->filename, $this->folderName);
+            $onedriveFolder = $this->folderName;
+            if (!str_starts_with(trim($onedriveFolder, '/'), 'storage')) {
+                $onedriveFolder = 'storage/' . trim($onedriveFolder, '/');
+            }
+
+            $result = $oneDrive->uploadLargeFile($absolutePath, $this->filename, $onedriveFolder);
 
             if ($result) {
                 $lesson->update([
