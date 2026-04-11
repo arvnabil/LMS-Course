@@ -1190,7 +1190,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
 
                         {/* Content Area Below Video */}
                         {!currentLesson?.is_quiz && (
-                            <div className="flex-1 bg-white dark:bg-zinc-950 p-4 sm:p-10 lg:p-14 flex flex-col">
+                            <div className="flex-1 bg-white dark:bg-zinc-950 p-4 sm:p-10 lg:p-14 pb-24 flex flex-col">
                                 <div className="max-w-4xl mx-auto w-full flex-1 flex flex-col">
                                     {/* Lesson Title & Content */}
                                     <div className="space-y-4 flex-1 mb-8">
@@ -1211,7 +1211,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
 
                         {/* Unified Navigation Footer */}
                         {!isQuizPlaying && (
-                            <div className="bg-white dark:bg-zinc-950 px-6 sm:px-10 lg:px-14 pb-8 w-full mt-auto border-t border-gray-50 pt-8 dark:border-white/5">
+                            <div className="sticky bottom-0 left-0 right-0 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md px-6 sm:px-10 lg:px-14 py-6 w-full z-30 border-t border-gray-100 dark:border-white/5 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] transition-all">
                                 <div className="max-w-4xl mx-auto w-full">
                                     <div className="flex items-center justify-between gap-4">
                                         <button 
