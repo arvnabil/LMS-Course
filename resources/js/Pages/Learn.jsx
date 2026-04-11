@@ -872,7 +872,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                             )
                         ) : currentLesson?.type === 'video' ? (
                             /* Video Player Area */
-                            <div ref={videoContainerRef} className="w-full aspect-video bg-black flex items-center justify-center relative group overflow-hidden">
+                            <div ref={videoContainerRef} className="w-full aspect-[3/2] bg-black flex items-center justify-center relative group overflow-hidden">
                                     {(currentLesson?.video_source?.includes('onedrive') || 
                                       currentLesson?.video_url?.includes('sharepoint.com') || 
                                       currentLesson?.video_url?.includes('onedrive.live.com') ||
@@ -1142,7 +1142,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                     </div>
 
                                     {/* Viewer Area */}
-                                    <div className="w-full aspect-video overflow-hidden relative flex items-center justify-center bg-gray-900 shadow-inner">
+                                    <div className="w-full aspect-[3/2] overflow-hidden relative flex items-center justify-center bg-gray-900 shadow-inner">
                                         {isPdf ? (
                                             <iframe 
                                                 src={`${streamUrl}#toolbar=0`}
