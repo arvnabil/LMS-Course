@@ -371,12 +371,8 @@ class CourseBuilderController extends Controller
         }
 
         if ($request->hasFile('thumbnail')) {
-            if ($lesson->thumbnail) {
-                $oldPath = str_replace('/storage/', '', $lesson->thumbnail);
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($oldPath);
-            }
-            $path = $request->file('thumbnail')->store('lessons/thumbnails', 'public');
-            $updateData['thumbnail'] = '/storage/' . $path;
+            FileStorageService::delete($lesson->thumbnail);
+            $updateData['thumbnail'] = FileStorageService::store($request->file('thumbnail'), 'lessons/thumbnails');
         }
 
         // Explicitly handle video_source to prevent it being lost if empty/falsey
