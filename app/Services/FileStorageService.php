@@ -59,9 +59,17 @@ class FileStorageService
     {
         if (!$path) return;
 
-        if (str_starts_with($path, 'https://')) {
-            // Delete from OneDrive requires Item ID. 
-            // In a more advanced implementation, we would store the Item ID in the DB.
+        if (str_starts_with($path, 'https://') && (
+            str_contains($path, 'sharepoint.com') || 
+            str_contains($path, '1drv.ms') || 
+            str_contains($path, 'microsoft.com')
+        )) {
+            try {
+                $oneDrive = new OneDriveService();
+                $oneDrive->deleteByUrl($path);
+            } catch (\Exception $e) {
+                \Log::error("OneDrive Deletion Failed in FileStorageService: " . $e->getMessage());
+            }
             return;
         }
 

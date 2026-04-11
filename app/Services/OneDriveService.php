@@ -431,6 +431,41 @@ class OneDriveService
     }
 
     /**
+     * Delete a DriveItem (file or folder).
+     */
+    public function deleteItem(string $itemId): bool
+    {
+        $accessToken = $this->getAccessToken();
+        if (!$accessToken) return false;
+
+        $url = "https://graph.microsoft.com/v1.0/me/drive/items/{$itemId}";
+        
+        $response = Http::withToken($accessToken)->delete($url);
+
+        if ($response->successful() || $response->status() === 204) {
+            return true;
+        }
+
+        Log::error('OneDrive Deletion Failed', ['id' => $itemId, 'status' => $response->status(), 'response' => $response->json()]);
+        return false;
+    }
+
+    /**
+     * Delete a file from OneDrive given its sharing or download URL.
+     */
+    public function deleteByUrl(string $url): bool
+    {
+        $item = $this->resolveSharingLink($url);
+        
+        if ($item && isset($item['id'])) {
+            return $this->deleteItem($item['id']);
+        }
+
+        Log::warning('OneDrive DeleteByUrl failed: Could not resolve URL to Item ID', ['url' => $url]);
+        return false;
+    }
+
+    /**
      * Get metadata for a specific DriveItem.
      */
     public function getDriveItem(string $itemId): ?array
