@@ -872,7 +872,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                             )
                         ) : currentLesson?.type === 'video' ? (
                             /* Video Player Area */
-                            <div ref={videoContainerRef} className="w-full aspect-[3/2] bg-black flex items-center justify-center relative group overflow-hidden">
+                            <div ref={videoContainerRef} className="w-full shrink-0 aspect-[3/2] bg-black flex items-center justify-center relative group overflow-hidden">
                                     {(currentLesson?.video_source?.includes('onedrive') || 
                                       currentLesson?.video_url?.includes('sharepoint.com') || 
                                       currentLesson?.video_url?.includes('onedrive.live.com') ||
@@ -1142,7 +1142,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                     </div>
 
                                     {/* Viewer Area */}
-                                    <div className="w-full aspect-[3/2] overflow-hidden relative flex items-center justify-center bg-gray-900 shadow-inner">
+                                    <div className="w-full shrink-0 aspect-[3/2] overflow-hidden relative flex items-center justify-center bg-gray-900 shadow-inner">
                                         {isPdf ? (
                                             <iframe 
                                                 src={`${streamUrl}#toolbar=0`}
@@ -1190,8 +1190,8 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
 
                         {/* Content Area Below Video */}
                         {!currentLesson?.is_quiz && (
-                            <div className="flex-1 bg-white dark:bg-zinc-950 p-4 sm:p-10 lg:p-14 pb-24 flex flex-col">
-                                <div className="max-w-4xl mx-auto w-full flex-1 flex flex-col">
+                            <div className="bg-white dark:bg-zinc-950 p-4 sm:p-10 lg:p-14 pb-24">
+                                <div className="max-w-4xl mx-auto w-full">
                                     {/* Lesson Title & Content */}
                                     <div className="space-y-4 flex-1 mb-8">
                                         <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-foreground tracking-tight">{currentLesson?.title || 'Welcome to the Course'}</h1>
