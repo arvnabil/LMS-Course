@@ -840,12 +840,12 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                                                     }`}>
                                                                         {submission.status === 'approved' ? '✅ Approved' : submission.status === 'rejected' ? '❌ Rejected' : '🕒 Pending Review'}
                                                                     </div>
-                                                                    {submission.status === 'approved' && (
+                                                                    {(submission.status === 'approved' || submission.status === 'rejected') && (
                                                                         <div className="flex items-center gap-3">
                                                                             <span className={`text-3xl font-black ${isPassed ? 'text-emerald-500' : 'text-red-500'}`}>
                                                                                 {Math.round(Number(submission.score || 0))}%
                                                                             </span>
-                                                                            <span className={`px-4 py-1 rounded-full text-[8px] font-bold uppercase tracking-widest ${isPassed ? 'bg-emerald-500/20 text-emerald-500' : 'bg-red-500/20 text-red-500'}`}>
+                                                                            <span className={`px-4 py-1 rounded-full text-[8px] font-bold uppercase tracking-widest ${isPassed ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-red-500/10 text-red-500 border border-red-500/20'}`}>
                                                                                 {isPassed ? 'PASSED' : 'FAILED'}
                                                                             </span>
                                                                         </div>
