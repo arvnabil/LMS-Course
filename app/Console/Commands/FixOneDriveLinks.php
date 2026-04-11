@@ -6,6 +6,7 @@ use Illuminate\Console\Command;
 use App\Models\User;
 use Modules\Course\Models\Course;
 use Modules\Course\Models\Category;
+use Modules\Course\Models\Lesson;
 use App\Services\OneDriveService;
 use Illuminate\Support\Facades\Log;
 
@@ -71,6 +72,17 @@ class FixOneDriveLinks extends Command
             ->get()
             ->each(function ($cat) use ($oneDrive) {
                 $this->processItem($cat, 'icon', $oneDrive);
+            });
+
+        // 4. Fix Lesson Thumbnails
+        $this->info('Processing Lesson Thumbnails...');
+        Lesson::whereNotNull('thumbnail')
+            ->where('thumbnail', 'like', 'https://%')
+            ->where('thumbnail', 'not like', '%/storage/onedrive/%')
+            ->chunk(100, function ($lessons) use ($oneDrive) {
+                foreach ($lessons as $lesson) {
+                    $this->processItem($lesson, 'thumbnail', $oneDrive);
+                }
             });
 
         $this->info('Migration completed.');
