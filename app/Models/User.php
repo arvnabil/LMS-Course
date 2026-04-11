@@ -106,7 +106,17 @@ class User extends Authenticatable
             return null;
         }
 
-        return \Illuminate\Support\Facades\Storage::disk('public')->url($this->avatar);
+        // 1. If it's already a full URL (e.g. OneDrive shared link), return as is
+        if (str_starts_with($this->avatar, 'http')) {
+            return $this->avatar;
+        }
+
+        // 2. Normalize local path: remove leading slash and /storage/ prefix if present
+        // to avoid double prefixing when calling Storage::url()
+        $cleanPath = ltrim($this->avatar, '/');
+        $cleanPath = preg_replace('#^storage/#', '', $cleanPath);
+
+        return \Illuminate\Support\Facades\Storage::disk('public')->url($cleanPath);
     }
 
     /**
