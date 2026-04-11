@@ -114,6 +114,11 @@ class OneDriveService
         $accessToken = $this->getAccessToken();
         if (!$accessToken) return null;
 
+        // Ensure folders exist
+        if ($folder) {
+            $this->getOrCreatePath($folder);
+        }
+
         $path = $this->encodePath($this->basePath . ($folder ? '/' . $folder : '') . '/' . $filename);
         $url = "https://graph.microsoft.com/v1.0/me/drive/root:/{$path}:/content";
 
@@ -128,8 +133,24 @@ class OneDriveService
             return $response->json();
         }
 
-        Log::error('OneDrive Upload Failed', ['response' => $response->json(), 'path' => $path]);
+        Log::error('OneDrive Upload Failed', ['response' => $response.json(), 'path' => $path]);
         return null;
+    }
+
+    /**
+     * Ensure a deep path exists in OneDrive (e.g., "Courses/thumbnails/2026")
+     */
+    public function getOrCreatePath(string $path)
+    {
+        $segments = explode('/', trim($path, '/'));
+        $currentPath = '';
+
+        foreach ($segments as $segment) {
+            $this->getOrCreateFolder($segment, $currentPath);
+            $currentPath = $currentPath ? $currentPath . '/' . $segment : $segment;
+        }
+
+        return $currentPath;
     }
 
     public function getDownloadUrl(string $itemId): ?string

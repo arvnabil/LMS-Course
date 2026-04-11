@@ -5,7 +5,7 @@ import InputError from '@/Components/InputError';
 import Toast from '@/Components/Toast';
 import OneDriveFolderPicker from '@/Components/OneDriveFolderPicker';
 
-export default function SettingsIndex({ auth, settings, onedriveConnected }) {
+export default function SettingsIndex({ auth, settings, onedriveConnected, defaultStorageProvider }) {
     const { flash, global_settings } = usePage().props;
     const [activeTab, setActiveTab] = useState('branding');
     const [showToast, setShowToast] = useState(false);
@@ -25,6 +25,7 @@ export default function SettingsIndex({ auth, settings, onedriveConnected }) {
         onedrive_tenant_id: settings.onedrive_tenant_id || 'common',
         onedrive_redirect_uri: settings.onedrive_redirect_uri || '',
         onedrive_base_path: settings.onedrive_base_path || 'LMS-Course',
+        default_storage_provider: defaultStorageProvider || 'local',
     });
 
     useEffect(() => {
@@ -72,9 +73,20 @@ export default function SettingsIndex({ auth, settings, onedriveConnected }) {
         post(route('admin.settings.update'), {
             preserveScroll: true,
             onSuccess: () => {
-                // No reload needed, Inertia updates props automatically
                 reset('platform_logo');
             }
+        });
+    };
+
+    const toggleFavorite = (provider) => {
+        setData('default_storage_provider', provider);
+        // We trigger a prompt submit or just update data for the next save. 
+        // For better UX, let's auto-save when starring.
+        const updatedData = { ...data, default_storage_provider: provider };
+        post(route('admin.settings.update'), {
+            data: updatedData,
+            preserveScroll: true,
+            onSuccess: () => setShowToast(true)
         });
     };
 
@@ -237,21 +249,36 @@ export default function SettingsIndex({ auth, settings, onedriveConnected }) {
                             <div>
                                 {!activeIntegration ? (
                                     <div className="space-y-8">
-                                        <div>
-                                            <h2 className="text-2xl font-extrabold text-foreground tracking-tight">Integrations</h2>
-                                            <p className="text-gray-400 text-sm font-medium mt-2">Manage third-party services and external connections.</p>
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <h2 className="text-2xl font-extrabold text-foreground tracking-tight">Integrations</h2>
+                                                <p className="text-gray-400 text-sm font-medium mt-2">Manage third-party services and external connections.</p>
+                                            </div>
+                                            <div className="flex items-center gap-2 bg-amber-50 px-4 py-2 rounded-2xl border border-amber-100">
+                                                <svg className="w-5 h-5 text-amber-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                                                <span className="text-xs font-black text-amber-700 uppercase tracking-widest">
+                                                    Primary: {data.default_storage_provider === 'onedrive' ? 'OneDrive' : 'Local Storage'}
+                                                </span>
+                                            </div>
                                         </div>
                                         
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             {/* OneDrive Card */}
-                                            <div className="bg-white border border-gray-100 p-6 rounded-3xl shadow-sm hover:shadow-xl hover:shadow-gray-200/40 transition-all group">
+                                            <div className={`bg-white border p-6 rounded-3xl shadow-sm hover:shadow-xl hover:shadow-gray-200/40 transition-all group relative ${data.default_storage_provider === 'onedrive' ? 'border-amber-400 ring-4 ring-amber-500/5' : 'border-gray-100'}`}>
+                                                <button 
+                                                    onClick={() => toggleFavorite('onedrive')}
+                                                    className={`absolute top-6 right-6 w-10 h-10 rounded-xl flex items-center justify-center transition-all ${data.default_storage_provider === 'onedrive' ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30' : 'bg-gray-50 text-gray-300 hover:text-amber-500 hover:bg-amber-50'}`}
+                                                    title={data.default_storage_provider === 'onedrive' ? 'Primary Storage' : 'Set as Primary'}
+                                                >
+                                                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                                                </button>
                                                 <div className="flex items-start gap-4 mb-6">
                                                     <div className="w-14 h-14 bg-[#0078D4]/10 rounded-2xl flex items-center justify-center text-[#0078D4] shrink-0 group-hover:scale-110 transition-transform">
                                                         <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M17.65 11.23a4.7 4.7 0 0 0-6.9-3.08 5.75 5.75 0 0 0-10.4 2.8 4.25 4.25 0 0 0 1.25 8.3h16a3.75 3.75 0 0 0 .05-7.5l-.2-.02H18z"/></svg>
                                                     </div>
                                                     <div>
                                                         <h3 className="font-extrabold text-lg text-foreground">Microsoft OneDrive</h3>
-                                                        <p className="text-xs text-gray-500 font-medium mt-1 leading-relaxed">Connect to OneDrive for storing and streaming large course videos efficiently.</p>
+                                                        <p className="text-xs text-gray-500 font-medium mt-1 leading-relaxed">External cloud storage for course videos and larger assets.</p>
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center justify-between border-t border-gray-50 pt-5">
@@ -261,6 +288,31 @@ export default function SettingsIndex({ auth, settings, onedriveConnected }) {
                                                     <button onClick={() => setActiveIntegration('onedrive')} className="text-sm font-bold text-primary hover:text-primary-hover transition-colors">
                                                         Configure &rarr;
                                                     </button>
+                                                </div>
+                                            </div>
+
+                                            {/* Local Storage Card */}
+                                            <div className={`bg-white border p-6 rounded-3xl shadow-sm hover:shadow-xl hover:shadow-gray-200/40 transition-all group relative ${data.default_storage_provider === 'local' ? 'border-amber-400 ring-4 ring-amber-500/5' : 'border-gray-100'}`}>
+                                                <button 
+                                                    onClick={() => toggleFavorite('local')}
+                                                    className={`absolute top-6 right-6 w-10 h-10 rounded-xl flex items-center justify-center transition-all ${data.default_storage_provider === 'local' ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30' : 'bg-gray-50 text-gray-300 hover:text-amber-500 hover:bg-amber-50'}`}
+                                                    title={data.default_storage_provider === 'local' ? 'Primary Storage' : 'Set as Primary'}
+                                                >
+                                                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                                                </button>
+                                                <div className="flex items-start gap-4 mb-6">
+                                                    <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 shrink-0 group-hover:scale-110 transition-transform">
+                                                        <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="font-extrabold text-lg text-foreground">Local Server Storage</h3>
+                                                        <p className="text-xs text-gray-500 font-medium mt-1 leading-relaxed">Save all asset uploads directly to the /public/storage/ directory on your server.</p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center justify-between border-t border-gray-50 pt-5">
+                                                    <span className="px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-green-100 text-green-700">
+                                                        Active
+                                                    </span>
                                                 </div>
                                             </div>
 

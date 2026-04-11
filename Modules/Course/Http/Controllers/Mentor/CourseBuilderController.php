@@ -16,6 +16,7 @@ use Inertia\Inertia;
 use Illuminate\Support\Str;
 use App\Models\OneDrivePermission;
 use App\Services\OneDriveService;
+use App\Services\FileStorageService;
 
 class CourseBuilderController extends Controller
 {
@@ -63,8 +64,7 @@ class CourseBuilderController extends Controller
 
         $thumbnailPath = null;
         if ($request->hasFile('thumbnail')) {
-            $path = $request->file('thumbnail')->store('courses/thumbnails', 'public');
-            $thumbnailPath = '/storage/' . $path;
+            $thumbnailPath = FileStorageService::store($request->file('thumbnail'), 'courses/thumbnails');
         }
 
         $course = Course::create([
@@ -104,22 +104,14 @@ class CourseBuilderController extends Controller
 
         // Handle Thumbnail
         if ($request->hasFile('thumbnail')) {
-            if ($course->thumbnail) {
-                $oldPath = str_replace('/storage/', '', $course->thumbnail);
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($oldPath);
-            }
-            $path = $request->file('thumbnail')->store('courses/thumbnails', 'public');
-            $updateData['thumbnail'] = '/storage/' . $path;
+            FileStorageService::delete($course->thumbnail);
+            $updateData['thumbnail'] = FileStorageService::store($request->file('thumbnail'), 'courses/thumbnails');
         }
 
         // Handle Cover Image
         if ($request->hasFile('cover_image')) {
-            if ($course->cover_image) {
-                $oldPath = str_replace('/storage/', '', $course->cover_image);
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($oldPath);
-            }
-            $path = $request->file('cover_image')->store('courses/covers', 'public');
-            $updateData['cover_image'] = '/storage/' . $path;
+            FileStorageService::delete($course->cover_image);
+            $updateData['cover_image'] = FileStorageService::store($request->file('cover_image'), 'courses/covers');
         }
 
         // Only update slug if title changed
@@ -713,23 +705,13 @@ class CourseBuilderController extends Controller
         $signaturePath = $template ? $template->signature_image : null;
 
         if ($request->hasFile('background_image')) {
-            // Delete old image if exists
-            if ($template && $template->background_image) {
-                $oldPath = str_replace('/storage/', '', $template->background_image);
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($oldPath);
-            }
-            $path = $request->file('background_image')->store('certificates/templates', 'public');
-            $imagePath = '/storage/' . $path;
+            FileStorageService::delete($template ? $template->background_image : null);
+            $imagePath = FileStorageService::store($request->file('background_image'), 'certificates/templates');
         }
 
         if ($request->hasFile('signature_image')) {
-            // Delete old signature if exists
-            if ($template && $template->signature_image) {
-                $oldPath = str_replace('/storage/', '', $template->signature_image);
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($oldPath);
-            }
-            $path = $request->file('signature_image')->store('certificates/signatures', 'public');
-            $signaturePath = '/storage/' . $path;
+            FileStorageService::delete($template ? $template->signature_image : null);
+            $signaturePath = FileStorageService::store($request->file('signature_image'), 'certificates/signatures');
         }
 
         if (!$imagePath) {

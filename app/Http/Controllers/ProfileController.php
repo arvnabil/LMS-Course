@@ -8,7 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
-use Illuminate\Support\Facades\Storage;
+use App\Services\FileStorageService;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -35,16 +35,14 @@ class ProfileController extends Controller
 
         // Handle avatar upload
         if ($request->hasFile('avatar')) {
-            $path = $request->file('avatar')->store('avatars', 'public');
+            $path = FileStorageService::store($request->file('avatar'), 'avatars');
             $validated['avatar'] = $path;
-            // Old avatar is automatically deleted by User model's `updating` event
+            // Old avatar is automatically deleted if local, or ignored for now if OneDrive
         }
 
         // Handle avatar removal
         if ($request->boolean('remove_avatar') && $user->avatar) {
-            if (Storage::disk('public')->exists($user->avatar)) {
-                Storage::disk('public')->delete($user->avatar);
-            }
+            FileStorageService::delete($user->avatar);
             $validated['avatar'] = null;
         }
 

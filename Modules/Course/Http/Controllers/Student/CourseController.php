@@ -11,6 +11,7 @@ use Modules\Quiz\Models\Submission;
 use Modules\Notification\Models\Notification;
 use Modules\Course\Services\CourseCompletionService;
 use Illuminate\Http\Request;
+use App\Services\FileStorageService;
 use Inertia\Inertia;
 
 class CourseController extends Controller
@@ -216,8 +217,7 @@ class CourseController extends Controller
 
             $fileUrl = null;
             if ($request->hasFile('file')) {
-                $fileUrl = $request->file('file')->store('submissions/' . $quiz->id, 'public');
-                $fileUrl = asset('storage/' . $fileUrl);
+                $fileUrl = FileStorageService::store($request->file('file'), 'submissions/' . $quiz->id);
             }
 
             Submission::create([

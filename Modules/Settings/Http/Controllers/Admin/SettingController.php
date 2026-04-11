@@ -3,6 +3,7 @@
 namespace Modules\Settings\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\FileStorageService;
 use Modules\Settings\Models\Setting;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -16,7 +17,8 @@ class SettingController extends Controller
 
         return Inertia::render('Admin/Settings/Index', [
             'settings' => $settings,
-            'onedriveConnected' => $onedriveConnected
+            'onedriveConnected' => $onedriveConnected,
+            'defaultStorageProvider' => $settings['default_storage_provider'] ?? 'local'
         ]);
     }
 
@@ -32,6 +34,7 @@ class SettingController extends Controller
             'onedrive_tenant_id' => 'nullable|string',
             'onedrive_redirect_uri' => 'nullable|url',
             'onedrive_base_path' => 'nullable|string',
+            'default_storage_provider' => 'nullable|string|in:local,onedrive,google_drive,s3',
         ]);
 
         $settings = $validated;
@@ -39,13 +42,13 @@ class SettingController extends Controller
 
         // Handle logo upload
         if ($request->hasFile('platform_logo')) {
-            $path = $request->file('platform_logo')->store('settings', 'public');
-            $settings['platform_logo'] = '/storage/' . $path;
+            $path = FileStorageService::store($request->file('platform_logo'), 'settings');
+            $settings['platform_logo'] = $path;
         }
 
         foreach ($settings as $key => $value) {
             if ($value !== null) {
-                $group = str_starts_with($key, 'onedrive_') ? 'onedrive' : 'branding';
+                $group = str_starts_with($key, 'onedrive_') ? 'onedrive' : (str_starts_with($key, 'default_storage_') ? 'integrations' : 'branding');
                 Setting::updateOrCreate(
                     ['key' => $key],
                     ['value' => $value, 'group' => $group]
