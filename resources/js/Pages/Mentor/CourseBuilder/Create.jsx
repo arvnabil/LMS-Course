@@ -1,6 +1,8 @@
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import InputError from '@/Components/InputError';
 import { Head, Link, useForm } from '@inertiajs/react';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 export default function Create({ auth, categories = [] }) {
     const { data, setData, post, processing, errors } = useForm({
@@ -12,6 +14,21 @@ export default function Create({ auth, categories = [] }) {
         tagline: '',
         thumbnail: null,
     });
+
+    const quillModules = {
+        toolbar: [
+            [{ 'header': [1, 2, 3, false] }],
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+            ['link', 'blockquote', 'code-block'],
+            ['clean']
+        ],
+    };
+
+    const quillFormats = [
+        'header', 'bold', 'italic', 'underline', 'strike',
+        'list', 'bullet', 'link', 'blockquote', 'code-block'
+    ];
 
     const submit = (e) => {
         e.preventDefault();
@@ -116,7 +133,7 @@ export default function Create({ auth, categories = [] }) {
                                 onChange={(e) => setData('thumbnail', e.target.files[0])}
                                 accept="image/*"
                             />
-                            <p className="text-[10px] text-gray-400 px-1 italic">Recommended size: 1280x720 (16:9). Max size: 2MB.</p>
+                            <p className="text-[10px] text-gray-400 px-1 italic font-bold uppercase tracking-tight">Recommended size: 1280x720 (16:9). Max size: 2MB.</p>
                             <InputError message={errors.thumbnail} />
                         </div>
                     </div>
@@ -124,14 +141,52 @@ export default function Create({ auth, categories = [] }) {
                     {/* Description */}
                     <div className="space-y-2">
                         <label className="text-xs font-extrabold text-foreground uppercase tracking-widest px-1">Course Description</label>
-                        <textarea
-                            value={data.description}
-                            rows="6"
-                            className="w-full bg-muted border-none rounded-[32px] px-8 py-6 text-sm focus:ring-2 focus:ring-primary/20 transition-all font-medium text-gray-600 leading-relaxed"
-                            placeholder="Describe what students will learn in this course..."
-                            onChange={(e) => setData('description', e.target.value)}
-                            required
-                        ></textarea>
+                        <div className="rich-editor-wrapper">
+                            <ReactQuill
+                                theme="snow"
+                                value={data.description}
+                                onChange={(content) => setData('description', content)}
+                                modules={quillModules}
+                                formats={quillFormats}
+                                placeholder="Describe what students will learn in this course..."
+                                className="bg-muted rounded-[32px] overflow-hidden border-none"
+                            />
+                        </div>
+                        <style dangerouslySetInnerHTML={{ __html: `
+                            .rich-editor-wrapper .ql-container {
+                                border: none !important;
+                                font-family: inherit;
+                                font-size: 0.875rem;
+                                min-height: 200px;
+                            }
+                            .rich-editor-wrapper .ql-toolbar {
+                                border: none !important;
+                                border-bottom: 1px solid rgba(0,0,0,0.05) !important;
+                                padding: 12px 24px !important;
+                                background: rgba(0,0,0,0.02);
+                            }
+                            .rich-editor-wrapper .ql-editor {
+                                padding: 24px 32px !important;
+                                line-height: 1.6;
+                                color: #4b5563;
+                            }
+                            .rich-editor-wrapper .ql-editor.ql-blank::before {
+                                left: 32px !important;
+                                color: #9ca3af !important;
+                                font-style: normal !important;
+                                font-weight: 500 !important;
+                            }
+                            .rich-editor-wrapper .ql-snow .ql-stroke {
+                                stroke: #9ca3af !important;
+                            }
+                            .rich-editor-wrapper .ql-snow .ql-fill {
+                                fill: #9ca3af !important;
+                            }
+                            .rich-editor-wrapper .ql-snow.ql-toolbar button:hover .ql-stroke,
+                            .rich-editor-wrapper .ql-snow.ql-toolbar button.ql-active .ql-stroke {
+                                stroke: var(--primary) !important;
+                            }
+                        `}} />
                         <InputError message={errors.description} />
                     </div>
 

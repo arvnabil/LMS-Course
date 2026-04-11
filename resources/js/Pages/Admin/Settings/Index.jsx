@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import DashboardLayout from '@/Layouts/DashboardLayout';
-import { Head, useForm, usePage } from '@inertiajs/react';
+import { Head, useForm, usePage, router } from '@inertiajs/react';
 import InputError from '@/Components/InputError';
 import Toast from '@/Components/Toast';
 import OneDriveFolderPicker from '@/Components/OneDriveFolderPicker';
@@ -80,11 +80,12 @@ export default function SettingsIndex({ auth, settings, onedriveConnected, defau
 
     const toggleFavorite = (provider) => {
         setData('default_storage_provider', provider);
-        // We trigger a prompt submit or just update data for the next save. 
-        // For better UX, let's auto-save when starring.
-        const updatedData = { ...data, default_storage_provider: provider };
-        post(route('admin.settings.update'), {
-            data: updatedData,
+        
+        // Use router.post directly to avoid async state issues with useForm
+        router.post(route('admin.settings.update'), {
+            ...data,
+            default_storage_provider: provider
+        }, {
             preserveScroll: true,
             onSuccess: () => setShowToast(true)
         });
