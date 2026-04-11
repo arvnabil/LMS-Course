@@ -36,9 +36,9 @@ class FileStorageService
                     // OneDrive upload
                     $result = $oneDrive->uploadFile($file->get(), $filename, $normalizedFolder);
                     
-                    if ($result) {
-                        // Return the webUrl for direct display
-                        return $result['webUrl'] ?? $result['@microsoft.graph.downloadUrl'] ?? null;
+                    if ($result && isset($result['id'])) {
+                        // Return the internal proxy URL instead of webUrl
+                        return route('onedrive.public.show', $result['id']);
                     }
                 }
             } catch (\Exception $e) {
@@ -59,6 +59,19 @@ class FileStorageService
     {
         if (!$path) return;
 
+        // 1. Handle OneDrive Proxy URL (Internal)
+        if (str_contains($path, '/storage/onedrive/')) {
+            try {
+                $itemId = last(explode('/', $path));
+                $oneDrive = new OneDriveService();
+                $oneDrive->deleteItem($itemId);
+            } catch (\Exception $e) {
+                \Log::error("OneDrive Proxy Deletion Failed: " . $e->getMessage());
+            }
+            return;
+        }
+
+        // 2. Handle Direct OneDrive/SharePoint URL (Legacy)
         if (str_starts_with($path, 'https://') && (
             str_contains($path, 'sharepoint.com') || 
             str_contains($path, '1drv.ms') || 
@@ -73,7 +86,7 @@ class FileStorageService
             return;
         }
 
-        // Local deletion
+        // 3. Local deletion
         $localPath = str_replace('/storage/', '', $path);
         Storage::disk('public')->delete($localPath);
     }

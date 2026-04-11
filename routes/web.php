@@ -16,10 +16,19 @@ Route::get('/', function () {
     return Inertia::render('Home', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
         'phpVersion' => PHP_VERSION,
     ]);
 });
+
+// OneDrive Public Image Proxy (for guest users viewing catalog)
+Route::get('/storage/onedrive/{itemId}', [\App\Http\Controllers\OneDriveProxyController::class, 'show'])->name('onedrive.public.show');
+
+// Temporary fix script for hosting (Admin only)
+Route::get('/fix-onedrive', function() {
+    \Illuminate\Support\Facades\Artisan::call('onedrive:fix-links');
+    return "Fix command triggered. Output: <pre>" . \Illuminate\Support\Facades\Artisan::output() . "</pre>";
+})->middleware(['auth', 'role:admin']);
+
 
 /*
 |--------------------------------------------------------------------------
