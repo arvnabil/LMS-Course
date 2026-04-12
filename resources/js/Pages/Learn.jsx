@@ -1137,27 +1137,32 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                             const fileNameClean = (currentLesson.file_name || currentLesson.title || '').toLowerCase();
                             const mimeClean = (currentLesson.mime_type || '').toLowerCase();
 
-                            // Broader PPT detection (checks extension, mime, and title keywords)
+                            // 1. PPT/Presentation Detection (Prioritized)
                             const isPpt = fileNameClean.includes('.pptx') || 
                                           fileNameClean.includes('.ppt') || 
                                           mimeClean.includes('presentation') || 
                                           mimeClean.includes('powerpoint') ||
                                           mimeClean.includes('officedocument.presentationml') ||
-                                          /presentation|powerpoint/i.test(currentLesson.title);
+                                          /presentation|powerpoint|slide|materi/i.test(currentLesson.title);
 
+                            // 2. PDF Detection
                             const isPdf = !isPpt && (
                                           fileNameClean.includes('.pdf') || 
                                           mimeClean === 'application/pdf' || 
                                           currentLesson.file_url?.toLowerCase().includes('.pdf') ||
-                                          (fileNameClean && fileNameClean.endsWith('.pdf'))
+                                          /e-book|ebook|pdf|modul/i.test(currentLesson.title) ||
+                                          (fileNameClean && fileNameClean.endsWith('.pdf')) ||
+                                          // Fallback for unidentified OneDrive files (default to PDF as safest viewer)
+                                          (currentLesson.type === 'file' && currentLesson.file_id?.length > 20 && !mimeClean)
                                           );
                             
-                            // Only fallback to "Resource File" if not specifically identified
+                            // 3. Image Detection
                             const isImage = !isPpt && !isPdf && (
                                             fileNameClean.match(/\.(jpg|jpeg|png|gif|webp|svg|bmp)$/i) || 
                                             mimeClean.startsWith('image/')
                                             );
 
+                            // 4. Text Detection
                             const isText = !isPpt && !isPdf && !isImage && (
                                            fileNameClean.endsWith('.txt') || 
                                            mimeClean === 'text/plain'
