@@ -1,7 +1,6 @@
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Head, router, useForm } from '@inertiajs/react';
 import { useState, useRef, useEffect } from 'react';
-import axios from 'axios';
 
 // Draggable Text Element Component
 function DraggableElement({ id, data, isSelected, onSelect, onChange, containerRef }) {
@@ -220,138 +219,7 @@ function DraggableQrElement({ data, isSelected, onSelect, onChange, containerRef
         </div>
     );
 }
-// Reuseable OneDrive File Modal Component
-function OneDriveFileModal({ isOpen, onClose, onSelect, activeId }) {
-    const [files, setFiles] = useState([]);
-    const [navStack, setNavStack] = useState(['root']);
-    const [isLoading, setIsLoading] = useState(false);
-    const [currentId, setCurrentId] = useState('root');
 
-    const fetchFiles = async (itemId = 'root') => {
-        setIsLoading(true);
-        try {
-            const response = await axios.get(route('mentor.onedrive.files', { itemId }));
-            setFiles(response.data.items);
-            setCurrentId(response.data.current_id);
-        } catch (error) {
-            console.error('Failed to fetch OneDrive files', error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        if (isOpen) fetchFiles(currentId);
-    }, [isOpen, currentId]);
-
-    const navigateTo = (itemId) => {
-        setNavStack([...navStack, itemId]);
-        setCurrentId(itemId);
-    };
-
-    const navigateBack = () => {
-        if (navStack.length > 1) {
-            const newStack = [...navStack];
-            newStack.pop();
-            const prevId = newStack[newStack.length - 1];
-            setNavStack(newStack);
-            setCurrentId(prevId);
-        }
-    };
-
-    if (!isOpen) return null;
-
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-white rounded-[32px] w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]">
-                <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-primary/5">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-primary/10 rounded-2xl flex items-center justify-center text-xl">📂</div>
-                        <div>
-                            <h3 className="text-sm font-black text-foreground uppercase tracking-tight">OneDrive Browser</h3>
-                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Select background image</p>
-                        </div>
-                    </div>
-                    <button onClick={onClose} className="w-10 h-10 flex items-center justify-center rounded-2xl bg-white text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all shadow-sm">✕</button>
-                </div>
-
-                <div className="p-4 border-b border-gray-50 bg-gray-50/50 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        {navStack.length > 1 ? (
-                            <button onClick={navigateBack} className="text-[10px] font-black text-primary hover:underline px-3 py-1 bg-white rounded-lg shadow-sm border border-gray-100 flex items-center gap-1">
-                                <span>←</span> BACK
-                            </button>
-                        ) : (
-                            <span className="text-[10px] font-black text-gray-400 px-3 py-1">ROOT FOLDER</span>
-                        )}
-                    </div>
-                </div>
-
-                <div className="flex-1 overflow-y-auto p-4">
-                    {isLoading ? (
-                        <div className="py-20 flex flex-col items-center justify-center space-y-4">
-                            <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-                            <p className="text-xs font-bold text-gray-400 animate-pulse">Scanning OneDrive Library...</p>
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            {files.length === 0 && (
-                                <div className="col-span-full py-20 text-center">
-                                    <div className="text-4xl mb-4 opacity-20">🏜️</div>
-                                    <p className="text-xs font-bold text-gray-400">Folder is empty</p>
-                                </div>
-                            )}
-                            {files.map((file) => (
-                                <div 
-                                    key={file.id} 
-                                    className={`p-3 rounded-2xl border-2 flex items-center justify-between transition-all group ${
-                                        file.is_folder 
-                                            ? 'cursor-pointer border-gray-50 bg-gray-50/50 hover:bg-white hover:border-primary/20 hover:shadow-lg' 
-                                            : activeId === file.id 
-                                                ? 'border-primary bg-primary/5' 
-                                                : 'border-transparent bg-muted/30 opacity-70 hover:opacity-100 hover:bg-white hover:border-gray-100'
-                                    }`}
-                                    onClick={() => file.is_folder && navigateTo(file.id)}
-                                >
-                                    <div className="flex items-center gap-3 overflow-hidden">
-                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${file.is_folder ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600'}`}>
-                                            {file.is_folder ? '📁' : '🖼️'}
-                                        </div>
-                                        <div className="overflow-hidden">
-                                            <p className={`text-xs font-bold truncate ${activeId === file.id ? 'text-primary' : 'text-foreground'}`}>{file.name}</p>
-                                            <p className="text-[9px] text-gray-400 font-bold uppercase tracking-tight">
-                                                {file.is_folder ? 'Folder' : `${(file.size / 1024 / 1024).toFixed(1)} MB`}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    {!file.is_folder && (
-                                        <button 
-                                            type="button" 
-                                            onClick={(e) => { e.stopPropagation(); onSelect(file); }}
-                                            className={`px-4 py-2 rounded-xl text-[10px] font-black transition-all ${
-                                                activeId === file.id 
-                                                    ? 'bg-primary text-white shadow-lg shadow-primary/20' 
-                                                    : 'bg-white text-primary border border-primary/20 hover:bg-primary hover:text-white'
-                                            }`}
-                                        >
-                                            {activeId === file.id ? 'SELECTED' : 'SELECT'}
-                                        </button>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-
-                <div className="p-6 bg-gray-50 border-t border-gray-100 flex justify-end">
-                    <button onClick={onClose} className="px-8 py-3 bg-white text-gray-500 text-xs font-black rounded-2xl hover:bg-gray-100 transition-all border border-gray-200">
-                        CLOSE BROWSER
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-}
 
 
 
@@ -383,7 +251,6 @@ export default function CertificateDesigner({ template, course, other_templates 
     const [signaturePreview, setSignaturePreview] = useState(template.signature_image);
 
     const [importSourceId, setImportSourceId] = useState(null);
-    const [isOneDriveModalOpen, setIsOneDriveModalOpen] = useState(false);
 
     const { data, setData, post, processing, errors } = useForm({
         background_image: null,
@@ -407,19 +274,6 @@ export default function CertificateDesigner({ template, course, other_templates 
             setImportSourceId(null); // Clear import source if manual change
             setData('import_source_id', null);
         }
-    };
-
-    const handleOneDriveSelect = (file) => {
-        // Set the Item ID for background_image
-        setData('background_image', file.id);
-        
-        // Use proxy URL for preview in browser
-        const proxyUrl = route('onedrive.public.show', file.id);
-        setPreviewImage(proxyUrl);
-        
-        setIsOneDriveModalOpen(false);
-        setImportSourceId(null);
-        setData('import_source_id', null);
     };
 
     const handleSignatureChange = (e) => {
@@ -639,7 +493,7 @@ export default function CertificateDesigner({ template, course, other_templates 
                         {/* Background Upload */}
                         <div className="space-y-3">
                             <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Background Layer</h3>
-                            <div className="space-y-2">
+                            <div>
                                 <input 
                                     type="file" 
                                     id="bg-upload" 
@@ -647,23 +501,9 @@ export default function CertificateDesigner({ template, course, other_templates 
                                     accept="image/png, image/jpeg, image/webp"
                                     onChange={handleImageChange}
                                 />
-                                <div className="grid grid-cols-2 gap-2">
-                                    <label htmlFor="bg-upload" className="flex items-center justify-center px-4 py-2.5 text-[10px] font-black text-primary bg-primary/10 border border-primary/20 rounded-xl cursor-pointer hover:bg-primary/20 transition-colors shadow-sm uppercase tracking-tight">
-                                        Upload Image
-                                    </label>
-                                    <button 
-                                        type="button"
-                                        onClick={() => setIsOneDriveModalOpen(true)}
-                                        className="flex items-center justify-center px-4 py-2.5 text-[10px] font-black text-blue-600 bg-blue-50 border border-blue-100 rounded-xl hover:bg-blue-100 transition-colors shadow-sm uppercase tracking-tight"
-                                    >
-                                        OneDrive
-                                    </button>
-                                </div>
-                                {previewImage && (
-                                    <p className="text-[9px] text-gray-400 font-bold px-1 italic">
-                                        Active: {typeof data.background_image === 'string' ? `OneDrive File` : previewImage.startsWith('blob:') ? 'Uploaded File' : 'Stored File'}
-                                    </p>
-                                )}
+                                <label htmlFor="bg-upload" className="flex items-center justify-center w-full px-4 py-2 text-xs font-bold text-primary bg-primary/10 border border-primary/20 rounded-xl cursor-pointer hover:bg-primary/20 transition-colors shadow-sm uppercase tracking-tight">
+                                    {previewImage ? 'Replace Image' : 'Upload Image'}
+                                </label>
                                 {errors.background_image && <p className="text-red-500 text-[10px] font-medium mt-1">{errors.background_image}</p>}
                             </div>
                         </div>
@@ -925,13 +765,6 @@ export default function CertificateDesigner({ template, course, other_templates 
                     </div>
                 </div>
             </form>
-
-            <OneDriveFileModal 
-                isOpen={isOneDriveModalOpen}
-                onClose={() => setIsOneDriveModalOpen(false)}
-                onSelect={handleOneDriveSelect}
-                activeId={typeof data.background_image === 'string' ? data.background_image : null}
-            />
         </DashboardLayout>
     );
 }
