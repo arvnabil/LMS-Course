@@ -723,7 +723,7 @@ class CourseBuilderController extends Controller
         if ($course->mentor_id != auth()->id()) abort(403);
 
         $validated = $request->validate([
-            'background_image' => 'nullable|image|max:10240',
+            'background_image' => 'nullable',
             'signature_image' => 'nullable|image|max:5120',
             'layout_data' => 'required|string',
             'import_source_id' => 'nullable|exists:courses,id',
@@ -750,8 +750,13 @@ class CourseBuilderController extends Controller
         }
 
         if ($request->hasFile('background_image')) {
-            FileStorageService::delete($template ? $template->background_image : null);
+            // Only delete if it was a local file previously
+            if ($imagePath && str_starts_with($imagePath, '/storage/')) {
+                FileStorageService::delete($imagePath);
+            }
             $imagePath = FileStorageService::store($request->file('background_image'), 'certificates/templates');
+        } elseif ($request->filled('background_image')) {
+            $imagePath = $request->background_image;
         }
 
         if ($request->hasFile('signature_image')) {

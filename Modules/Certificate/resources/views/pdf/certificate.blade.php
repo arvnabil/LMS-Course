@@ -37,14 +37,18 @@
 </head>
 <body>
     <div class="certificate-container">
-        <!-- Resolve relative storage path to absolute disk path or base64 data uri for DomPDF -->
-        @php
-            $bgPath = str_replace('/storage/', '', $template->background_image);
-            $fullBgPath = storage_path('app/public/' . $bgPath);
-        @endphp
-        
-        @if(file_exists($fullBgPath))
-            <img src="{{ 'data:image/jpeg;base64,' . base64_encode(file_get_contents($fullBgPath)) }}" class="background-image" alt="Background">
+        @if(isset($bg_base64) && $bg_base64)
+            <img src="{{ $bg_base64 }}" class="background-image" alt="Background">
+        @else
+            <!-- Fallback to local storage path resolution -->
+            @php
+                $bgPath = str_replace('/storage/', '', $template->background_image);
+                $fullBgPath = storage_path('app/public/' . $bgPath);
+            @endphp
+            
+            @if(file_exists($fullBgPath))
+                <img src="{{ 'data:image/jpeg;base64,' . base64_encode(file_get_contents($fullBgPath)) }}" class="background-image" alt="Background">
+            @endif
         @endif
 
         @foreach($layout as $key => $props)

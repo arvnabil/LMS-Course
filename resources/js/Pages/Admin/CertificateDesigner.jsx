@@ -1,6 +1,7 @@
 import DashboardLayout from '@/Layouts/DashboardLayout';
 import { Head, router, useForm } from '@inertiajs/react';
 import { useState, useRef, useEffect } from 'react';
+import axios from 'axios';
 
 // Draggable Text Element Component
 function DraggableElement({ id, data, isSelected, onSelect, onChange, containerRef }) {
@@ -249,6 +250,7 @@ export default function CertificateDesigner({ template, course, other_templates 
     const [signaturePreview, setSignaturePreview] = useState(template.signature_image);
 
     const [importSourceId, setImportSourceId] = useState(null);
+    const [isOneDriveModalOpen, setIsOneDriveModalOpen] = useState(false);
 
     const { data, setData, post, processing, errors } = useForm({
         background_image: null,
@@ -272,6 +274,19 @@ export default function CertificateDesigner({ template, course, other_templates 
             setImportSourceId(null); // Clear import source if manual change
             setData('import_source_id', null);
         }
+    };
+
+    const handleOneDriveSelect = (file) => {
+        // Set the Item ID for background_image
+        setData('background_image', file.id);
+        
+        // Use proxy URL for preview in browser
+        const proxyUrl = route('onedrive.public.show', file.id);
+        setPreviewImage(proxyUrl);
+        
+        setIsOneDriveModalOpen(false);
+        setImportSourceId(null);
+        setData('import_source_id', null);
     };
 
     const handleSignatureChange = (e) => {
@@ -491,7 +506,7 @@ export default function CertificateDesigner({ template, course, other_templates 
                         {/* Background Upload */}
                         <div className="space-y-3">
                             <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Background Layer</h3>
-                            <div>
+                            <div className="space-y-2">
                                 <input 
                                     type="file" 
                                     id="bg-upload" 
@@ -499,9 +514,23 @@ export default function CertificateDesigner({ template, course, other_templates 
                                     accept="image/png, image/jpeg, image/webp"
                                     onChange={handleImageChange}
                                 />
-                                <label htmlFor="bg-upload" className="flex items-center justify-center w-full px-4 py-2 text-xs font-bold text-primary bg-primary/10 border border-primary/20 rounded-xl cursor-pointer hover:bg-primary/20 transition-colors shadow-sm">
-                                    {previewImage ? 'Replace Image' : 'Upload Image'}
-                                </label>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <label htmlFor="bg-upload" className="flex items-center justify-center px-4 py-2.5 text-[10px] font-black text-primary bg-primary/10 border border-primary/20 rounded-xl cursor-pointer hover:bg-primary/20 transition-colors shadow-sm uppercase tracking-tight">
+                                        Upload Image
+                                    </label>
+                                    <button 
+                                        type="button"
+                                        onClick={() => setIsOneDriveModalOpen(true)}
+                                        className="flex items-center justify-center px-4 py-2.5 text-[10px] font-black text-blue-600 bg-blue-50 border border-blue-100 rounded-xl hover:bg-blue-100 transition-colors shadow-sm uppercase tracking-tight"
+                                    >
+                                        OneDrive
+                                    </button>
+                                </div>
+                                {previewImage && (
+                                    <p className="text-[9px] text-gray-400 font-bold px-1 italic">
+                                        Active: {typeof data.background_image === 'string' ? `OneDrive File` : previewImage.startsWith('blob:') ? 'Uploaded File' : 'Stored File'}
+                                    </p>
+                                )}
                                 {errors.background_image && <p className="text-red-500 text-[10px] font-medium mt-1">{errors.background_image}</p>}
                             </div>
                         </div>
@@ -763,6 +792,13 @@ export default function CertificateDesigner({ template, course, other_templates 
                     </div>
                 </div>
             </form>
+
+            <OneDriveFileModal 
+                isOpen={isOneDriveModalOpen}
+                onClose={() => setIsOneDriveModalOpen(false)}
+                onSelect={handleOneDriveSelect}
+                activeId={typeof data.background_image === 'string' ? data.background_image : null}
+            />
         </DashboardLayout>
     );
 }

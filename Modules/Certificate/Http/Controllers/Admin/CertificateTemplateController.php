@@ -43,7 +43,7 @@ class CertificateTemplateController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'background_image' => 'required|image|max:10240',
+            'background_image' => 'nullable', // Manual check for file vs string
             'layout_data' => 'required|string',
             'is_active' => 'boolean',
         ]);
@@ -51,6 +51,8 @@ class CertificateTemplateController extends Controller
         if ($request->hasFile('background_image')) {
             $path = $request->file('background_image')->store('certificates/templates', 'public');
             $validated['background_image'] = '/storage/' . $path;
+        } else {
+            $validated['background_image'] = $request->background_image;
         }
 
         $layoutData = json_decode($validated['layout_data'], true);
@@ -80,20 +82,20 @@ class CertificateTemplateController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'background_image' => 'nullable|image|max:10240',
+            'background_image' => 'nullable',
             'layout_data' => 'required|string',
             'is_active' => 'boolean',
         ]);
 
         if ($request->hasFile('background_image')) {
-            if ($certificateTemplate->background_image) {
+            if ($certificateTemplate->background_image && str_starts_with($certificateTemplate->background_image, '/storage/')) {
                 $oldPath = str_replace('/storage/', '', $certificateTemplate->background_image);
                 Storage::disk('public')->delete($oldPath);
             }
             $path = $request->file('background_image')->store('certificates/templates', 'public');
             $validated['background_image'] = '/storage/' . $path;
         } else {
-            $validated['background_image'] = $certificateTemplate->background_image;
+            $validated['background_image'] = $request->background_image ?? $certificateTemplate->background_image;
         }
 
         $layoutData = json_decode($validated['layout_data'], true);
