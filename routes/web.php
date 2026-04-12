@@ -61,9 +61,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/dashboard/mentor/onedrive/resolve', [\App\Http\Controllers\Mentor\OneDriveFilesController::class, 'resolve'])->name('mentor.onedrive.resolve');
 
 
-    // Achievements (Cross-module)
+    // Overview & Progress (Cross-module)
     Route::group(['prefix' => 'dashboard', 'as' => 'student.'], function () {
         Route::get('/achievements', [\App\Http\Controllers\Student\AchievementController::class, 'index'])->name('dashboard.achievements');
+        Route::get('/mentor-overview', [\App\Http\Controllers\DashboardController::class, 'studentStats'])->name('dashboard.mentor-overview');
+        Route::get('/learning-progress', [\App\Http\Controllers\DashboardController::class, 'learningProgress'])->name('dashboard.learning-progress');
     });
 
     // Admin routes (core)

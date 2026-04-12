@@ -20,6 +20,7 @@ const menuConfig = [
         roles: ['student', 'mentor', 'admin'],
         items: [
             { label: 'My Courses', icon: 'book-open', href: '/dashboard/courses', routeName: 'student.courses.*', roles: ['student', 'mentor', 'admin'] },
+            { label: 'Learning Progress', icon: 'activity', href: '/dashboard/learning-progress', routeName: 'student.dashboard.learning-progress', roles: ['student', 'mentor', 'admin'] },
             { label: 'Course Catalog', icon: 'library', href: '/dashboard/catalog', routeName: 'student.catalog.*', roles: ['student', 'mentor', 'admin'] },
             { label: 'Certificates', icon: 'award', href: '/dashboard/certificates', routeName: 'student.dashboard.certificates', roles: ['student', 'mentor', 'admin'] },
             { label: 'Achievements', icon: 'trophy', href: '/dashboard/achievements', routeName: 'student.dashboard.achievements', roles: ['student', 'mentor', 'admin'] },
@@ -27,8 +28,9 @@ const menuConfig = [
     },
     {
         group: 'Mentor Area',
-        roles: ['mentor', 'admin'],
+        roles: ['student', 'mentor', 'admin'],
         items: [
+            { label: 'Mentor Overview', icon: 'presentation', href: '/dashboard/mentor-overview', routeName: 'student.dashboard.mentor-overview', roles: ['student', 'mentor', 'admin'] },
             { label: 'Course Builder', icon: 'pen-tool', href: '/dashboard/mentor/courses', routeName: 'mentor.courses.*', roles: ['mentor', 'admin'] },
             { label: 'My Students', icon: 'users', href: '/dashboard/mentor/students', routeName: 'mentor.students', roles: ['mentor', 'admin'] },
             { label: 'Submissions', icon: 'layers', href: '/dashboard/mentor/submissions', routeName: 'mentor.submissions.*', roles: ['mentor', 'admin'] },

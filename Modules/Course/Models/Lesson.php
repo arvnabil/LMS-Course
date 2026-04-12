@@ -27,6 +27,7 @@ class Lesson extends Model
         'thumbnail',
         'video_source',
         'video_id',
+        'duration_minutes',
         'file_url',
         'file_source',
         'file_id',
