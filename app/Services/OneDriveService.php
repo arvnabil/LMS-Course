@@ -170,6 +170,20 @@ class OneDriveService
     }
 
     /**
+     * Get the binary content of a file from OneDrive.
+     */
+    public function getFileContent(string $itemId)
+    {
+        $accessToken = $this->getAccessToken();
+        if (!$accessToken) return null;
+
+        $response = Http::withToken($accessToken)
+            ->get("https://graph.microsoft.com/v1.0/me/drive/items/{$itemId}/content");
+
+        return $response->successful() ? $response->body() : null;
+    }
+
+    /**
      * Upload a large file using an upload session (chunked).
      */
     public function uploadLargeFile($filePath, string $filename, string $folder = '')
