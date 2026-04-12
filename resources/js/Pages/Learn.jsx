@@ -1137,18 +1137,22 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                             const fileNameClean = (currentLesson.file_name || currentLesson.title || '').toLowerCase();
                             const mimeClean = (currentLesson.mime_type || '').toLowerCase();
 
-                            const isPpt = fileNameClean.endsWith('.pptx') || 
-                                          fileNameClean.endsWith('.ppt') || 
+                            // Broader PPT detection (checks extension, mime, and title keywords)
+                            const isPpt = fileNameClean.includes('.pptx') || 
+                                          fileNameClean.includes('.ppt') || 
                                           mimeClean.includes('presentation') || 
-                                          mimeClean.includes('powerpoint');
+                                          mimeClean.includes('powerpoint') ||
+                                          mimeClean.includes('officedocument.presentationml') ||
+                                          /presentation|powerpoint/i.test(currentLesson.title);
 
                             const isPdf = !isPpt && (
-                                          fileNameClean.endsWith('.pdf') || 
+                                          fileNameClean.includes('.pdf') || 
                                           mimeClean === 'application/pdf' || 
                                           currentLesson.file_url?.toLowerCase().includes('.pdf') ||
-                                          (currentLesson.type === 'file' && currentLesson.file_id?.length > 20 && !currentLesson.mime_type)
+                                          (fileNameClean && fileNameClean.endsWith('.pdf'))
                                           );
-
+                            
+                            // Only fallback to "Resource File" if not specifically identified
                             const isImage = !isPpt && !isPdf && (
                                             fileNameClean.match(/\.(jpg|jpeg|png|gif|webp|svg|bmp)$/i) || 
                                             mimeClean.startsWith('image/')
