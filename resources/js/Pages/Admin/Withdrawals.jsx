@@ -81,7 +81,8 @@ export default function Withdrawals({ withdrawals, filters }) {
 
                 {/* Table */}
                 <div className="bg-surface rounded-2xl border border-border overflow-hidden shadow-sm">
-                    <table className="w-full text-left">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left min-w-[1000px] lg:min-w-full">
                         <thead>
                             <tr className="border-b border-border bg-muted/50">
                                 <th className="px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Mentor</th>
@@ -131,6 +132,7 @@ export default function Withdrawals({ withdrawals, filters }) {
                         </tbody>
                     </table>
                 </div>
+            </div>
             </div>
 
             {/* Process Modal */}

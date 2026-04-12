@@ -52,8 +52,9 @@ export default function Withdrawals({ withdrawals, balance, totalEarnings, total
                 </div>
 
                 {/* Table */}
-                <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-                    <table className="w-full">
+                <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
+                    <div className="overflow-x-auto">
+                        <table className="w-full min-w-[1000px] lg:min-w-full">
                         <thead>
                             <tr className="border-b border-gray-100 bg-gray-50/50">
                                 <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
@@ -90,6 +91,7 @@ export default function Withdrawals({ withdrawals, balance, totalEarnings, total
                         </tbody>
                     </table>
                 </div>
+            </div>
 
                 {/* Pagination */}
                 {withdrawals?.links && (

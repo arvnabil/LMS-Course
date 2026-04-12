@@ -116,7 +116,7 @@ export default function Roles({ roles, permissions }) {
                 {/* Table */}
                 <div className="bg-surface rounded-2xl border border-border overflow-hidden shadow-sm">
                     <div className="overflow-x-auto">
-                        <table className="w-full min-w-[800px]">
+                        <table className="w-full min-w-[1000px] lg:min-w-full">
                         <thead>
                             <tr className="border-b border-border bg-muted/50">
                                 <th className="px-6 py-4 w-12">

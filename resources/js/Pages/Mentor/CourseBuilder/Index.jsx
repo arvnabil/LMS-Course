@@ -47,7 +47,7 @@ export default function Index({ auth, courses = [] }) {
                 {/* Courses Table/Grid */}
                 <div className="bg-surface rounded-2xl border border-border overflow-hidden shadow-sm">
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse min-w-[1000px]">
+                        <table className="w-full text-left border-collapse min-w-[1000px] lg:min-w-full">
                             <thead>
                                 <tr className="border-b border-border bg-muted/50">
                                     <th className="px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Course Info</th>
