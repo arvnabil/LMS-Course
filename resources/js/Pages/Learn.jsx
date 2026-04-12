@@ -714,7 +714,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                                                 router.get(route('student.learn', [course.slug]), { quiz_id: item.id });
                                                             }
                                                         }}
-                                                        className={`w-full text-left px-5 py-3.5 rounded-xl flex items-center gap-4 transition-all duration-500 group border-2 ${
+                                                        className={`w-full text-left px-3 md:px-5 py-2.5 md:py-3.5 rounded-xl flex items-center gap-4 transition-all duration-500 group border-2 ${
                                                             isActive 
                                                                 ? 'bg-primary text-white shadow-xl shadow-primary/25 border-primary scale-[1.02] z-10' 
                                                                 : 'bg-transparent border-transparent hover:bg-gray-50 dark:hover:bg-white/5 hover:border-border/30'
@@ -1217,7 +1217,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                         <button 
                                             onClick={goToPrevious}
                                             disabled={!prevLesson}
-                                            className="px-6 py-3 rounded-2xl border border-gray-200 bg-gray-100 text-gray-400 font-bold text-xs uppercase tracking-widest hover:border-gray-200 hover:text-foreground/70 transition-all disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer"
+                                            className="px-4 md:px-6 py-2.5 md:py-3 rounded-2xl border border-gray-200 bg-gray-100 text-gray-400 font-bold text-[10px] md:text-xs uppercase tracking-widest hover:border-gray-200 hover:text-foreground/70 transition-all disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer"
                                         >
                                             ← Previous
                                         </button>
@@ -1228,7 +1228,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                                 forceBlockProgress || 
                                                 (!currentLesson?.is_quiz && !isAlreadyCompleted && currentLesson?.type !== 'video')
                                             }
-                                            className={`px-8 py-3 rounded-2xl font-bold text-xs uppercase tracking-widest transition-all cursor-pointer ${
+                                            className={`px-6 md:px-8 py-2.5 md:py-3 rounded-2xl font-bold text-[10px] md:text-xs uppercase tracking-widest transition-all cursor-pointer ${
                                                 ((currentLesson?.type === 'video' && !isAlreadyCompleted && !videoWatched) || forceBlockProgress || (!currentLesson?.is_quiz && !isAlreadyCompleted && currentLesson?.type !== 'video'))
                                                     ? 'bg-gray-100 text-gray-300 border border-gray-100 cursor-not-allowed' 
                                                     : 'bg-primary text-white shadow-xl shadow-primary/20 hover:bg-primary-hover hover:scale-[1.02] active:scale-95'

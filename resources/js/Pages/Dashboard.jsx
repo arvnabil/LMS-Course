@@ -106,7 +106,7 @@ export default function Dashboard({
                                 <p className="text-white/60 font-bold text-sm leading-relaxed mb-8">Detailed course tracking helps you focus on what matters most.</p>
                                 <Link 
                                     href="/dashboard/learning-progress"
-                                    className="block w-full py-4 px-6 bg-white text-primary rounded-2xl text-center font-black text-xs uppercase tracking-widest hover:scale-[1.02] transition-transform"
+                                    className="block w-full py-3 md:py-4 px-6 bg-white text-primary rounded-2xl text-center font-black text-xs uppercase tracking-widest hover:scale-[1.02] transition-transform"
                                 >
                                     Deep Dive Metrics
                                 </Link>

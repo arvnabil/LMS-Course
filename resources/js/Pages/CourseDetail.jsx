@@ -57,14 +57,14 @@ const CourseCard = ({ course, isEnrolled, onPlayClick, auth, orgPricing }) => (
                 {isEnrolled ? (
                     <Link
                         href={route('student.learn', course.slug)}
-                        className="w-full bg-sidebar-active text-white py-4 rounded-[20px] font-extrabold text-[13px] uppercase tracking-[0.15em] shadow-xl shadow-sidebar-active/20 hover:bg-sidebar-active/90 transition-all translate-y-0 hover:-translate-y-1 block text-center"
+                        className="w-full bg-sidebar-active text-white py-3 md:py-4 rounded-[20px] font-extrabold text-[13px] uppercase tracking-[0.15em] shadow-xl shadow-sidebar-active/20 hover:bg-sidebar-active/90 transition-all translate-y-0 hover:-translate-y-1 block text-center"
                     >
                         Continue Learning
                     </Link>
                 ) : (
                     <Link
                         href={auth?.user ? route('payment.checkout', course.slug) : route('login')}
-                        className="w-full bg-primary text-white py-4 rounded-[20px] font-extrabold text-[13px] uppercase tracking-[0.15em] shadow-xl shadow-primary/20 hover:bg-primary-hover transition-all translate-y-0 hover:-translate-y-1 block text-center"
+                        className="w-full bg-primary text-white py-3 md:py-4 rounded-[20px] font-extrabold text-[13px] uppercase tracking-[0.15em] shadow-xl shadow-primary/20 hover:bg-primary-hover transition-all translate-y-0 hover:-translate-y-1 block text-center"
                     >
                         {orgPricing?.is_org_sponsored ? 'Enroll Now' : (Number(course.price) === 0 ? 'Enroll for Free' : 'Buy Course Now')}
                     </Link>

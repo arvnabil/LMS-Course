@@ -63,7 +63,7 @@ export default function Submissions({ auth, submissions, filters }) {
                             <button
                                 key={status}
                                 onClick={() => applyFilters(status)}
-                                className={`px-6 py-2.5 rounded-[18px] text-xs font-extrabold uppercase tracking-widest transition-all ${
+                                className={`px-4 md:px-6 py-2 md:py-2.5 rounded-[18px] text-[10px] md:text-xs font-extrabold uppercase tracking-widest transition-all ${
                                     statusFilter === status 
                                         ? 'bg-white text-foreground shadow-sm' 
                                         : 'text-gray-400 hover:text-gray-600'
@@ -116,7 +116,7 @@ export default function Submissions({ auth, submissions, filters }) {
                                         <td className="px-10 py-8 text-right">
                                             <button 
                                                 onClick={() => openReview(sub)}
-                                                className={`px-6 py-3 rounded-full text-xs font-extrabold uppercase tracking-widest transition-all shadow-lg ${
+                                                className={`px-4 md:px-6 py-2 md:py-3 rounded-full text-[10px] md:text-xs font-extrabold uppercase tracking-widest transition-all shadow-lg ${
                                                     sub.status === 'pending'
                                                         ? 'bg-primary text-white shadow-primary/20 hover:scale-105 active:scale-95'
                                                         : 'bg-muted text-gray-400 hover:bg-gray-100'
@@ -222,7 +222,7 @@ export default function Submissions({ auth, submissions, filters }) {
                                                 <button
                                                     type="button"
                                                     onClick={() => form.setData('status', 'approved')}
-                                                    className={`flex-1 py-4 rounded-[18px] text-[10px] font-extrabold uppercase tracking-widest border-2 transition-all ${
+                                                    className={`flex-1 py-3 md:py-4 rounded-[18px] text-[10px] font-extrabold uppercase tracking-widest border-2 transition-all ${
                                                         form.data.status === 'approved'
                                                             ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-500/30'
                                                             : 'bg-white border-gray-100 text-gray-400 hover:border-emerald-200'
@@ -233,7 +233,7 @@ export default function Submissions({ auth, submissions, filters }) {
                                                 <button
                                                     type="button"
                                                     onClick={() => form.setData('status', 'rejected')}
-                                                    className={`flex-1 py-4 rounded-[18px] text-[10px] font-extrabold uppercase tracking-widest border-2 transition-all ${
+                                                    className={`flex-1 py-3 md:py-4 rounded-[18px] text-[10px] font-extrabold uppercase tracking-widest border-2 transition-all ${
                                                         form.data.status === 'rejected'
                                                             ? 'bg-rose-500 border-rose-500 text-white shadow-lg shadow-rose-500/30'
                                                             : 'bg-white border-gray-100 text-gray-400 hover:border-rose-200'
@@ -271,14 +271,14 @@ export default function Submissions({ auth, submissions, filters }) {
                                         <button 
                                             type="button" 
                                             onClick={() => setIsReviewModalOpen(false)} 
-                                            className="px-8 py-4 text-[10px] font-extrabold uppercase tracking-widest text-gray-400 hover:text-foreground transition-all"
+                                            className="px-6 md:px-8 py-3 md:py-4 text-[10px] font-extrabold uppercase tracking-widest text-gray-400 hover:text-foreground transition-all"
                                         >
                                             Cancel
                                         </button>
                                         <button 
                                             type="submit" 
                                             disabled={form.processing || !form.data.status} 
-                                            className="bg-primary text-white px-12 py-4 rounded-full text-[10px] font-extrabold uppercase tracking-widest shadow-xl shadow-primary/20 hover:bg-primary/90 hover:-translate-y-1 active:translate-y-0 transition-all disabled:opacity-30 disabled:hover:translate-y-0"
+                                            className="bg-primary text-white px-8 md:px-12 py-3 md:py-4 rounded-full text-[10px] font-extrabold uppercase tracking-widest shadow-xl shadow-primary/20 hover:bg-primary/90 hover:-translate-y-1 active:translate-y-0 transition-all disabled:opacity-30 disabled:hover:translate-y-0"
                                         >
                                             {form.processing ? 'Saving...' : 'Confirm Review'}
                                         </button>
