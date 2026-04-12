@@ -1134,35 +1134,30 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                         {/* File Display Area */}
                         {currentLesson?.type === 'file' && currentLesson?.file_id && (() => {
                             const streamUrl = `/onedrive/stream/${currentLesson.file_id}?t=${new Date(currentLesson.updated_at).getTime()}`;
-                            const isPdf = currentLesson.file_name?.toLowerCase().endsWith('.pdf') || 
-                                          currentLesson.mime_type === 'application/pdf' || 
-                                          currentLesson.title?.toLowerCase().includes('.pdf') || 
+                            const fileNameClean = (currentLesson.file_name || currentLesson.title || '').toLowerCase();
+                            const mimeClean = (currentLesson.mime_type || '').toLowerCase();
+
+                            const isPpt = fileNameClean.endsWith('.pptx') || 
+                                          fileNameClean.endsWith('.ppt') || 
+                                          mimeClean.includes('presentation') || 
+                                          mimeClean.includes('powerpoint');
+
+                            const isPdf = !isPpt && (
+                                          fileNameClean.endsWith('.pdf') || 
+                                          mimeClean === 'application/pdf' || 
                                           currentLesson.file_url?.toLowerCase().includes('.pdf') ||
-                                          currentLesson.file_url?.toLowerCase().includes('pdf') ||
-                                          currentLesson.file_url?.toLowerCase().includes('.pdf?') ||
-                                          currentLesson.file_url?.toLowerCase().includes('application/pdf') ||
-                                          (currentLesson.type === 'file' && currentLesson.file_id?.length > 20 && !currentLesson.mime_type); // Fallback for OneDrive IDs
+                                          (currentLesson.type === 'file' && currentLesson.file_id?.length > 20 && !currentLesson.mime_type)
+                                          );
 
-                            const isImage = currentLesson.file_name?.match(/\.(jpg|jpeg|png|gif|webp|svg|bmp)$/i) || 
-                                            currentLesson.mime_type?.startsWith('image/') || 
-                                            /\.(jpg|jpeg|png|gif|webp|svg|bmp)$/i.test(currentLesson.title) || 
-                                            /\.(jpg|jpeg|png|gif|webp|svg|bmp)$/i.test(currentLesson.file_url) ||
-                                            currentLesson.file_url?.toLowerCase().includes('image') ||
-                                            currentLesson.file_url?.toLowerCase().includes('picture') ||
-                                            currentLesson.file_url?.toLowerCase().includes('/img/') ||
-                                            currentLesson.mime_type === 'image/jpeg' || 
-                                            currentLesson.mime_type === 'image/png';
+                            const isImage = !isPpt && !isPdf && (
+                                            fileNameClean.match(/\.(jpg|jpeg|png|gif|webp|svg|bmp)$/i) || 
+                                            mimeClean.startsWith('image/')
+                                            );
 
-                             const isText = currentLesson.file_name?.toLowerCase().endsWith('.txt') || 
-                                            currentLesson.mime_type === 'text/plain' || 
-                                            currentLesson.file_url?.toLowerCase().includes('.txt') ||
-                                            currentLesson.title?.toLowerCase().includes('.txt') ||
-                                            currentLesson.file_url?.toLowerCase().includes('text/plain');
-                             
-                             const isPpt = currentLesson.file_name?.match(/\.(pptx|ppt)$/i) || 
-                                           currentLesson.mime_type?.includes('presentation') ||
-                                           currentLesson.mime_type?.includes('powerpoint') ||
-                                           /\.(pptx|ppt)$/i.test(currentLesson.title);
+                            const isText = !isPpt && !isPdf && !isImage && (
+                                           fileNameClean.endsWith('.txt') || 
+                                           mimeClean === 'text/plain'
+                                           );
 
                              const fileName = currentLesson.file_name || currentLesson.title;
                             
