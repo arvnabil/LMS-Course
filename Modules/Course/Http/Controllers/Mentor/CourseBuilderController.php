@@ -15,8 +15,8 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Str;
 use App\Models\OneDrivePermission;
-use App\Services\OneDriveService;
 use App\Services\FileStorageService;
+use App\Services\OneDriveService;
 
 class CourseBuilderController extends Controller
 {
@@ -686,10 +686,14 @@ class CourseBuilderController extends Controller
             ->with('certificateTemplate')
             ->get()
             ->map(function ($c) {
+                $template = $c->certificateTemplate;
+                if ($template && $template->background_image && !str_starts_with($template->background_image, '/storage/')) {
+                    $template->background_image = route('onedrive.public.show', $template->background_image);
+                }
                 return [
                     'id' => $c->id,
                     'title' => $c->title,
-                    'template' => $c->certificateTemplate
+                    'template' => $template
                 ];
             });
 
@@ -709,6 +713,18 @@ class CourseBuilderController extends Controller
                 'signature_image' => null,
                 'layout_data' => $defaultLayout,
             ];
+        }
+
+        if ($template) {
+            $templateModel = is_array($template) ? (object)$template : $template;
+            // Resolve OneDrive IDs to proxy URLs for frontend preview
+            if (isset($templateModel->background_image) && $templateModel->background_image && !str_starts_with($templateModel->background_image, '/storage/')) {
+                if (is_array($template)) {
+                    $template['background_image'] = route('onedrive.public.show', $template['background_image']);
+                } else {
+                    $template->background_image = route('onedrive.public.show', $template->background_image);
+                }
+            }
         }
 
         return Inertia::render('Admin/CertificateDesigner', [
@@ -750,13 +766,15 @@ class CourseBuilderController extends Controller
         }
 
         if ($request->hasFile('background_image')) {
-            // Only delete if it was a local file previously
-            if ($imagePath && str_starts_with($imagePath, '/storage/')) {
-                FileStorageService::delete($imagePath);
-            }
+            FileStorageService::delete($imagePath);
             $imagePath = FileStorageService::store($request->file('background_image'), 'certificates/templates');
         } elseif ($request->filled('background_image')) {
             $imagePath = $request->background_image;
+        }
+    
+        // Special case for Imports: if the imagePath is a full proxy URL, extract base
+        if ($imagePath && str_contains($imagePath, '/storage/onedrive/')) {
+            $imagePath = basename($imagePath);
         }
 
         if ($request->hasFile('signature_image')) {
@@ -839,10 +857,13 @@ class CourseBuilderController extends Controller
 
         $layout = is_string($template->layout_data) ? json_decode($template->layout_data, true) : $template->layout_data;
 
+        $bg_base64 = (new \Modules\Certificate\Services\CertificateService())->getImageBase64($template->background_image);
+
         $data = [
             'certificate' => $dummyCertificate,
             'template' => $template,
             'layout' => $layout,
+            'bg_base64' => $bg_base64,
         ];
 
         // Generate PDF

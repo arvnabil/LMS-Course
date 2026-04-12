@@ -96,7 +96,7 @@ class CertificateService
     /**
      * Get Base64 encoded image data from path or URL.
      */
-    private function getImageBase64(?string $path): ?string
+    public function getImageBase64(?string $path): ?string
     {
         if (!$path) return null;
 
@@ -105,6 +105,13 @@ class CertificateService
             $mimeType = 'image/jpeg'; // Default
 
             if (str_starts_with($path, '/storage/')) {
+                // 1. Handle OneDrive Proxy URL (Internal)
+                if (str_contains($path, '/storage/onedrive/')) {
+                    $id = basename($path);
+                    return $this->getOneDriveImageBase64($id);
+                }
+
+                // 2. Handle Local Storage (Public disk)
                 $localPath = str_replace('/storage/', '', $path);
                 if (Storage::disk('public')->exists($localPath)) {
                     $imageData = Storage::disk('public')->get($localPath);
@@ -112,20 +119,17 @@ class CertificateService
                 }
             } else {
                 // Remote URL or OneDrive ID
-                $url = $path;
-
-                // If it's a OneDrive ID (doesn't look like a URL)
+                
+                // If it's a legacy OneDrive ID (doesn't look like a URL and no /storage/ prefix)
                 if (!filter_var($path, FILTER_VALIDATE_URL) && !str_starts_with($path, 'http')) {
-                    $oneDrive = new OneDriveService();
-                    $url = $oneDrive->getDownloadUrl($path);
+                    return $this->getOneDriveImageBase64($path);
                 }
 
-                if ($url) {
-                    $response = Http::get($url);
-                    if ($response->successful()) {
-                        $imageData = $response->body();
-                        $mimeType = $response->header('Content-Type') ?: 'image/jpeg';
-                    }
+                // Remote URL
+                $response = Http::get($path);
+                if ($response->successful()) {
+                    $imageData = $response->body();
+                    $mimeType = $response->header('Content-Type') ?: 'image/jpeg';
                 }
             }
 
@@ -139,6 +143,24 @@ class CertificateService
             ]);
         }
 
+        return null;
+    }
+
+    /**
+     * Helper to get OneDrive image data and encode to Base64.
+     */
+    private function getOneDriveImageBase64(string $id): ?string
+    {
+        try {
+            $oneDrive = new OneDriveService();
+            $data = $oneDrive->getFileContent($id);
+            if ($data) {
+                // Return as JPEG base64
+                return 'data:image/jpeg;base64,' . base64_encode($data);
+            }
+        } catch (\Exception $e) {
+            \Log::error('OneDrive Base64 Fetch Failed', ['id' => $id, 'error' => $e->getMessage()]);
+        }
         return null;
     }
 }

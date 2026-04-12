@@ -7,6 +7,7 @@ use Modules\Certificate\Models\CertificateTemplate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
+use App\Services\FileStorageService;
 
 class CertificateTemplateController extends Controller
 {
@@ -49,8 +50,7 @@ class CertificateTemplateController extends Controller
         ]);
 
         if ($request->hasFile('background_image')) {
-            $path = $request->file('background_image')->store('certificates/templates', 'public');
-            $validated['background_image'] = '/storage/' . $path;
+            $validated['background_image'] = FileStorageService::store($request->file('background_image'), 'certificates/templates');
         } else {
             $validated['background_image'] = $request->background_image;
         }
@@ -73,6 +73,11 @@ class CertificateTemplateController extends Controller
 
     public function edit(CertificateTemplate $certificateTemplate)
     {
+        // Resolve OneDrive IDs to proxy URLs for frontend preview
+        if ($certificateTemplate->background_image && !str_starts_with($certificateTemplate->background_image, '/storage/')) {
+            $certificateTemplate->background_image = route('onedrive.public.show', $certificateTemplate->background_image);
+        }
+
         return Inertia::render('Admin/CertificateDesigner', [
             'template' => $certificateTemplate,
         ]);
@@ -88,12 +93,9 @@ class CertificateTemplateController extends Controller
         ]);
 
         if ($request->hasFile('background_image')) {
-            if ($certificateTemplate->background_image && str_starts_with($certificateTemplate->background_image, '/storage/')) {
-                $oldPath = str_replace('/storage/', '', $certificateTemplate->background_image);
-                Storage::disk('public')->delete($oldPath);
-            }
-            $path = $request->file('background_image')->store('certificates/templates', 'public');
-            $validated['background_image'] = '/storage/' . $path;
+            // Use centralized FileStorageService to handle deletion of old asset correctly
+            FileStorageService::delete($certificateTemplate->background_image);
+            $validated['background_image'] = FileStorageService::store($request->file('background_image'), 'certificates/templates');
         } else {
             $validated['background_image'] = $request->background_image ?? $certificateTemplate->background_image;
         }
@@ -123,8 +125,7 @@ class CertificateTemplateController extends Controller
         }
 
         if ($certificateTemplate->background_image) {
-            $oldPath = str_replace('/storage/', '', $certificateTemplate->background_image);
-            Storage::disk('public')->delete($oldPath);
+            FileStorageService::delete($certificateTemplate->background_image);
         }
 
         $certificateTemplate->delete();
