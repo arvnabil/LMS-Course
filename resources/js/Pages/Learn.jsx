@@ -862,6 +862,17 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                                                             </span>
                                                                         </div>
                                                                     )}
+                                                                    {submission.mentor_feedback && (
+                                                                        <div className="mt-6 p-5 bg-primary/5 rounded-3xl border border-primary/10 text-left animate-in fade-in slide-in-from-top-4 duration-700 w-full max-w-lg mx-auto">
+                                                                            <div className="flex items-center gap-2 mb-3">
+                                                                                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm">💬</div>
+                                                                                <span className="text-[10px] font-black text-primary uppercase tracking-widest">Feedback dari Mentor</span>
+                                                                            </div>
+                                                                            <p className="text-[13px] text-gray-600 dark:text-gray-300 leading-relaxed font-medium italic pl-1 border-l-2 border-primary/20 ml-4">
+                                                                                "{submission.mentor_feedback}"
+                                                                            </p>
+                                                                        </div>
+                                                                    )}
                                                                 </div>
                                                             );
                                                         }
@@ -879,14 +890,14 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                                         }
                                                         setIsQuizPlaying(true);
                                                     }}
-                                                    className={`w-full inline-flex items-center justify-center gap-4 px-10 py-6 rounded-full font-extrabold shadow-xl transition-all hover:scale-[1.02] active:scale-95 cursor-pointer ${
+                                                    className={`w-full inline-flex items-center justify-center gap-3 md:gap-4 px-6 py-3.5 md:px-10 md:py-6 rounded-full font-extrabold shadow-xl transition-all hover:scale-[1.02] active:scale-95 cursor-pointer ${
                                                         isSubmissionPending ? 'bg-gray-400 text-white cursor-not-allowed opacity-50' : 'bg-primary text-white shadow-primary/20 hover:bg-primary-hover'
                                                     }`}
                                                 >
-                                                    <span className="text-sm font-extrabold uppercase tracking-widest">
+                                                    <span className="text-xs md:text-sm font-extrabold uppercase tracking-widest">
                                                         {isSubmissionPending ? 'Pending Review' : (isAlreadyCompleted ? 'RETAKE ASSESSMENT' : 'START ASSESSMENT')}
                                                     </span>
-                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="md:w-5 md:h-5"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
                                                 </button>
                                                 {isAlreadyCompleted && (
                                                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Anda dapat mengerjakan ulang untuk meningkatkan skor.</p>
@@ -1148,13 +1159,13 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                             return (
                                 <div className="w-full flex flex-col bg-white dark:bg-zinc-900/30">
                                     {/* Premium File Header */}
-                                    <div className="flex items-center justify-between px-6 py-4 bg-white dark:bg-zinc-950 border-b border-gray-100 dark:border-white/5 shadow-sm z-10">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-xl">
+                                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-6 py-4 bg-white dark:bg-zinc-950 border-b border-gray-100 dark:border-white/5 shadow-sm z-10 gap-4 sm:gap-2">
+                                        <div className="flex items-center gap-3 w-full sm:w-auto overflow-hidden">
+                                            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-xl shrink-0">
                                                 {isPdf ? '📄' : isImage ? '🖼️' : '📁'}
                                             </div>
-                                            <div>
-                                                <h3 className="text-sm font-bold text-gray-900 truncate max-w-[200px] sm:max-w-md">
+                                            <div className="min-w-0 flex-1">
+                                                <h3 className="text-sm font-bold text-gray-900 dark:text-white truncate max-w-full">
                                                     {fileName}
                                                 </h3>
                                                 <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">
@@ -1167,7 +1178,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                             download={fileName}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-xl text-xs font-bold shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all group"
+                                            className="flex items-center justify-center gap-2 px-6 py-2.5 bg-primary text-white rounded-xl text-xs font-bold shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all group w-full sm:w-auto"
                                         >
                                             <span className="group-hover:translate-y-0.5 transition-transform">⬇️</span>
                                             Download
@@ -1258,11 +1269,10 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                             onClick={markAsComplete}
                                             disabled={
                                                 (currentLesson?.type === 'video' && !isAlreadyCompleted && !videoWatched) || 
-                                                forceBlockProgress || 
-                                                (!currentLesson?.is_quiz && !isAlreadyCompleted && currentLesson?.type !== 'video')
+                                                forceBlockProgress
                                             }
                                             className={`px-6 md:px-8 py-2.5 md:py-3 rounded-2xl font-bold text-[10px] md:text-xs uppercase tracking-widest transition-all cursor-pointer ${
-                                                ((currentLesson?.type === 'video' && !isAlreadyCompleted && !videoWatched) || forceBlockProgress || (!currentLesson?.is_quiz && !isAlreadyCompleted && currentLesson?.type !== 'video'))
+                                                ((currentLesson?.type === 'video' && !isAlreadyCompleted && !videoWatched) || forceBlockProgress)
                                                     ? 'bg-gray-100 text-gray-300 border border-gray-100 cursor-not-allowed' 
                                                     : 'bg-primary text-white shadow-xl shadow-primary/20 hover:bg-primary-hover hover:scale-[1.02] active:scale-95'
                                             }`}

@@ -134,7 +134,7 @@ export default function QuizPlayerInline({ quiz, onCancel }) {
 
                             <button
                                 onClick={onCancel}
-                                className="bg-foreground text-surface w-full py-6 rounded-full font-black uppercase tracking-widest shadow-2xl hover:scale-[1.02] transition-all cursor-pointer"
+                                className="bg-foreground text-surface w-full py-4 md:py-6 rounded-full text-xs md:text-sm font-black uppercase tracking-widest shadow-2xl hover:scale-[1.02] transition-all cursor-pointer"
                             >
                                 Continue Watching
                             </button>
@@ -184,7 +184,7 @@ export default function QuizPlayerInline({ quiz, onCancel }) {
                                     <button
                                         type="submit"
                                         disabled={processing}
-                                        className="bg-primary text-white w-full py-5 rounded-full font-extrabold shadow-xl shadow-primary/20 hover:bg-primary-hover transition-all translate-y-0 hover:-translate-y-1 disabled:opacity-50 cursor-pointer"
+                                        className="bg-primary text-white w-full py-4 md:py-5 rounded-full text-xs md:text-sm font-extrabold shadow-xl shadow-primary/20 hover:bg-primary-hover transition-all translate-y-0 hover:-translate-y-1 disabled:opacity-50 cursor-pointer"
                                     >
                                         {processing ? 'Uploading Submission...' : 'Send Submission'}
                                     </button>
@@ -251,7 +251,7 @@ export default function QuizPlayerInline({ quiz, onCancel }) {
                                     <button
                                         onClick={submitQuiz}
                                         disabled={submitting}
-                                        className="bg-primary text-white w-full py-5 rounded-full font-extrabold shadow-xl shadow-primary/20 hover:bg-primary-hover transition-all translate-y-0 hover:-translate-y-1 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="bg-primary text-white w-full py-4 md:py-5 rounded-full text-xs md:text-sm font-extrabold shadow-xl shadow-primary/20 hover:bg-primary-hover transition-all translate-y-0 hover:-translate-y-1 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         {submitting ? 'Submitting...' : 'Submit Assessment'}
                                     </button>
@@ -273,7 +273,7 @@ export default function QuizPlayerInline({ quiz, onCancel }) {
                         <button
                             onClick={nextQuestion}
                             disabled={!selectedOptions[currentQuestion?.id] || (Array.isArray(selectedOptions[currentQuestion?.id]) && selectedOptions[currentQuestion?.id].length === 0)}
-                            className="bg-primary text-white px-10 py-4 rounded-full font-extrabold text-sm shadow-xl shadow-primary/20 hover:bg-primary-hover transition-all disabled:opacity-50 disabled:translate-y-0 cursor-pointer"
+                            className="bg-primary text-white px-8 md:px-10 py-3 md:py-4 rounded-full font-extrabold text-xs md:text-sm shadow-xl shadow-primary/20 hover:bg-primary-hover transition-all disabled:opacity-50 disabled:translate-y-0 cursor-pointer"
                         >
                             {currentQuestionIdx < questions.length - 1 ? 'Next Question →' : 'Finish Quiz'}
                         </button>
