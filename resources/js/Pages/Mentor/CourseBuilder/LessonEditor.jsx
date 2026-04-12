@@ -10,6 +10,20 @@ import 'react-quill/dist/quill.snow.css';
 
 export default function LessonEditor({ auth, lesson, onedrive_permissions, initial_folder_id }) {
     console.log("Lesson Data Loaded:", lesson);
+
+    const formatDuration = (ms) => {
+        if (!ms) return null;
+        const seconds = Math.floor(ms / 1000);
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = seconds % 60;
+        
+        if (h > 0) {
+            return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
+        return `${m}:${s.toString().padStart(2, '0')}`;
+    };
+
     const initialSource = lesson.type === 'file' 
         ? ((lesson.file_source && lesson.file_source !== '') ? lesson.file_source : 'onedrive_shared_link')
         : ((lesson.video_source && lesson.video_source !== '') ? lesson.video_source : 'youtube');
@@ -494,7 +508,10 @@ export default function LessonEditor({ auth, lesson, onedrive_permissions, initi
                                                                     <span className="text-xl">{file.is_folder ? '📁' : '🎬'}</span>
                                                                     <div>
                                                                         <p className={`text-xs font-bold truncate max-w-[150px] ${data.video_id === file.id ? 'text-primary' : ''}`}>{file.name}</p>
-                                                                        <p className="text-[9px] text-gray-400 font-medium">{(file.size / 1024 / 1024).toFixed(1)} MB</p>
+                                                                        <p className="text-[9px] text-gray-400 font-medium">
+                                                                            {(file.size / 1024 / 1024).toFixed(1)} MB 
+                                                                            {file.duration && ` • ${formatDuration(file.duration)}`}
+                                                                        </p>
                                                                     </div>
                                                                 </div>
                                                                 {!file.is_folder && file.is_video && (

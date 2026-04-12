@@ -30,6 +30,7 @@ class OneDriveFilesController extends Controller
                 'name' => $item['name'],
                 'is_folder' => isset($item['folder']),
                 'is_video' => isset($item['video']) || (isset($item['file']['mimeType']) && str_starts_with($item['file']['mimeType'], 'video/')),
+                'duration' => $item['video']['duration'] ?? null, // In milliseconds from Graph API
                 'size' => $item['size'] ?? 0,
                 'updated_at' => $item['lastModifiedDateTime'] ?? null,
             ];
