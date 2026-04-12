@@ -28,6 +28,15 @@ export default function LessonEditor({ auth, lesson, onedrive_permissions, initi
     
     const { data, setData, post, processing, errors, transform } = useForm({
         duration_minutes: lesson.duration_minutes || '',
+        content: lesson.content || '',
+        video_source: lesson.video_source || '',
+        video_id: lesson.video_id || '',
+        video_url: lesson.video_url || '',
+        file_source: lesson.file_source || '',
+        file_id: lesson.file_id || '',
+        file_url: lesson.file_url || '',
+        file_name: lesson.file_name || '',
+        mime_type: lesson.mime_type || '',
         thumbnail: null,
         _method: 'PUT'
     });
