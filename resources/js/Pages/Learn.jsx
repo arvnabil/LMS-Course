@@ -513,6 +513,16 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
             .join(":");
     };
 
+    const formatMinutes = (minutes) => {
+        if (!minutes || minutes <= 0) return null;
+        const h = Math.floor(minutes / 60);
+        const m = minutes % 60;
+        if (h > 0) {
+            return m > 0 ? `${h}h ${m}m` : `${h}h`;
+        }
+        return `${m}m`;
+    };
+
     const handleResume = () => {
         if (resumeTime > 0) {
             if (playerRef.current) {
@@ -687,6 +697,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                             <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6 scrollbar-hide">
                                 {course.sections?.map((section, sIdx) => {
                                     const isExpanded = expandedSections.includes(section.id);
+                                    const sectionDuration = section.lessons?.reduce((acc, l) => acc + (parseInt(l.duration_minutes) || 0), 0) || 0;
                                     
                                     return (
                                     <div key={section.id} className="space-y-2">
@@ -695,7 +706,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                             className="px-6 py-4 flex items-center justify-between cursor-pointer group hover:bg-gray-50 dark:hover:bg-white/5 transition-colors border-b border-border/40"
                                         >
                                             <div className="space-y-0.5">
-                                                <p className="text-[9px] font-black text-primary/60 dark:text-primary-foreground/40 uppercase tracking-[0.2em]">Module {sIdx + 1}</p>
+                                                <p className="text-[9px] font-black text-primary/60 dark:text-primary-foreground/40 uppercase tracking-[0.2em]">Module {sIdx + 1} {sectionDuration > 0 && ` • ${formatMinutes(sectionDuration)}`}</p>
                                                 <h3 className="text-[11px] font-black text-foreground/70 group-hover:text-primary transition-colors uppercase tracking-wider line-clamp-1">{section.title}</h3>
                                             </div>
                                             <div className={`w-6 h-6 rounded-lg bg-gray-100 dark:bg-muted/50 flex items-center justify-center text-gray-400 group-hover:text-primary transition-all duration-300 ${isExpanded ? 'rotate-180 bg-primary/10 text-primary' : ''}`}>
@@ -773,6 +784,11 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                                         <span className={`text-[13px] font-bold truncate transition-colors ${isActive ? 'text-white' : 'text-foreground/80 group-hover:text-foreground'}`}>
                                                             {item.title}
                                                         </span>
+                                                        {item.duration_minutes > 0 && (
+                                                            <span className={`text-[9px] font-bold tabular-nums opacity-60 ${isActive ? 'text-white' : ''}`}>
+                                                                {formatMinutes(item.duration_minutes)}
+                                                            </span>
+                                                        )}
                                                         {!isLesson && (
                                                             <span className={`ml-auto text-[8px] font-black uppercase tracking-[0.1em] px-2 py-1 rounded-lg border transition-all ${
                                                                 isActive 

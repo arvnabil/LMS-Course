@@ -146,6 +146,16 @@ export default function CourseDetail({ course = {}, isDashboard = false, isEnrol
         return `${isQuiz ? 'quiz' : 'lesson'}-${item.id}`;
     };
 
+    const formatMinutes = (minutes) => {
+        if (!minutes || minutes <= 0) return null;
+        const h = Math.floor(minutes / 60);
+        const m = minutes % 60;
+        if (h > 0) {
+            return m > 0 ? `${h}h ${m}m` : `${h}h`;
+        }
+        return `${m}m`;
+    };
+
     const itemStates = useMemo(() => {
         const states = {};
         if (!isEnrolled || !enrollment) return states;
@@ -432,6 +442,7 @@ export default function CourseDetail({ course = {}, isDashboard = false, isEnrol
                                 {course.sections?.sort((a,b) => a.order - b.order).map((section, idx) => {
                                     const isExpanded = expandedSections.includes(section.id);
                                     const itemsCount = (section.lessons?.length || 0) + (section.quizzes?.length || 0);
+                                    const sectionDuration = section.lessons?.reduce((acc, l) => acc + (parseInt(l.duration_minutes) || 0), 0) || 0;
 
                                     return (
                                         <div key={section.id} className="bg-surface rounded-[32px] overflow-hidden border border-border shadow-sm transition-all duration-300">
@@ -446,7 +457,7 @@ export default function CourseDetail({ course = {}, isDashboard = false, isEnrol
                                                 </div>
                                                 <div className="flex items-center gap-4">
                                                     <span className="text-[10px] font-bold text-white uppercase tracking-widest bg-primary px-3 py-1 rounded-lg">
-                                                        {itemsCount} ITEMS
+                                                        {itemsCount} ITEMS {sectionDuration > 0 && ` • ${formatMinutes(sectionDuration)}`}
                                                     </span>
                                                     <div className={`w-8 h-8 rounded-full bg-muted/50 flex items-center justify-center text-muted-foreground transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
                                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
@@ -490,6 +501,11 @@ export default function CourseDetail({ course = {}, isDashboard = false, isEnrol
                                                                     )}
                                                                 </div>
                                                                 <div className={`ml-auto flex items-center gap-4 transition-colors ${isUnlocked ? 'text-muted-foreground group-hover:text-primary' : 'text-muted-foreground/40'}`}>
+                                                                    {item.duration_minutes > 0 && (
+                                                                        <span className="text-[10px] font-bold tabular-nums pr-1 opacity-70">
+                                                                            {formatMinutes(item.duration_minutes)}
+                                                                        </span>
+                                                                    )}
                                                                     {isLockedByProgress ? (
                                                                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> // Lock Closed
                                                                     ) : isCompleted ? (
