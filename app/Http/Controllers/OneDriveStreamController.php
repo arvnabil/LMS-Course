@@ -48,17 +48,23 @@ class OneDriveStreamController extends Controller
         $isImage = str_starts_with($mimeType, 'image/') && preg_match('/\.(jpg|jpeg|png|gif|webp|svg|bmp)/i', $fileName);
 
         if ($isPdf || $isImage) {
-            $response = Http::get($downloadUrl);
-            if ($response->successful()) {
-                // Determine the correct content type (prefer application/pdf for PDFs)
-                $finalContentType = $isPdf ? 'application/pdf' : ($response->header('Content-Type') ?: $mimeType);
+            // Determine the correct content type
+            $finalContentType = $isPdf ? 'application/pdf' : $mimeType;
+
+            return response()->stream(function () use ($downloadUrl) {
+                $response = \Illuminate\Support\Facades\Http::withOptions(['stream' => true])->get($downloadUrl);
+                $body = $response->toPsrResponse()->getBody();
                 
-                return response($response->body(), 200, [
-                    'Content-Type' => $finalContentType,
-                    'Content-Disposition' => 'inline; filename="' . $fileName . '"',
-                    'Cache-Control' => 'public, max-age=3600',
-                ]);
-            }
+                while (!$body->eof()) {
+                    echo $body->read(1024 * 8); // 8KB chunks
+                    if (connection_aborted()) break;
+                    flush();
+                }
+            }, 200, [
+                'Content-Type' => $finalContentType,
+                'Content-Disposition' => 'inline; filename="' . $fileName . '"',
+                'Cache-Control' => 'public, max-age=3600',
+            ]);
         }
 
         // Redirecting to the pre-signed URL for video files

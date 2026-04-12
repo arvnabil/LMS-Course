@@ -10,29 +10,50 @@ use Illuminate\Support\Facades\Log;
 class OneDriveProxyController extends Controller
 {
     /**
-     * Redirect public requests for OneDrive files to a fresh, public download URL.
-     * This bypasses the need for SharePoint/OneDrive login for guest users.
+     * Proxy OneDrive file content with inline headers for live previews.
+     * This ensures Microsoft Office Viewer and PDF viewers can render the file 
+     * without triggering an automatic download.
      */
     public function show($itemId)
     {
         try {
-            // Cache the download URL for 1 hour (Graph API links usually last 1 hour)
-            $url = Cache::remember("onedrive_public_url_{$itemId}", 3500, function () use ($itemId) {
-                $oneDrive = new OneDriveService();
-                $downloadUrl = $oneDrive->getDownloadUrl($itemId);
-                
-                if (!$downloadUrl) {
-                    Log::warning("OneDrive Proxy: Could not get download URL for item {$itemId}");
-                }
-                
-                return $downloadUrl;
+            $oneDrive = new OneDriveService();
+            
+            // Get file metadata to determine filename and mimetype
+            $item = Cache::remember("onedrive_item_meta_{$itemId}", 3600, function () use ($oneDrive, $itemId) {
+                return $oneDrive->getDriveItem($itemId);
             });
 
-            if (!$url) {
-                return abort(404, 'File not found on OneDrive or permission denied.');
+            if (!$item) {
+                return abort(404, 'File not found on OneDrive.');
             }
 
-            return redirect($url);
+            $mimeType = $item['file']['mimeType'] ?? 'application/octet-stream';
+            $fileName = $item['name'] ?? 'file';
+
+            // Get a fresh signed download URL
+            $url = $oneDrive->getDownloadUrl($itemId);
+            
+            if (!$url) {
+                return abort(404, 'Could not generate download link.');
+            }
+
+            // Stream the file content directly
+            return response()->stream(function () use ($url) {
+                $response = \Illuminate\Support\Facades\Http::withOptions(['stream' => true])->get($url);
+                $body = $response->toPsrResponse()->getBody();
+                
+                while (!$body->eof()) {
+                    echo $body->read(1024 * 8); // 8KB chunks
+                    if (connection_aborted()) break;
+                    flush();
+                }
+            }, 200, [
+                'Content-Type' => $mimeType,
+                'Content-Disposition' => 'inline; filename="' . $fileName . '"',
+                'Cache-Control' => 'public, max-age=3600',
+            ]);
+            
         } catch (\Exception $e) {
             Log::error("OneDrive Proxy Error: " . $e->getMessage());
             return abort(500, 'Internal server error while fetching file.');
