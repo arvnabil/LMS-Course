@@ -52,11 +52,16 @@ class AnalyticsController extends Controller
             ->limit(5)
             ->get(['id', 'title', 'slug']);
 
-        // Category distribution
-        $categoryDistribution = Course::select('category_id', DB::raw('COUNT(*) as count'))
-            ->with('category:id,name')
-            ->groupBy('category_id')
-            ->get();
+        // Category distribution (Interest by Category - based on Enrollments)
+        $categoryDistribution = Enrollment::join('courses', 'enrollments.course_id', '=', 'courses.id')
+            ->join('categories', 'courses.category_id', '=', 'categories.id')
+            ->select('categories.name', DB::raw('COUNT(enrollments.id) as student_count'))
+            ->groupBy('categories.id', 'categories.name')
+            ->get()
+            ->map(fn($item) => [
+                'category' => ['name' => $item->name],
+                'count' => (int) $item->student_count
+            ]);
 
         return Inertia::render('Admin/Analytics', [
             'stats' => $stats,

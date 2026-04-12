@@ -217,6 +217,7 @@ class DashboardController extends Controller
                 return [
                     'id' => $e->id,
                     'course_title' => $e->course->title,
+                    'course_slug' => $e->course->slug,
                     'category' => $e->course->category->name,
                     'thumbnail' => $e->course->thumbnail,
                     'progress' => $total > 0 ? round(($completed / $total) * 100) : 0,

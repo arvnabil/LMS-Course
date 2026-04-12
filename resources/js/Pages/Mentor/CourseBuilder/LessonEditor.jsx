@@ -27,13 +27,7 @@ export default function LessonEditor({ auth, lesson, onedrive_permissions, initi
     }, [lesson.id, lesson.video_source, lesson.file_source, lesson.type]);
     
     const { data, setData, post, processing, errors, transform } = useForm({
-        content: lesson.content || '',
-        video_url: lesson.video_url || '',
-        video_source: (lesson.video_source && lesson.video_source !== '') ? lesson.video_source : 'youtube',
-        video_id: lesson.video_id || '',
-        file_url: lesson.file_url || '',
-        file_source: lesson.file_source || '',
-        file_id: lesson.file_id || '',
+        duration_minutes: lesson.duration_minutes || '',
         thumbnail: null,
         _method: 'PUT'
     });
@@ -291,6 +285,36 @@ export default function LessonEditor({ auth, lesson, onedrive_permissions, initi
                 </div>
 
                 <form onSubmit={submit} className="bg-white rounded-[40px] p-10 sm:p-12 shadow-2xl shadow-gray-200/20 border border-gray-100 space-y-12">
+                    
+                    {/* General Information Section */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-muted/30 p-8 rounded-[32px] border border-gray-100">
+                        <div className="space-y-2">
+                            <label className="text-xs font-extrabold text-foreground uppercase tracking-widest px-1 block">Lesson Title</label>
+                            <input
+                                type="text"
+                                value={lesson.title}
+                                disabled
+                                className="w-full bg-white/50 border-none rounded-2xl px-6 py-4 text-sm font-bold text-gray-400 cursor-not-allowed"
+                                placeholder="Pelajaran"
+                            />
+                            <p className="text-[10px] text-gray-400 font-bold px-1 italic">* Title can be changed in the curriculum view</p>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-xs font-extrabold text-foreground uppercase tracking-widest px-1 block">Duration (Minutes)</label>
+                            <div className="relative">
+                                <input
+                                    type="number"
+                                    min="0"
+                                    value={data.duration_minutes}
+                                    className="w-full bg-white border-2 border-transparent focus:border-primary focus:bg-white rounded-2xl px-6 py-4 text-sm font-bold transition-all outline-none"
+                                    placeholder="e.g. 15"
+                                    onChange={(e) => setData('duration_minutes', e.target.value)}
+                                />
+                                <span className="absolute right-6 top-1/2 -translate-y-1/2 text-[10px] font-black text-gray-300 uppercase">MIN</span>
+                            </div>
+                            <InputError message={errors.duration_minutes} />
+                        </div>
+                    </div>
                     
                     {lesson.type === 'video' && (
                         <div className="space-y-8">

@@ -44,7 +44,8 @@ export default function Students({ enrollments, courses, filters }) {
 
                 {/* Table */}
                 <div className="bg-surface rounded-2xl border border-border overflow-hidden shadow-sm">
-                    <table className="w-full">
+                    <div className="overflow-x-auto">
+                        <table className="w-full min-w-[800px]">
                         <thead>
                             <tr className="border-b border-border bg-muted/50">
                                 <th className="text-left px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Student</th>
@@ -98,6 +99,7 @@ export default function Students({ enrollments, courses, filters }) {
                         </tbody>
                     </table>
                 </div>
+            </div>
 
                 {/* Pagination */}
                 {enrollments?.links && (

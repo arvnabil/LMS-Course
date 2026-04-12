@@ -128,7 +128,7 @@ export default function Transactions({ transactions, stats, filters }) {
 
                 {/* Table */}
                 <div className="bg-surface rounded-2xl border border-border overflow-hidden shadow-sm overflow-x-auto">
-                    <table className="w-full min-w-[900px]">
+                    <table className="w-full min-w-[1000px]">
                         <thead>
                             <tr className="border-b border-border bg-muted/50">
                                 <th className="px-6 py-4 w-12">

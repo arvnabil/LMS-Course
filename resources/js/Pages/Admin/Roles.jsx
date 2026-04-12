@@ -115,7 +115,8 @@ export default function Roles({ roles, permissions }) {
 
                 {/* Table */}
                 <div className="bg-surface rounded-2xl border border-border overflow-hidden shadow-sm">
-                    <table className="w-full">
+                    <div className="overflow-x-auto">
+                        <table className="w-full min-w-[800px]">
                         <thead>
                             <tr className="border-b border-border bg-muted/50">
                                 <th className="px-6 py-4 w-12">
@@ -172,6 +173,7 @@ export default function Roles({ roles, permissions }) {
                         </tbody>
                     </table>
                 </div>
+            </div>
             </div>
 
             {/* Modal */}

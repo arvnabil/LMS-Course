@@ -72,7 +72,8 @@ export default function Courses({ courses, categories, filters }) {
 
                 {/* Table */}
                 <div className="bg-surface rounded-2xl border border-border overflow-hidden shadow-sm">
-                    <table className="w-full">
+                    <div className="overflow-x-auto">
+                        <table className="w-full min-w-[1000px]">
                         <thead>
                             <tr className="border-b border-border bg-muted/50">
                                 <th className="text-left px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Course</th>
@@ -121,6 +122,7 @@ export default function Courses({ courses, categories, filters }) {
                         </tbody>
                     </table>
                 </div>
+            </div>
 
                 {/* Pagination */}
                 {courses?.links && (

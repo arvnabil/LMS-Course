@@ -33,7 +33,7 @@ export default function LearningProgress({ enrollments, topics_trends, watch_tim
                             {enrollments.map((e, idx) => (
                                 <Link 
                                     key={e.id} 
-                                    href={`/dashboard/courses`}
+                                    href={`/dashboard/courses/${e.course_slug}/learn`}
                                     className="bg-surface rounded-3xl p-4 shadow-sm hover:shadow-md border border-border flex items-center gap-4 transition-all duration-300 group"
                                 >
                                     {/* Small Minimalist Thumbnail */}
