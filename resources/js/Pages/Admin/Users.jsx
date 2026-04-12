@@ -127,11 +127,11 @@ export default function Users({ auth, users, availableRoles, filters }) {
                 )}
 
                 {/* Table */}
-                <div className="bg-surface rounded-2xl border border-border overflow-hidden shadow-sm overflow-x-auto">
-                    <table className="w-full min-w-[800px]">
+                <div className="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden overflow-x-auto">
+                    <table className="w-full min-w-[1000px] lg:min-w-full">
                         <thead>
                             <tr className="border-b border-border bg-muted/50">
-                                <th className="px-6 py-4 w-12">
+                                <th className="px-6 py-5 w-12">
                                     <input 
                                         type="checkbox" 
                                         className="rounded border-gray-300 text-primary focus:ring-primary w-4 h-4 cursor-pointer"
@@ -139,11 +139,11 @@ export default function Users({ auth, users, availableRoles, filters }) {
                                         onChange={toggleSelectAll}
                                     />
                                 </th>
-                                <th className="text-left px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Name</th>
-                                <th className="text-left px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Email</th>
-                                <th className="text-left px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Role</th>
-                                <th className="text-left px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Joined</th>
-                                <th className="text-right px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Change Role</th>
+                                <th className="text-left px-6 py-5 text-[11px] font-bold text-foreground/60 uppercase tracking-widest whitespace-nowrap">User Info</th>
+                                <th className="text-left px-6 py-5 text-[11px] font-bold text-foreground/60 uppercase tracking-widest whitespace-nowrap">Email Address</th>
+                                <th className="text-left px-6 py-5 text-[11px] font-bold text-foreground/60 uppercase tracking-widest whitespace-nowrap">Assigned Roles</th>
+                                <th className="text-left px-6 py-5 text-[11px] font-bold text-foreground/60 uppercase tracking-widest whitespace-nowrap text-center">Date Joined</th>
+                                <th className="text-right px-6 py-5 text-[11px] font-bold text-foreground/60 uppercase tracking-widest whitespace-nowrap">Actions</th>
                             </tr>
                         </thead>
                         <tbody>

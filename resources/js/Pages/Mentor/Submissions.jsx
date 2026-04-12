@@ -77,46 +77,46 @@ export default function Submissions({ auth, submissions, filters }) {
 
                 {/* Submissions Grid/Table */}
                 <div className="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-6 duration-700">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
+                    <div className="overflow-x-auto rounded-2xl">
+                        <table className="w-full text-left border-collapse min-w-[1000px] lg:min-w-full">
                             <thead>
                                 <tr className="border-b border-border bg-muted/50">
-                                    <th className="px-10 py-8 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest">Student & Course</th>
-                                    <th className="px-10 py-8 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest">Assignment</th>
-                                    <th className="px-10 py-8 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest text-center">Submitted</th>
-                                    <th className="px-10 py-8 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest text-center">Status</th>
-                                    <th className="px-10 py-8 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest text-right">Actions</th>
+                                    <th className="px-6 md:px-10 py-6 md:py-8 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest">Student & Course</th>
+                                    <th className="px-6 md:px-10 py-6 md:py-8 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest">Assignment</th>
+                                    <th className="px-6 md:px-10 py-6 md:py-8 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest text-center">Submitted</th>
+                                    <th className="px-6 md:px-10 py-6 md:py-8 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest text-center">Status</th>
+                                    <th className="px-6 md:px-10 py-6 md:py-8 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-border">
                                 {data.map((sub) => (
-                                    <tr key={sub.id} className="group hover:bg-primary/10 transition-colors">
-                                        <td className="px-10 py-8">
+                                    <tr key={sub.id} className="group hover:bg-primary/5 transition-colors">
+                                        <td className="px-6 md:px-10 py-6 md:py-8 text-jakarta">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center text-lg font-extrabold text-white shadow-lg shadow-primary/20">
+                                                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-primary flex items-center justify-center text-sm md:text-lg font-extrabold text-white shadow-lg shadow-primary/20">
                                                     {(sub.enrollment?.student?.full_name || 'S')[0]}
                                                 </div>
-                                                <div className="space-y-1">
-                                                    <p className="font-extrabold text-foreground">{sub.enrollment?.student?.full_name || 'Unknown Student'}</p>
-                                                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{sub.enrollment?.course?.title || '-'}</p>
+                                                <div className="space-y-0.5">
+                                                    <p className="text-sm font-extrabold text-foreground line-clamp-1">{sub.enrollment?.student?.full_name || 'Unknown Student'}</p>
+                                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tight line-clamp-1">{sub.enrollment?.course?.title || '-'}</p>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-10 py-8">
-                                            <p className="text-sm font-bold text-gray-700 leading-tight">{sub.quiz?.title || 'Assignment'}</p>
+                                        <td className="px-6 md:px-10 py-6 md:py-8">
+                                            <p className="text-xs md:text-sm font-bold text-gray-700 leading-tight line-clamp-2">{sub.quiz?.title || 'Assignment'}</p>
                                         </td>
-                                        <td className="px-10 py-8 text-center text-sm font-bold text-gray-500">
+                                        <td className="px-6 md:px-10 py-6 md:py-8 text-center text-xs md:text-sm font-bold text-gray-400 tabular-nums">
                                             {new Date(sub.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}
                                         </td>
-                                        <td className="px-10 py-8 text-center">
-                                            <div className={`mx-auto inline-flex px-4 py-1.5 rounded-full text-[10px] font-extrabold uppercase tracking-widest border ${statusColors[sub.status] || 'bg-gray-50 text-gray-500'}`}>
+                                        <td className="px-6 md:px-10 py-6 md:py-8 text-center">
+                                            <div className={`mx-auto inline-flex px-3 md:px-4 py-1 rounded-full text-[9px] md:text-[10px] font-extrabold uppercase tracking-widest border ${statusColors[sub.status] || 'bg-gray-50 text-gray-500'}`}>
                                                 {sub.status}
                                             </div>
                                         </td>
-                                        <td className="px-10 py-8 text-right">
+                                        <td className="px-6 md:px-10 py-6 md:py-8 text-right">
                                             <button 
                                                 onClick={() => openReview(sub)}
-                                                className={`px-4 md:px-6 py-2 md:py-3 rounded-full text-[10px] md:text-xs font-extrabold uppercase tracking-widest transition-all shadow-lg ${
+                                                className={`px-4 md:px-6 py-2 md:py-3 rounded-full text-[9px] md:text-xs font-extrabold uppercase tracking-widest transition-all shadow-lg ${
                                                     sub.status === 'pending'
                                                         ? 'bg-primary text-white shadow-primary/20 hover:scale-105 active:scale-95'
                                                         : 'bg-muted text-gray-400 hover:bg-gray-100'
@@ -222,7 +222,7 @@ export default function Submissions({ auth, submissions, filters }) {
                                                 <button
                                                     type="button"
                                                     onClick={() => form.setData('status', 'approved')}
-                                                    className={`flex-1 py-3 md:py-4 rounded-[18px] text-[10px] font-extrabold uppercase tracking-widest border-2 transition-all ${
+                                                    className={`flex-1 py-2.5 md:py-4 rounded-full text-[10px] font-extrabold uppercase tracking-widest border-2 transition-all ${
                                                         form.data.status === 'approved'
                                                             ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-500/30'
                                                             : 'bg-white border-gray-100 text-gray-400 hover:border-emerald-200'
@@ -233,7 +233,7 @@ export default function Submissions({ auth, submissions, filters }) {
                                                 <button
                                                     type="button"
                                                     onClick={() => form.setData('status', 'rejected')}
-                                                    className={`flex-1 py-3 md:py-4 rounded-[18px] text-[10px] font-extrabold uppercase tracking-widest border-2 transition-all ${
+                                                    className={`flex-1 py-2.5 md:py-4 rounded-full text-[10px] font-extrabold uppercase tracking-widest border-2 transition-all ${
                                                         form.data.status === 'rejected'
                                                             ? 'bg-rose-500 border-rose-500 text-white shadow-lg shadow-rose-500/30'
                                                             : 'bg-white border-gray-100 text-gray-400 hover:border-rose-200'
@@ -271,16 +271,17 @@ export default function Submissions({ auth, submissions, filters }) {
                                         <button 
                                             type="button" 
                                             onClick={() => setIsReviewModalOpen(false)} 
-                                            className="px-6 md:px-8 py-3 md:py-4 text-[10px] font-extrabold uppercase tracking-widest text-gray-400 hover:text-foreground transition-all"
+                                            className="px-6 md:px-8 py-2.5 md:py-4 text-[10px] font-extrabold uppercase tracking-widest text-gray-400 hover:text-foreground transition-all"
                                         >
                                             Cancel
                                         </button>
                                         <button 
                                             type="submit" 
                                             disabled={form.processing || !form.data.status} 
-                                            className="bg-primary text-white px-8 md:px-12 py-3 md:py-4 rounded-full text-[10px] font-extrabold uppercase tracking-widest shadow-xl shadow-primary/20 hover:bg-primary/90 hover:-translate-y-1 active:translate-y-0 transition-all disabled:opacity-30 disabled:hover:translate-y-0"
+                                            className="bg-primary text-white px-8 md:px-14 py-3 md:py-5 rounded-full text-[10px] md:text-xs font-extrabold uppercase tracking-[0.1em] shadow-xl shadow-primary/20 hover:bg-primary-hover hover:-translate-y-1 active:translate-y-0 transition-all disabled:opacity-30 disabled:hover:translate-y-0 flex items-center justify-center gap-3"
                                         >
                                             {form.processing ? 'Saving...' : 'Confirm Review'}
+                                            {!form.processing && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>}
                                         </button>
                                     </div>
                                 </form>

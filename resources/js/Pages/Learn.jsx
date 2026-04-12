@@ -72,6 +72,8 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
     const [volume, setVolume] = useState(100);
     const [isMuted, setIsMuted] = useState(false);
     const [isFullscreen, setIsFullscreen] = useState(false);
+    const [showControls, setShowControls] = useState(true);
+    const controlTimeoutRef = useRef(null);
     const videoContainerRef = useRef(null);
     const videoRef = useRef(null);
 
@@ -546,6 +548,29 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
         }
     };
 
+    // Mobile Control Autohide Logic
+    useEffect(() => {
+        if (isPlaying && showControls) {
+            if (controlTimeoutRef.current) clearTimeout(controlTimeoutRef.current);
+            controlTimeoutRef.current = setTimeout(() => {
+                setShowControls(false);
+            }, 3000);
+        }
+        return () => {
+            if (controlTimeoutRef.current) clearTimeout(controlTimeoutRef.current);
+        };
+    }, [isPlaying, showControls]);
+
+    const handleVideoContainerClick = () => {
+        if (!hasStarted) return;
+        setShowControls(true);
+        if (controlTimeoutRef.current) clearTimeout(controlTimeoutRef.current);
+        
+        // If already showing, toggle play/pause? 
+        // Actually, better to just show controls first tap, then toggle if tapped again while controls are visible
+        // However, most premium players show controls on first tap.
+    };
+
 
     return (
         <>
@@ -961,7 +986,13 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                     {hasStarted && (
                                         <div 
                                             className="absolute inset-0 z-0 cursor-pointer"
-                                            onClick={togglePlay}
+                                            onClick={() => {
+                                                if (!showControls && isPlaying) {
+                                                    setShowControls(true);
+                                                } else {
+                                                    togglePlay();
+                                                }
+                                            }}
                                             onDoubleClick={toggleFullscreen}
                                         ></div>
                                     )}
@@ -1003,7 +1034,9 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                     )}
                                     
                                     {/* Custom Overlay Controls */}
-                                    <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col gap-4 z-10">
+                                    <div className={`absolute inset-x-0 bottom-0 p-4 sm:p-6 bg-gradient-to-t from-black/90 via-black/40 to-transparent transition-all duration-500 flex flex-col gap-3 sm:gap-4 z-10 ${
+                                        (showControls || !isPlaying) ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 translate-y-4 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto'
+                                    }`}>
                                         {/* Custom Progress Bar */}
                                         <div className="relative w-full h-1.5 bg-white/20 rounded-full cursor-pointer group/progress overflow-hidden" 
                                              onClick={(e) => {
@@ -1042,7 +1075,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
                                                         )}
                                                     </button>
-                                                    <div className="w-0 group-hover/volume:w-20 overflow-hidden transition-all duration-300 flex items-center">
+                                                    <div className={`w-0 overflow-hidden transition-all duration-300 flex items-center ${showControls ? 'sm:w-20 w-16 ml-1' : 'group-hover/volume:w-20'}`}>
                                                         <input 
                                                             type="range" 
                                                             min="0" 

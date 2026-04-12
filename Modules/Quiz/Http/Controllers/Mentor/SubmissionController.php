@@ -38,8 +38,8 @@ class SubmissionController extends Controller
 
     public function review(Request $request, Submission $submission)
     {
-        // Verify mentor owns the course
-        if ($submission->enrollment->course->mentor_id !== auth()->id()) {
+        // Verify mentor owns the course or user is admin
+        if (!auth()->user()->isAdmin() && $submission->enrollment->course->mentor_id != auth()->id()) {
             abort(403);
         }
 
