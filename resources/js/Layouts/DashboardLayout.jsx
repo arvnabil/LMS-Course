@@ -246,18 +246,19 @@ export default function DashboardLayout({ header, children }) {
                 {/* MAIN CONTENT */}
                 <main className="flex-1 lg:ml-64 bg-body min-h-screen flex flex-col">
                     {/* Top Navbar */}
-                    <header className="sticky top-0 z-30 bg-surface/80 backdrop-blur-md border-b border-border px-4 py-3 lg:px-8 lg:py-4">
+                    <header className="fixed top-0 right-0 left-0 lg:left-64 z-40 bg-surface/80 backdrop-blur-md border-b border-border px-4 py-3 lg:px-8 lg:py-4">
                         <div className="flex items-center justify-between gap-4">
                             <div className="flex items-center gap-4">
                                 <button onClick={toggleSidebar} className="lg:hidden p-2 -ml-2 hover:bg-gray-100 rounded-lg">
                                     <Icon name="menu" className="text-foreground" />
                                 </button>
                                 {header && (
-                                    <div className="hidden md:block">
+                                    <div className="block">
                                         {header}
                                     </div>
                                 )}
-                            </div>                            <div className="flex items-center gap-3 md:gap-6 flex-1 justify-end max-w-2xl">
+                            </div>
+                            <div className="flex items-center gap-3 md:gap-6 flex-1 justify-end max-w-2xl">
                                 {/* Quick Actions */}
                                 <div className="flex items-center gap-2">
                                     {/* Notifications Dropdown */}
@@ -404,7 +405,7 @@ export default function DashboardLayout({ header, children }) {
                     </header>
 
                     {/* Page Content */}
-                    <div className="p-4 md:p-6 lg:p-8 flex-1">
+                    <div className="p-4 md:p-6 lg:p-8 flex-1 mt-[64px] lg:mt-[80px]">
                         {children}
                     </div>
                 </main>
