@@ -1153,12 +1153,18 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                             currentLesson.mime_type === 'image/jpeg' || 
                                             currentLesson.mime_type === 'image/png';
 
-                            const isText = currentLesson.file_name?.toLowerCase().endsWith('.txt') || 
-                                           currentLesson.mime_type === 'text/plain' || 
-                                           currentLesson.file_url?.toLowerCase().includes('.txt') ||
-                                           currentLesson.title?.toLowerCase().includes('.txt') ||
-                                           currentLesson.file_url?.toLowerCase().includes('text/plain');
-                            const fileName = currentLesson.file_name || currentLesson.title;
+                             const isText = currentLesson.file_name?.toLowerCase().endsWith('.txt') || 
+                                            currentLesson.mime_type === 'text/plain' || 
+                                            currentLesson.file_url?.toLowerCase().includes('.txt') ||
+                                            currentLesson.title?.toLowerCase().includes('.txt') ||
+                                            currentLesson.file_url?.toLowerCase().includes('text/plain');
+                             
+                             const isPpt = currentLesson.file_name?.match(/\.(pptx|ppt)$/i) || 
+                                           currentLesson.mime_type?.includes('presentation') ||
+                                           currentLesson.mime_type?.includes('powerpoint') ||
+                                           /\.(pptx|ppt)$/i.test(currentLesson.title);
+
+                             const fileName = currentLesson.file_name || currentLesson.title;
                             
                             // Debug logs to help identify why preview might be failing
                             console.log('File Detection Debug:', {
@@ -1177,17 +1183,17 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                     {/* Premium File Header */}
                                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-6 py-4 bg-white dark:bg-zinc-950 border-b border-gray-100 dark:border-white/5 shadow-sm z-10 gap-4 sm:gap-2">
                                         <div className="flex items-center gap-3 w-full sm:w-auto overflow-hidden">
-                                            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-xl shrink-0">
-                                                {isPdf ? '📄' : isImage ? '🖼️' : '📁'}
-                                            </div>
-                                            <div className="min-w-0 flex-1">
-                                                <h3 className="text-sm font-bold text-gray-900 dark:text-white truncate max-w-full">
-                                                    {fileName}
-                                                </h3>
-                                                <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">
-                                                    {isPdf ? 'PDF Document' : isImage ? 'Image File' : 'Resource File'}
-                                                </p>
-                                            </div>
+                                             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-xl shrink-0">
+                                                 {isPdf ? '📄' : isImage ? '🖼️' : isPpt ? '📽️' : '📁'}
+                                             </div>
+                                             <div className="min-w-0 flex-1">
+                                                 <h3 className="text-sm font-bold text-gray-900 dark:text-white truncate max-w-full">
+                                                     {fileName}
+                                                 </h3>
+                                                 <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">
+                                                     {isPdf ? 'PDF Document' : isImage ? 'Image File' : isPpt ? 'Presentation' : 'Resource File'}
+                                                 </p>
+                                             </div>
                                         </div>
                                         <a 
                                             href={streamUrl}
@@ -1203,14 +1209,22 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
 
                                     {/* Viewer Area */}
                                     <div className="w-full shrink-0 aspect-video overflow-hidden relative flex items-center justify-center bg-gray-900 shadow-inner">
-                                        {isPdf ? (
-                                            <iframe 
-                                                src={`${streamUrl}#toolbar=0`}
-                                                className="w-full h-full border-none"
-                                                title="PDF Viewer"
-                                                onLoad={() => setIsBuffering(false)}
-                                            />
-                                        ) : isImage ? (
+                                         {isPdf ? (
+                                             <iframe 
+                                                 src={`${streamUrl}#toolbar=0`}
+                                                 className="w-full h-full border-none"
+                                                 title="PDF Viewer"
+                                                 onLoad={() => setIsBuffering(false)}
+                                             />
+                                         ) : isPpt ? (
+                                             <iframe 
+                                                 src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(window.location.origin + '/storage/onedrive/' + currentLesson.file_id)}`}
+                                                 className="w-full h-full border-none"
+                                                 title="PowerPoint Viewer"
+                                                 onLoad={() => setIsBuffering(false)}
+                                                 allowFullScreen
+                                             />
+                                         ) : isImage ? (
                                             <div className="p-8 w-full h-full flex items-center justify-center">
                                                 <img 
                                                     src={streamUrl}

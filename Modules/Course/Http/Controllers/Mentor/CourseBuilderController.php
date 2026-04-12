@@ -93,7 +93,7 @@ class CourseBuilderController extends Controller
             'price' => 'required|numeric|min:0',
             'description' => 'required|string',
             'tagline' => 'nullable|string|max:255',
-            'status' => 'required|in:draft,published,archived',
+            'status' => 'required|in:draft,published,archived,closed',
             'thumbnail' => 'nullable|image|max:2048',
             'cover_image' => 'nullable|image|max:5120',
         ]);
@@ -509,7 +509,7 @@ class CourseBuilderController extends Controller
             }
 
             $request->validate([
-                'file' => 'required|file|mimes:pdf,txt,jpg,jpeg,png,gif,webp|max:51200', // 50MB max
+                'file' => 'required|file|mimes:pdf,txt,jpg,jpeg,png,gif,webp,pptx,ppt|max:51200', // 50MB max
             ]);
 
             $file = $request->file('file');

@@ -40,7 +40,7 @@ class CourseManagementController extends Controller
     public function updateStatus(Request $request, Course $course)
     {
         $validated = $request->validate([
-            'status' => 'required|in:draft,published,archived',
+            'status' => 'required|in:draft,published,archived,closed',
         ]);
 
         $course->update(['status' => $validated['status']]);

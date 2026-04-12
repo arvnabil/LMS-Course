@@ -121,6 +121,11 @@ export default function CatalogContent({ categories = [], courses = { data: [] }
                                     <div className="absolute top-4 left-4 bg-surface/90 backdrop-blur-sm px-4 py-1.5 rounded-full text-[10px] font-extrabold text-foreground uppercase tracking-wider">
                                         {course.category?.name}
                                     </div>
+                                    {course.status === 'closed' && (
+                                        <div className="absolute top-4 right-4 bg-red-500/90 backdrop-blur-sm px-4 py-1.5 rounded-full text-[10px] font-black text-white uppercase tracking-wider z-10 shadow-lg">
+                                            Closed
+                                        </div>
+                                    )}
                                     {course.thumbnail ? (
                                         <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                                     ) : (

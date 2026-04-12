@@ -64,8 +64,7 @@ export default function Edit({ auth, course, categories = [], onedrive_permissio
         basicInfoForm.post(route('mentor.courses.update', course.id));
     };
 
-    const toggleStatus = () => {
-        const newStatus = basicInfoForm.data.status === 'published' ? 'draft' : 'published';
+    const setStatus = (newStatus) => {
         basicInfoForm.setData('status', newStatus);
     };
 
@@ -260,7 +259,9 @@ export default function Edit({ auth, course, categories = [], onedrive_permissio
                     <div className="flex items-center gap-4">
                         <div className="flex flex-col items-end gap-2">
                             <span className={`px-4 py-1.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider shadow-sm ${
-                                course.status === 'published' ? 'bg-accent-lime text-black' : 'bg-amber-500 text-white'
+                                course.status === 'published' ? 'bg-accent-lime text-black' : 
+                                course.status === 'closed' ? 'bg-rose-500 text-white' :
+                                'bg-amber-500 text-white'
                             }`}>
                                 Status: {course.status}
                             </span>
@@ -561,18 +562,25 @@ export default function Edit({ auth, course, categories = [], onedrive_permissio
 
                             <div className="space-y-2">
                                 <label className="text-xs font-extrabold text-foreground uppercase tracking-widest px-1">Status</label>
-                                <div className="flex items-center gap-4 h-[56px]">
-                                    <button
-                                        type="button"
-                                        onClick={toggleStatus}
-                                        className={`flex-1 h-full rounded-2xl text-xs font-extrabold uppercase tracking-widest transition-all border-2 ${
-                                            basicInfoForm.data.status === 'published'
-                                                ? 'bg-accent-lime/10 border-accent-lime text-foreground'
-                                                : 'bg-muted border-transparent text-gray-400'
-                                        }`}
-                                    >
-                                        {basicInfoForm.data.status === 'published' ? '✅ Published' : '📁 Set as Published'}
-                                    </button>
+                                <div className="flex flex-wrap gap-2">
+                                    {['draft', 'published', 'closed', 'archived'].map((s) => (
+                                        <button
+                                            key={s}
+                                            type="button"
+                                            onClick={() => setStatus(s)}
+                                            className={`px-4 py-2 rounded-xl text-[10px] font-extrabold uppercase tracking-widest transition-all border-2 ${
+                                                basicInfoForm.data.status === s
+                                                    ? (s === 'published' ? 'bg-accent-lime/10 border-accent-lime text-foreground' : 
+                                                       s === 'closed' ? 'bg-rose-500/10 border-rose-500 text-rose-500' :
+                                                       'bg-amber-500/10 border-amber-500 text-amber-600')
+                                                    : 'bg-muted border-transparent text-gray-400 hover:border-gray-200'
+                                            }`}
+                                        >
+                                            {s === 'published' ? '✅ Published' : 
+                                             s === 'closed' ? '🚫 Closed' : 
+                                             s === 'archived' ? '📁 Archived' : '📝 Draft'}
+                                        </button>
+                                    ))}
                                 </div>
                                 <InputError message={basicInfoForm.errors.status} />
                             </div>

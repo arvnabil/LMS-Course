@@ -10,7 +10,7 @@ export default function Categories({ categories }) {
         const firstWord = nameParts[0].toLowerCase();
         
         // List of known icon slugs we want to support from first word
-        const iconSlugs = ['code', 'bar-chart', 'smartphone', 'pen-tool', 'briefcase', 'layers', 'users', 'award', 'book-open'];
+        const iconSlugs = ['code', 'bar-chart', 'smartphone', 'pen-tool', 'briefcase', 'layers', 'users', 'award', 'book-open', 'megaphone', 'target'];
         
         if (iconSlugs.includes(firstWord)) {
             return {

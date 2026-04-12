@@ -25,6 +25,11 @@ class PaymentController extends Controller
                 ->with('info', 'You are already enrolled in this course.');
         }
 
+        // 1.2 Check if course is closed for new enrollments
+        if ($course->status === 'closed') {
+            return back()->with('error', 'Sorry, this course is currently closed for new enrollments.');
+        }
+
         // 1.5 Organization-sponsored Course Bypass
         $orgService = app(\Modules\Organization\Services\OrganizationService::class);
         if ($orgService->isCourseFreeForUser($user, $course)) {

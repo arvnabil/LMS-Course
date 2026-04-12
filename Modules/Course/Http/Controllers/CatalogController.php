@@ -18,7 +18,7 @@ class CatalogController extends Controller
     {
         $query = Course::query()
             ->with(['category', 'mentor'])
-            ->where('status', 'published');
+            ->whereIn('status', ['published', 'closed']);
 
         // Search filter
         if ($request->filled('search')) {

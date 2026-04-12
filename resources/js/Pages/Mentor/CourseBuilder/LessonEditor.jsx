@@ -162,7 +162,9 @@ export default function LessonEditor({ auth, lesson, onedrive_permissions, initi
             file_id: file.id,
             file_url: null,
             file_name: file.name,
-            mime_type: file.name.endsWith('.pdf') ? 'application/pdf' : 'application/octet-stream'
+            mime_type: file.name.endsWith('.pdf') ? 'application/pdf' : 
+                       (file.name.endsWith('.pptx') || file.name.endsWith('.ppt')) ? 'application/vnd.openxmlformats-officedocument.presentationml.presentation' : 
+                       'application/octet-stream'
         });
     };
 
@@ -683,7 +685,7 @@ export default function LessonEditor({ auth, lesson, onedrive_permissions, initi
                                                 )}
                                             </div>
                                         )}
-                                        <input id="file-upload-input" type="file" className="hidden" accept=".pdf,.txt,.jpg,.jpeg,.png,.gif,.webp" onChange={handleFileUpload} />
+                                        <input id="file-upload-input" type="file" className="hidden" accept=".pdf,.txt,.jpg,.jpeg,.png,.gif,.webp,.pptx,.ppt" onChange={handleFileUpload} />
                                         <InputError message={errors.file} />
                                     </div>
                                 )}
@@ -703,8 +705,8 @@ export default function LessonEditor({ auth, lesson, onedrive_permissions, initi
                                                 <div className="divide-y divide-gray-100">
                                                     {files.length === 0 && <div className="p-10 text-center text-xs text-gray-400 font-bold">Folder is empty</div>}
                                                     {files.map((file) => {
-                                                        const isDocFile = !file.is_folder && !file.is_video && /\.(pdf|txt|jpg|jpeg|png|gif|webp)$/i.test(file.name);
-                                                        const fileIcon = file.is_folder ? '📁' : /\.pdf$/i.test(file.name) ? '📕' : /\.txt$/i.test(file.name) ? '📝' : /\.(jpg|jpeg|png|gif|webp)$/i.test(file.name) ? '🖼️' : '📄';
+                                                        const isDocFile = !file.is_folder && !file.is_video && /\.(pdf|txt|jpg|jpeg|png|gif|webp|pptx|ppt)$/i.test(file.name);
+                                                        const fileIcon = file.is_folder ? '📁' : /\.pdf$/i.test(file.name) ? '📕' : /\.(pptx|ppt)$/i.test(file.name) ? '📽️' : /\.txt$/i.test(file.name) ? '📝' : /\.(jpg|jpeg|png|gif|webp)$/i.test(file.name) ? '🖼️' : '📄';
                                                         return (
                                                         <div key={file.id} 
                                                             className={`p-4 flex items-center justify-between group transition-colors ${file.is_folder ? 'cursor-pointer hover:bg-white' : ''}`}

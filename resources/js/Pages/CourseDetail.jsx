@@ -61,6 +61,10 @@ const CourseCard = ({ course, isEnrolled, onPlayClick, auth, orgPricing }) => (
                     >
                         Continue Learning
                     </Link>
+                ) : course.status === 'closed' ? (
+                    <div className="w-full bg-muted text-muted-foreground py-3 md:py-4 rounded-[20px] font-extrabold text-[13px] uppercase tracking-[0.15em] border border-border text-center cursor-not-allowed">
+                        Registration Closed
+                    </div>
                 ) : (
                     <Link
                         href={auth?.user ? route('payment.checkout', course.slug) : route('login')}

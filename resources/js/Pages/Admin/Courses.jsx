@@ -6,6 +6,7 @@ const statusColors = {
     draft: 'bg-yellow-50 text-yellow-700',
     published: 'bg-green-50 text-green-700',
     archived: 'bg-gray-100 text-gray-600',
+    closed: 'bg-red-50 text-red-700',
 };
 
 export default function Courses({ courses, categories, filters }) {
@@ -52,6 +53,7 @@ export default function Courses({ courses, categories, filters }) {
                                 <option value="">All Status</option>
                                 <option value="draft">Draft</option>
                                 <option value="published">Published</option>
+                                <option value="closed">Closed</option>
                                 <option value="archived">Archived</option>
                             </select>
                         </div>
@@ -111,6 +113,7 @@ export default function Courses({ courses, categories, filters }) {
                                         >
                                             <option value="draft">Draft</option>
                                             <option value="published">Published</option>
+                                            <option value="closed">Closed</option>
                                             <option value="archived">Archived</option>
                                         </select>
                                     </td>
