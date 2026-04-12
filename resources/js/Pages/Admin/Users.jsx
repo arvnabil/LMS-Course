@@ -127,11 +127,12 @@ export default function Users({ auth, users, availableRoles, filters }) {
                 )}
 
                 {/* Table */}
-                <div className="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden overflow-x-auto">
-                    <table className="w-full min-w-[1000px] lg:min-w-full">
+                <div className="bg-surface rounded-2xl border border-border overflow-hidden shadow-sm">
+                    <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-primary/20 pb-4">
+                        <table className="w-full min-w-[1000px] lg:min-w-full">
                         <thead>
                             <tr className="border-b border-border bg-muted/50">
-                                <th className="px-6 py-5 w-12">
+                                <th className="px-4 md:px-6 py-5 w-12 text-center text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap">
                                     <input 
                                         type="checkbox" 
                                         className="rounded border-gray-300 text-primary focus:ring-primary w-4 h-4 cursor-pointer"
@@ -139,17 +140,17 @@ export default function Users({ auth, users, availableRoles, filters }) {
                                         onChange={toggleSelectAll}
                                     />
                                 </th>
-                                <th className="text-left px-6 py-5 text-[11px] font-bold text-foreground/60 uppercase tracking-widest whitespace-nowrap">User Info</th>
-                                <th className="text-left px-6 py-5 text-[11px] font-bold text-foreground/60 uppercase tracking-widest whitespace-nowrap">Email Address</th>
-                                <th className="text-left px-6 py-5 text-[11px] font-bold text-foreground/60 uppercase tracking-widest whitespace-nowrap">Assigned Roles</th>
-                                <th className="text-left px-6 py-5 text-[11px] font-bold text-foreground/60 uppercase tracking-widest whitespace-nowrap text-center">Date Joined</th>
-                                <th className="text-right px-6 py-5 text-[11px] font-bold text-foreground/60 uppercase tracking-widest whitespace-nowrap">Actions</th>
+                                <th className="text-left px-4 md:px-6 py-5 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap">User Info</th>
+                                <th className="text-left px-4 md:px-6 py-5 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap">Email Address</th>
+                                <th className="text-left px-4 md:px-6 py-5 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap">Assigned Roles</th>
+                                <th className="text-left px-4 md:px-6 py-5 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap text-center">Date Joined</th>
+                                <th className="text-right px-4 md:px-6 py-5 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {userData.map((user, i) => (
                                 <tr key={user.id} className={`border-b border-border hover:bg-primary/5 transition-colors ${selectedIds.includes(user.id) ? 'bg-primary/5' : ''}`}>
-                                    <td className="px-6 py-4">
+                                    <td className="px-4 md:px-6 py-4 text-center">
                                         <input 
                                             type="checkbox" 
                                             className="rounded border-gray-300 text-primary focus:ring-primary w-4 h-4 cursor-pointer"
@@ -157,35 +158,35 @@ export default function Users({ auth, users, availableRoles, filters }) {
                                             onChange={() => toggleSelect(user.id)}
                                         />
                                     </td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-4 md:px-6 py-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500">
+                                            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-[10px] font-extrabold text-gray-500 border border-gray-300/30 shadow-sm">
                                                 {user.full_name?.charAt(0)?.toUpperCase()}
                                             </div>
-                                            <span className="text-sm font-semibold text-foreground">{user.full_name}</span>
+                                            <span className="text-sm font-semibold text-foreground tracking-tight">{user.full_name}</span>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 text-sm text-gray-500">{user.email}</td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-4 md:px-6 py-4 text-sm text-gray-400 font-jakarta">{user.email}</td>
+                                    <td className="px-4 md:px-6 py-4">
                                         <div className="flex flex-wrap gap-1">
                                             {user.roles?.length > 0 ? user.roles.map(r => (
-                                                <span key={r.id} className="inline-flex px-2 py-0.5 rounded text-[11px] font-bold bg-muted text-foreground/80 border border-border">
+                                                <span key={r.id} className="inline-flex px-2 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-widest bg-muted text-foreground/80 border border-border">
                                                     {r.name}
                                                 </span>
                                             )) : (
-                                                <span className={`inline-flex px-2 py-0.5 rounded text-[11px] font-bold capitalize ${roleBadgeColors[user.role] || 'bg-gray-100'}`}>
+                                                <span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-widest bg-gray-100 ${roleBadgeColors[user.role] || 'text-gray-600'}`}>
                                                     {user.role || 'None'}
                                                 </span>
                                             )}
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 text-sm text-gray-500">
+                                    <td className="px-4 md:px-6 py-4 text-[11px] font-bold text-gray-400 text-center uppercase tracking-tighter">
                                         {new Date(user.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
                                     </td>
-                                    <td className="px-6 py-4 text-right flex items-center justify-end gap-2">
+                                    <td className="px-4 md:px-6 py-4 text-right flex items-center justify-end gap-2">
                                         <button 
                                             onClick={() => openRoleModal(user)} 
-                                            className="px-3 py-1.5 text-xs font-semibold text-primary border border-primary/20 rounded-lg hover:bg-primary hover:text-white transition-colors"
+                                            className="px-3 py-1.5 text-[10px] font-extrabold text-primary border border-primary/20 rounded-lg hover:bg-primary hover:text-white transition-all uppercase tracking-widest"
                                         >
                                             Edit Roles
                                         </button>
@@ -194,14 +195,14 @@ export default function Users({ auth, users, availableRoles, filters }) {
                                                 <button 
                                                     onClick={() => router.patch(route('admin.users.toggleBan', user.id))}
                                                     title={user.is_banned ? 'Unban User' : 'Ban User'}
-                                                    className={`p-1.5 rounded-lg border transition-colors ${user.is_banned ? 'border-green-200 text-green-600 hover:bg-green-50' : 'border-yellow-200 text-yellow-600 hover:bg-yellow-50'}`}
+                                                    className={`p-1.5 rounded-lg border transition-all ${user.is_banned ? 'border-green-200 text-green-600 hover:bg-green-600 hover:text-white' : 'border-yellow-200 text-yellow-600 hover:bg-yellow-600 hover:text-white'}`}
                                                 >
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" x2="19.07" y1="4.93" y2="19.07"/></svg>
                                                 </button>
                                                 <button 
                                                     onClick={() => confirm('Are you sure you want to delete this user?') && router.delete(route('admin.users.destroy', user.id))}
                                                     title="Delete User"
-                                                    className="p-1.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
+                                                    className="p-1.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-600 hover:text-white transition-all shadow-sm shadow-red-500/10"
                                                 >
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
                                                 </button>
@@ -211,10 +212,11 @@ export default function Users({ auth, users, availableRoles, filters }) {
                                 </tr>
                             ))}
                             {userData.length === 0 && (
-                                <tr><td colSpan="6" className="px-6 py-12 text-center text-gray-400">No users found.</td></tr>
+                                <tr><td colSpan="6" className="px-4 md:px-6 py-12 text-center text-gray-400">No users found.</td></tr>
                             )}
                         </tbody>
                     </table>
+                    </div>
                 </div>
 
                 {/* Pagination */}

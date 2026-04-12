@@ -132,7 +132,7 @@ export default function DashboardLayout({ header, children }) {
     };
 
     return (
-        <div className="font-sans bg-body min-h-screen overflow-x-hidden text-foreground">
+        <div className="font-sans bg-body min-h-screen text-foreground overflow-x-hidden">
             <ThemeStyleInjector />
             {toast && <Toast {...toast} onClose={() => setToast(null)} />}
 
@@ -244,7 +244,7 @@ export default function DashboardLayout({ header, children }) {
                 </aside>
 
                 {/* MAIN CONTENT */}
-                <main className="flex-1 lg:ml-64 bg-body min-h-screen flex flex-col">
+                <main className="flex-1 lg:ml-64 bg-body min-h-screen flex flex-col min-w-0">
                     {/* Top Navbar */}
                     <header className="fixed top-0 right-0 left-0 lg:left-64 z-40 bg-surface/80 backdrop-blur-md border-b border-border px-4 py-3 lg:px-8 lg:py-4">
                         <div className="flex items-center justify-between gap-4">
@@ -405,7 +405,7 @@ export default function DashboardLayout({ header, children }) {
                     </header>
 
                     {/* Page Content */}
-                    <div className="p-4 md:p-6 lg:p-8 flex-1 mt-[64px] lg:mt-[80px]">
+                    <div className="p-4 md:p-6 lg:p-8 flex-1 mt-[64px] lg:mt-[80px] min-w-0 w-full overflow-x-hidden">
                         {children}
                     </div>
                 </main>

@@ -127,11 +127,12 @@ export default function Transactions({ transactions, stats, filters }) {
                 )}
 
                 {/* Table */}
-                <div className="bg-surface rounded-2xl border border-border overflow-hidden shadow-sm overflow-x-auto">
-                    <table className="w-full min-w-[1000px] lg:min-w-full">
+                <div className="bg-surface rounded-2xl border border-border overflow-hidden shadow-sm">
+                    <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-primary/20 pb-4">
+                        <table className="w-full min-w-[1200px] lg:min-w-full">
                         <thead>
                             <tr className="border-b border-border bg-muted/50">
-                                <th className="px-6 py-4 w-12">
+                                <th className="px-4 md:px-6 py-4 w-12 text-center text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap">
                                     <input 
                                         type="checkbox" 
                                         className="rounded border-gray-300 text-primary focus:ring-primary w-4 h-4 cursor-pointer"
@@ -140,19 +141,20 @@ export default function Transactions({ transactions, stats, filters }) {
                                         disabled={pendingTxIds.length === 0}
                                     />
                                 </th>
-                                <th className="text-left px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Order ID</th>
-                                <th className="text-left px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Student</th>
-                                <th className="text-left px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Course</th>
-                                <th className="text-left px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Amount</th>
-                                <th className="text-left px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Payment</th>
-                                <th className="text-left px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Status</th>
-                                <th className="text-left px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Date</th>
+                                <th className="text-left px-4 md:px-6 py-4 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap">Order ID</th>
+                                <th className="text-left px-4 md:px-6 py-4 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap">Student</th>
+                                <th className="text-left px-4 md:px-6 py-4 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap">Course</th>
+                                <th className="text-left px-4 md:px-6 py-4 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap text-center">Amount</th>
+                                <th className="text-left px-4 md:px-6 py-4 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap text-center">Payment</th>
+                                <th className="text-left px-4 md:px-6 py-4 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap text-center">Status</th>
+                                <th className="text-left px-4 md:px-6 py-4 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap text-center">Date</th>
+                                <th className="text-right px-4 md:px-6 py-4 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {txData.map(tx => (
                                 <tr key={tx.id} className={`border-b border-border hover:bg-primary/5 transition-colors ${selectedIds.includes(tx.id) ? 'bg-primary/5' : ''}`}>
-                                    <td className="px-6 py-4">
+                                    <td className="px-4 md:px-6 py-4 text-center">
                                         {tx.status === 'pending' && (
                                             <input 
                                                 type="checkbox" 
@@ -162,27 +164,27 @@ export default function Transactions({ transactions, stats, filters }) {
                                             />
                                         )}
                                     </td>
-                                    <td className="px-6 py-4 text-sm font-bold text-foreground">{tx.order_id}</td>
-                                    <td className="px-6 py-4 text-sm text-foreground font-medium">{tx.student?.full_name || '-'}</td>
-                                    <td className="px-6 py-4 text-sm text-gray-600">{tx.course?.title || '-'}</td>
-                                    <td className="px-6 py-4 text-sm font-semibold text-foreground">Rp {Number(tx.amount).toLocaleString('id-ID')}</td>
-                                    <td className="px-6 py-4 text-sm text-gray-500 capitalize">{tx.payment_type || '-'}</td>
-                                    <td className="px-6 py-4">
-                                        <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${statusColors[tx.status]}`}>
+                                    <td className="px-4 md:px-6 py-4 text-sm font-bold text-foreground font-jakarta tracking-tight">{tx.order_id}</td>
+                                    <td className="px-4 md:px-6 py-4 text-sm text-foreground font-bold tracking-tight">{tx.student?.full_name || '-'}</td>
+                                    <td className="px-4 md:px-6 py-4 text-sm text-gray-500 font-medium">{tx.course?.title || '-'}</td>
+                                    <td className="px-4 md:px-6 py-4 text-sm font-extrabold text-foreground text-center">Rp {Number(tx.amount).toLocaleString('id-ID')}</td>
+                                    <td className="px-4 md:px-6 py-4 text-[10px] font-extrabold text-gray-400 capitalize text-center tracking-widest">{tx.payment_type || '-'}</td>
+                                    <td className="px-4 md:px-6 py-4 text-center">
+                                        <span className={`inline-flex px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-current opacity-80 ${statusColors[tx.status]}`}>
                                             {tx.status}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 text-sm text-gray-500">
+                                    <td className="px-4 md:px-6 py-4 text-[11px] font-bold text-gray-400 text-center uppercase tracking-tighter">
                                         {new Date(tx.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
                                     </td>
-                                    <td className="px-6 py-4 text-right">
+                                    <td className="px-4 md:px-6 py-4 text-right">
                                         {tx.status === 'pending' && (
                                             <button 
                                                 onClick={() => confirm('Delete this pending transaction?') && router.delete(route('admin.transactions.destroy', tx.id))}
-                                                className="p-1.5 text-red-400 hover:text-red-600 transition-colors"
+                                                className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-all border border-red-100 shadow-sm shadow-red-500/10"
                                                 title="Delete Transaction"
                                             >
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
                                             </button>
                                         )}
                                     </td>
@@ -193,6 +195,7 @@ export default function Transactions({ transactions, stats, filters }) {
                             )}
                         </tbody>
                     </table>
+                    </div>
                 </div>
 
                 {/* Pagination */}

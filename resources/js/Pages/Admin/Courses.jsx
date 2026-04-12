@@ -72,42 +72,42 @@ export default function Courses({ courses, categories, filters }) {
 
                 {/* Table */}
                 <div className="bg-surface rounded-2xl border border-border overflow-hidden shadow-sm">
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-primary/20 pb-4">
                         <table className="w-full min-w-[1000px] lg:min-w-full">
                         <thead>
                             <tr className="border-b border-border bg-muted/50">
-                                <th className="text-left px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Course</th>
-                                <th className="text-left px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Mentor</th>
-                                <th className="text-left px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Category</th>
-                                <th className="text-left px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Price</th>
-                                <th className="text-left px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Students</th>
-                                <th className="text-left px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Status</th>
-                                <th className="text-right px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Actions</th>
+                                <th className="text-left px-4 md:px-6 py-4 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap">Course</th>
+                                <th className="text-left px-4 md:px-6 py-4 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap">Mentor</th>
+                                <th className="text-left px-4 md:px-6 py-4 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap">Category</th>
+                                <th className="text-left px-4 md:px-6 py-4 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap">Price</th>
+                                <th className="text-left px-4 md:px-6 py-4 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap">Students</th>
+                                <th className="text-left px-4 md:px-6 py-4 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap text-center">Status</th>
+                                <th className="text-right px-4 md:px-6 py-4 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {courseData.map(course => (
                                 <tr key={course.id} className="border-b border-border hover:bg-primary/10 transition-colors">
-                                    <td className="px-6 py-4">
+                                    <td className="px-4 md:px-6 py-4">
                                         <p className="text-sm font-semibold text-foreground">{course.title}</p>
                                         <p className="text-xs text-gray-400 mt-0.5">{course.slug}</p>
                                     </td>
-                                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{course.mentor?.full_name || '-'}</td>
-                                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{course.category?.name || '-'}</td>
-                                    <td className="px-6 py-4 text-sm font-semibold text-foreground">
+                                    <td className="px-4 md:px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{course.mentor?.full_name || '-'}</td>
+                                    <td className="px-4 md:px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{course.category?.name || '-'}</td>
+                                    <td className="px-4 md:px-6 py-4 text-sm font-semibold text-foreground">
                                         {Number(course.price) === 0 ? <span className="text-green-600 dark:text-green-400">Free</span> : `Rp ${Number(course.price).toLocaleString('id-ID')}`}
                                     </td>
-                                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{course.enrollments_count}</td>
-                                    <td className="px-6 py-4">
-                                        <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${statusColors[course.status]}`}>
+                                    <td className="px-4 md:px-6 py-4 text-sm text-gray-600 dark:text-gray-400 text-center">{course.enrollments_count}</td>
+                                    <td className="px-4 md:px-6 py-4 text-center">
+                                        <span className={`inline-flex px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${statusColors[course.status]}`}>
                                             {course.status}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 text-right">
+                                    <td className="px-4 md:px-6 py-4 text-right">
                                         <select
                                             value={course.status}
                                             onChange={(e) => updateStatus(course.id, e.target.value)}
-                                            className="px-2 py-1 text-xs border border-border rounded-lg bg-surface focus:outline-none"
+                                            className="px-2 py-1 text-[10px] font-bold border border-border rounded-lg bg-surface focus:outline-none uppercase"
                                         >
                                             <option value="draft">Draft</option>
                                             <option value="published">Published</option>

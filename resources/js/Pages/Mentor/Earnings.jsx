@@ -27,22 +27,22 @@ export default function Earnings({ earnings, stats }) {
 
                 {/* Table */}
                 <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-primary/20 pb-4">
                         <table className="w-full min-w-[1000px] lg:min-w-full">
                         <thead>
                             <tr className="border-b border-gray-100 bg-gray-50/50">
-                                <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
-                                <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Course</th>
-                                <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Student</th>
-                                <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount</th>
-                                <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Platform Fee</th>
-                                <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Net Earning</th>
+                                <th className="text-left px-4 md:px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
+                                <th className="text-left px-4 md:px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Course</th>
+                                <th className="text-left px-4 md:px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Student</th>
+                                <th className="text-left px-4 md:px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount</th>
+                                <th className="text-left px-4 md:px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Platform Fee</th>
+                                <th className="text-left px-4 md:px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Net Earning</th>
                             </tr>
                         </thead>
                         <tbody>
                             {data.map(earning => (
                                 <tr key={earning.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
-                                    <td className="px-6 py-4 text-sm text-gray-500">
+                                    <td className="px-4 md:px-6 py-4 text-sm text-gray-500">
                                         {new Date(earning.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
                                     </td>
                                     <td className="px-6 py-4 text-sm text-foreground font-medium">{earning.transaction?.course?.title || '-'}</td>

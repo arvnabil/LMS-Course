@@ -38,7 +38,7 @@ export default function Index({ auth, courses = [] }) {
                     </div>
                     <Link
                         href={route('mentor.courses.create')}
-                        className="inline-flex items-center justify-center bg-primary text-white px-8 py-4 rounded-full font-extrabold shadow-xl shadow-primary/20 hover:bg-primary-hover transition-all translate-y-0 hover:-translate-y-1 text-sm uppercase tracking-widest"
+                        className="inline-flex w-full sm:w-auto items-center justify-center bg-primary text-white px-8 py-4 rounded-full font-extrabold shadow-xl shadow-primary/20 hover:bg-primary-hover transition-all translate-y-0 hover:-translate-y-1 text-sm uppercase tracking-widest"
                     >
                         <span className="mr-2 text-xl">+</span> Create New Course
                     </Link>
@@ -46,22 +46,22 @@ export default function Index({ auth, courses = [] }) {
 
                 {/* Courses Table/Grid */}
                 <div className="bg-surface rounded-2xl border border-border overflow-hidden shadow-sm">
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-primary/20 pb-4">
                         <table className="w-full text-left border-collapse min-w-[1000px] lg:min-w-full">
                             <thead>
                                 <tr className="border-b border-border bg-muted/50">
-                                    <th className="px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Course Info</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Category</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Pricing</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Status</th>
-                                    <th className="px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider text-right">Action</th>
+                                    <th className="px-4 md:px-8 py-6 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap">Course Info</th>
+                                    <th className="px-4 md:px-8 py-6 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap">Category</th>
+                                    <th className="px-4 md:px-8 py-6 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap">Pricing</th>
+                                    <th className="px-4 md:px-8 py-6 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap">Status</th>
+                                    <th className="px-4 md:px-8 py-6 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap text-right">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {courses.length > 0 ? (
                                     courses.map((course) => (
                                         <tr key={course.id} className="border-b border-border hover:bg-primary/10 transition-colors group">
-                                            <td className="px-10 py-8">
+                                            <td className="px-4 md:px-8 py-6 md:py-8">
                                                 <div className="flex items-center gap-6">
                                                     <div className="w-20 h-20 rounded-3xl bg-muted flex-shrink-0 flex items-center justify-center text-3xl overflow-hidden">
                                                         {course.thumbnail ? (
@@ -74,15 +74,15 @@ export default function Index({ auth, courses = [] }) {
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="px-10 py-8">
+                                            <td className="px-4 md:px-8 py-6 md:py-8">
                                                 <span className="bg-accent-teal/10 text-sidebar-active px-4 py-1.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider">
                                                     {course.category?.name || 'Uncategorized'}
                                                 </span>
                                             </td>
-                                            <td className="px-10 py-8">
+                                            <td className="px-4 md:px-8 py-6 md:py-8">
                                                 <p className="text-sm font-extrabold text-foreground tracking-tight">IDR {parseFloat(course.price).toLocaleString()}</p>
                                             </td>
-                                            <td className="px-10 py-8">
+                                            <td className="px-4 md:px-8 py-6 md:py-8">
                                                 <span className={`px-4 py-1.5 rounded-full text-[10px] font-extrabold uppercase tracking-widest ${
                                                     course.status === 'published' 
                                                         ? 'bg-accent-lime/20 text-foreground' 
@@ -91,7 +91,7 @@ export default function Index({ auth, courses = [] }) {
                                                     {course.status}
                                                 </span>
                                             </td>
-                                            <td className="px-10 py-8 text-right">
+                                            <td className="px-4 md:px-8 py-6 md:py-8 text-right">
                                                 <div className="flex items-center justify-end gap-3">
                                                     <Link
                                                         href={route('mentor.courses.edit', course.id)}

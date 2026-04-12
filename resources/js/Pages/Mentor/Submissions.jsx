@@ -77,56 +77,56 @@ export default function Submissions({ auth, submissions, filters }) {
 
                 {/* Submissions Grid/Table */}
                 <div className="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-6 duration-700">
-                    <div className="overflow-x-auto rounded-2xl">
+                    <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-primary/20 pb-4">
                         <table className="w-full text-left border-collapse min-w-[1000px] lg:min-w-full">
                             <thead>
                                 <tr className="border-b border-border bg-muted/50">
-                                    <th className="px-6 md:px-10 py-6 md:py-8 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest">Student & Course</th>
-                                    <th className="px-6 md:px-10 py-6 md:py-8 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest">Assignment</th>
-                                    <th className="px-6 md:px-10 py-6 md:py-8 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest text-center">Submitted</th>
-                                    <th className="px-6 md:px-10 py-6 md:py-8 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest text-center">Status</th>
-                                    <th className="px-6 md:px-10 py-6 md:py-8 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest text-right">Actions</th>
+                                <th className="px-4 md:px-10 py-6 md:py-8 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap">Student & Course Info</th>
+                                <th className="px-4 md:px-10 py-6 md:py-8 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap">Assignment Title</th>
+                                <th className="px-4 md:px-10 py-6 md:py-8 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest text-center whitespace-nowrap">Submitted At</th>
+                                <th className="px-4 md:px-10 py-6 md:py-8 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest text-center whitespace-nowrap">Current Status</th>
+                                <th className="px-4 md:px-10 py-6 md:py-8 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest text-right whitespace-nowrap">Review Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border">
+                            {data.map((sub) => (
+                                <tr key={sub.id} className="group hover:bg-primary/5 transition-colors">
+                                    <td className="px-4 md:px-10 py-6 md:py-8 text-jakarta">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-primary flex items-center justify-center text-[11px] md:text-sm font-black text-white shadow-lg shadow-primary/20 border border-white/10 uppercase">
+                                                {(sub.enrollment?.student?.full_name || 'S')[0]}
+                                            </div>
+                                            <div className="space-y-0.5">
+                                                <p className="text-sm font-bold text-foreground tracking-tight line-clamp-1">{sub.enrollment?.student?.full_name || 'Unknown Student'}</p>
+                                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest line-clamp-1">{sub.enrollment?.course?.title || '-'}</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td className="px-4 md:px-10 py-6 md:py-8">
+                                        <p className="text-xs md:text-sm font-bold text-gray-700 leading-tight line-clamp-2 tracking-tight">{sub.quiz?.title || 'Assignment'}</p>
+                                    </td>
+                                    <td className="px-4 md:px-10 py-6 md:py-8 text-center text-[11px] font-bold text-gray-400 uppercase tracking-tighter tabular-nums whitespace-nowrap">
+                                        {new Date(sub.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                    </td>
+                                    <td className="px-4 md:px-10 py-6 md:py-8 text-center">
+                                        <div className={`mx-auto inline-flex px-3 md:px-4 py-1.5 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest border border-current opacity-80 ${statusColors[sub.status] || 'bg-gray-50 text-gray-500'}`}>
+                                            {sub.status}
+                                        </div>
+                                    </td>
+                                    <td className="px-4 md:px-10 py-6 md:py-8 text-right">
+                                        <button 
+                                            onClick={() => openReview(sub)}
+                                            className={`px-4 md:px-6 py-2 md:py-3 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-all shadow-lg ${
+                                                sub.status === 'pending'
+                                                    ? 'bg-primary text-white shadow-primary/20 hover:scale-105 active:scale-95'
+                                                    : 'bg-muted text-gray-400 border border-border hover:bg-white hover:text-foreground'
+                                            }`}
+                                        >
+                                            {sub.status === 'pending' ? 'Review' : 'View Result'}
+                                        </button>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody className="divide-y divide-border">
-                                {data.map((sub) => (
-                                    <tr key={sub.id} className="group hover:bg-primary/5 transition-colors">
-                                        <td className="px-6 md:px-10 py-6 md:py-8 text-jakarta">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-primary flex items-center justify-center text-sm md:text-lg font-extrabold text-white shadow-lg shadow-primary/20">
-                                                    {(sub.enrollment?.student?.full_name || 'S')[0]}
-                                                </div>
-                                                <div className="space-y-0.5">
-                                                    <p className="text-sm font-extrabold text-foreground line-clamp-1">{sub.enrollment?.student?.full_name || 'Unknown Student'}</p>
-                                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tight line-clamp-1">{sub.enrollment?.course?.title || '-'}</p>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 md:px-10 py-6 md:py-8">
-                                            <p className="text-xs md:text-sm font-bold text-gray-700 leading-tight line-clamp-2">{sub.quiz?.title || 'Assignment'}</p>
-                                        </td>
-                                        <td className="px-6 md:px-10 py-6 md:py-8 text-center text-xs md:text-sm font-bold text-gray-400 tabular-nums">
-                                            {new Date(sub.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}
-                                        </td>
-                                        <td className="px-6 md:px-10 py-6 md:py-8 text-center">
-                                            <div className={`mx-auto inline-flex px-3 md:px-4 py-1 rounded-full text-[9px] md:text-[10px] font-extrabold uppercase tracking-widest border ${statusColors[sub.status] || 'bg-gray-50 text-gray-500'}`}>
-                                                {sub.status}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 md:px-10 py-6 md:py-8 text-right">
-                                            <button 
-                                                onClick={() => openReview(sub)}
-                                                className={`px-4 md:px-6 py-2 md:py-3 rounded-full text-[9px] md:text-xs font-extrabold uppercase tracking-widest transition-all shadow-lg ${
-                                                    sub.status === 'pending'
-                                                        ? 'bg-primary text-white shadow-primary/20 hover:scale-105 active:scale-95'
-                                                        : 'bg-muted text-gray-400 hover:bg-gray-100'
-                                                }`}
-                                            >
-                                                {sub.status === 'pending' ? 'Review' : 'View Result'}
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
+                            ))}
                                 {data.length === 0 && (
                                     <tr>
                                         <td colSpan="5" className="px-10 py-32 text-center space-y-4">

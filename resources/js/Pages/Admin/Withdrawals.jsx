@@ -81,45 +81,45 @@ export default function Withdrawals({ withdrawals, filters }) {
 
                 {/* Table */}
                 <div className="bg-surface rounded-2xl border border-border overflow-hidden shadow-sm">
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-primary/20 pb-4">
                         <table className="w-full text-left min-w-[1000px] lg:min-w-full">
                         <thead>
                             <tr className="border-b border-border bg-muted/50">
-                                <th className="px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Mentor</th>
-                                <th className="px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Amount</th>
-                                <th className="px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Bank Account</th>
-                                <th className="px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Requested At</th>
-                                <th className="px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Status</th>
-                                <th className="px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider text-right">Action</th>
+                                <th className="px-4 md:px-6 py-4 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap">Mentor</th>
+                                <th className="px-4 md:px-6 py-4 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap text-center">Amount</th>
+                                <th className="px-4 md:px-6 py-4 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap">Bank Account</th>
+                                <th className="px-4 md:px-6 py-4 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap text-center">Requested At</th>
+                                <th className="px-4 md:px-6 py-4 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap text-center">Status</th>
+                                <th className="px-4 md:px-6 py-4 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap text-right">Action</th>
                             </tr>
                         </thead>
                         <tbody>
                             {withdrawals.data.map(w => (
                                 <tr key={w.id} className="border-b border-border hover:bg-primary/10 transition-colors">
-                                    <td className="px-6 py-4">
-                                        <div className="font-semibold text-sm text-foreground">{w.mentor?.full_name}</div>
-                                        <div className="text-xs text-gray-400">{w.mentor?.email}</div>
+                                    <td className="px-4 md:px-6 py-4">
+                                        <div className="font-bold text-sm text-foreground tracking-tight">{w.mentor?.full_name}</div>
+                                        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">{w.mentor?.email}</div>
                                     </td>
-                                    <td className="px-6 py-4 font-bold text-sm text-foreground">
+                                    <td className="px-4 md:px-6 py-4 font-extrabold text-sm text-foreground text-center">
                                         Rp {Number(w.amount).toLocaleString('id-ID')}
                                     </td>
-                                    <td className="px-6 py-4">
-                                        <div className="text-xs font-bold text-gray-700">{w.bank_name}</div>
-                                        <div className="text-xs text-gray-500">{w.account_number}</div>
-                                        <div className="text-xs text-gray-400 italic">{w.account_name}</div>
+                                    <td className="px-4 md:px-6 py-4">
+                                        <div className="text-[10px] font-extrabold text-foreground uppercase tracking-wider">{w.bank_name}</div>
+                                        <div className="text-[11px] font-bold text-gray-500 font-mono tracking-tighter">{w.account_number}</div>
+                                        <div className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{w.account_name}</div>
                                     </td>
-                                    <td className="px-6 py-4 text-xs text-gray-500">
+                                    <td className="px-4 md:px-6 py-4 text-[11px] font-bold text-gray-400 text-center uppercase tracking-tighter">
                                         {new Date(w.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
                                     </td>
-                                    <td className="px-6 py-4">
-                                        <span className={`px-2 py-1 rounded-full text-[10px] font-bold border uppercase ${statusColors[w.status]}`}>
+                                    <td className="px-4 md:px-6 py-4 text-center">
+                                        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-current opacity-80 ${statusColors[w.status]}`}>
                                             {w.status}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 text-right">
+                                    <td className="px-4 md:px-6 py-4 text-right">
                                         <button 
                                             onClick={() => openProcessModal(w)}
-                                            className="px-3 py-1.5 text-xs font-bold text-primary hover:bg-primary/5 rounded-lg transition-colors border border-primary/10"
+                                            className="px-3 py-1.5 text-[10px] font-extrabold text-primary hover:bg-primary hover:text-white transition-all border border-primary/20 rounded-lg uppercase tracking-widest"
                                         >
                                             Process
                                         </button>
@@ -127,12 +127,12 @@ export default function Withdrawals({ withdrawals, filters }) {
                                 </tr>
                             ))}
                             {withdrawals.data.length === 0 && (
-                                <tr><td colSpan="6" className="px-6 py-12 text-center text-gray-400">No withdrawal requests found.</td></tr>
+                                <tr><td colSpan="6" className="px-4 md:px-6 py-12 text-center text-gray-400">No withdrawal requests found.</td></tr>
                             )}
                         </tbody>
                     </table>
+                    </div>
                 </div>
-            </div>
             </div>
 
             {/* Process Modal */}

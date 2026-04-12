@@ -121,11 +121,11 @@ export default function Categories({ categories }) {
 
                 {/* Table */}
                 <div className="bg-surface rounded-2xl border border-border overflow-hidden shadow-sm">
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-primary/20 pb-4">
                         <table className="w-full min-w-[1000px] lg:min-w-full">
                         <thead>
                             <tr className="border-b border-border bg-muted/50">
-                                <th className="px-6 py-4 w-12">
+                                <th className="px-4 md:px-6 py-4 w-12 text-center text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap">
                                     <input 
                                         type="checkbox" 
                                         className="rounded border-gray-300 text-primary focus:ring-primary w-4 h-4 cursor-pointer"
@@ -133,16 +133,16 @@ export default function Categories({ categories }) {
                                         onChange={toggleSelectAll}
                                     />
                                 </th>
-                                <th className="text-left px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Name</th>
-                                <th className="text-left px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Slug</th>
-                                <th className="text-left px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Courses</th>
-                                <th className="text-right px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Actions</th>
+                                <th className="text-left px-4 md:px-6 py-4 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap">Name</th>
+                                <th className="text-left px-4 md:px-6 py-4 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap">Slug</th>
+                                <th className="text-left px-4 md:px-6 py-4 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap text-center">Courses</th>
+                                <th className="text-right px-4 md:px-6 py-4 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {categories.map((cat, i) => (
                                 <tr key={cat.id} className={`border-b border-border hover:bg-primary/5 transition-colors ${selectedIds.includes(cat.id) ? 'bg-primary/5' : ''}`}>
-                                    <td className="px-6 py-4">
+                                    <td className="px-4 md:px-6 py-4 text-center">
                                         <input 
                                             type="checkbox" 
                                             className="rounded border-gray-300 text-primary focus:ring-primary w-4 h-4 cursor-pointer"
@@ -150,7 +150,7 @@ export default function Categories({ categories }) {
                                             onChange={() => toggleSelect(cat.id)}
                                         />
                                     </td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-4 md:px-6 py-4">
                                         <div className="flex items-center gap-3">
                                             {(() => {
                                                 const display = getCategoryDisplay(cat);
@@ -158,7 +158,7 @@ export default function Categories({ categories }) {
                                                     <>
                                                         {display.icon && (
                                                             <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-                                                                <Icon name={display.icon} />
+                                                                 <Icon name={display.icon} />
                                                             </div>
                                                         )}
                                                         <span className="text-sm font-semibold text-foreground">{display.name}</span>
@@ -167,18 +167,18 @@ export default function Categories({ categories }) {
                                             })()}
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 text-sm text-gray-500 font-mono">{cat.slug}</td>
-                                    <td className="px-6 py-4">
-                                        <span className="inline-flex items-center px-2.5 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full text-xs font-semibold">
+                                    <td className="px-4 md:px-6 py-4 text-[11px] text-gray-400 font-mono tracking-tighter">{cat.slug}</td>
+                                    <td className="px-4 md:px-6 py-4 text-center">
+                                        <span className="inline-flex items-center px-2.5 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full text-[10px] font-bold uppercase tracking-wider">
                                             {cat.courses_count} courses
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 text-right">
+                                    <td className="px-4 md:px-6 py-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
-                                            <button onClick={() => openEdit(cat)} className="px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors">
+                                            <button onClick={() => openEdit(cat)} className="px-3 py-1.5 text-[10px] font-extrabold text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-blue-100 uppercase tracking-widest">
                                                 Edit
                                             </button>
-                                            <button onClick={() => handleDelete(cat.id)} className="px-3 py-1.5 text-xs font-medium text-red-700 bg-red-50 dark:bg-red-900/30 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors">
+                                            <button onClick={() => handleDelete(cat.id)} className="px-3 py-1.5 text-[10px] font-extrabold text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-red-100 uppercase tracking-widest">
                                                 Delete
                                             </button>
                                         </div>
@@ -186,13 +186,13 @@ export default function Categories({ categories }) {
                                 </tr>
                             ))}
                             {categories.length === 0 && (
-                                <tr><td colSpan="5" className="px-6 py-12 text-center text-gray-400">No categories yet.</td></tr>
+                                <tr><td colSpan="5" className="px-4 md:px-6 py-12 text-center text-gray-400">No categories yet.</td></tr>
                             )}
                         </tbody>
                     </table>
                 </div>
             </div>
-            </div>
+        </div>
 
             {/* Modal */}
             {showModal && (

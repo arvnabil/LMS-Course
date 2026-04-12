@@ -44,43 +44,43 @@ export default function Students({ enrollments, courses, filters }) {
 
                 {/* Table */}
                 <div className="bg-surface rounded-2xl border border-border overflow-hidden shadow-sm">
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-primary/20 pb-4">
                         <table className="w-full min-w-[1000px] lg:min-w-full">
                         <thead>
                             <tr className="border-b border-border bg-muted/50">
-                                <th className="text-left px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Student</th>
-                                <th className="text-left px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Course</th>
-                                <th className="text-left px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Progress</th>
-                                <th className="text-left px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Status</th>
-                                <th className="text-left px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Enrolled At</th>
+                                <th className="text-left px-4 md:px-6 py-4 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap">Student Info</th>
+                                <th className="text-left px-4 md:px-6 py-4 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap">Course Title</th>
+                                <th className="text-left px-4 md:px-6 py-4 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap">Progress Status</th>
+                                <th className="text-left px-4 md:px-6 py-4 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap text-center">Active Status</th>
+                                <th className="text-center px-4 md:px-6 py-4 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap">Enrolled At</th>
                             </tr>
                         </thead>
                         <tbody>
                             {data.map(enrollment => (
-                                <tr key={enrollment.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
-                                    <td className="px-6 py-4">
+                                <tr key={enrollment.id} className="border-b border-border hover:bg-primary/5 transition-colors">
+                                    <td className="px-4 md:px-6 py-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500">
+                                            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-[10px] font-extrabold text-gray-500 border border-gray-300/30 shadow-sm">
                                                 {enrollment.student?.full_name?.charAt(0)?.toUpperCase()}
                                             </div>
                                             <div>
-                                                <p className="text-sm font-semibold text-foreground">{enrollment.student?.full_name}</p>
-                                                <p className="text-xs text-gray-400">{enrollment.student?.email}</p>
+                                                <p className="text-sm font-bold text-foreground tracking-tight">{enrollment.student?.full_name}</p>
+                                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">{enrollment.student?.email}</p>
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 text-sm text-gray-600">{enrollment.course?.title}</td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-4 md:px-6 py-4 text-sm font-bold text-foreground/80 tracking-tight">{enrollment.course?.title}</td>
+                                    <td className="px-4 md:px-6 py-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden max-w-[120px]">
-                                                <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${enrollment.progress || 0}%` }} />
+                                            <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden max-w-[100px] border border-gray-200/50">
+                                                <div className="h-full bg-primary rounded-full transition-all shadow-sm shadow-primary/20" style={{ width: `${enrollment.progress || 0}%` }} />
                                             </div>
-                                            <span className="text-xs font-semibold text-gray-600">{enrollment.progress || 0}%</span>
+                                            <span className="text-[10px] font-black text-foreground/70 tracking-tighter">{enrollment.progress || 0}%</span>
                                         </div>
-                                        <p className="text-[11px] text-gray-400 mt-0.5">{enrollment.completed_lessons}/{enrollment.total_lessons} lessons</p>
+                                        <p className="text-[10px] font-bold text-gray-400 mt-1 uppercase tracking-widest">{enrollment.completed_lessons} / {enrollment.total_lessons} LESSONS</p>
                                     </td>
-                                    <td className="px-6 py-4">
-                                        <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${
+                                    <td className="px-4 md:px-6 py-4 text-center">
+                                        <span className={`inline-flex px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-current opacity-80 ${
                                             enrollment.status === 'completed' ? 'bg-green-50 text-green-700' :
                                             enrollment.status === 'active' ? 'bg-blue-50 text-blue-700' :
                                             'bg-gray-100 text-gray-600'
@@ -88,13 +88,13 @@ export default function Students({ enrollments, courses, filters }) {
                                             {enrollment.status}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 text-sm text-gray-500">
+                                    <td className="px-4 md:px-6 py-4 text-[11px] font-bold text-gray-400 text-center uppercase tracking-tighter">
                                         {enrollment.enrolled_at ? new Date(enrollment.enrolled_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}
                                     </td>
                                 </tr>
                             ))}
                             {data.length === 0 && (
-                                <tr><td colSpan="5" className="px-6 py-12 text-center text-gray-400">No students enrolled yet.</td></tr>
+                                <tr><td colSpan="5" className="px-4 md:px-6 py-12 text-center text-gray-400">No students enrolled yet.</td></tr>
                             )}
                         </tbody>
                     </table>

@@ -115,11 +115,11 @@ export default function Roles({ roles, permissions }) {
 
                 {/* Table */}
                 <div className="bg-surface rounded-2xl border border-border overflow-hidden shadow-sm">
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-primary/20 pb-4">
                         <table className="w-full min-w-[1000px] lg:min-w-full">
                         <thead>
                             <tr className="border-b border-border bg-muted/50">
-                                <th className="px-6 py-4 w-12">
+                                <th className="px-4 md:px-6 py-4 w-12 text-center text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap">
                                     <input 
                                         type="checkbox" 
                                         className="rounded border-gray-300 text-primary focus:ring-primary w-4 h-4 cursor-pointer"
@@ -128,9 +128,9 @@ export default function Roles({ roles, permissions }) {
                                         disabled={deletableRoles.length === 0}
                                     />
                                 </th>
-                                <th className="text-left px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Role Name</th>
-                                <th className="text-left px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider">Permissions Count</th>
-                                <th className="text-left px-6 py-4 text-xs font-bold text-foreground/60 uppercase tracking-wider w-32">Actions</th>
+                                <th className="text-left px-4 md:px-6 py-4 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap">Role Name</th>
+                                <th className="text-left px-4 md:px-6 py-4 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap text-center">Permissions Count</th>
+                                <th className="text-right px-4 md:px-6 py-4 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap w-32">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -138,7 +138,7 @@ export default function Roles({ roles, permissions }) {
                                 const isDeletable = !['admin', 'mentor', 'student', 'org_admin'].includes(role.name);
                                 return (
                                 <tr key={role.id} className={`border-b border-border hover:bg-primary/10 transition-colors ${selectedIds.includes(role.id) ? 'bg-primary/5' : ''}`}>
-                                    <td className="px-6 py-4">
+                                    <td className="px-4 md:px-6 py-4 text-center">
                                         {isDeletable && (
                                             <input 
                                                 type="checkbox" 
@@ -148,19 +148,19 @@ export default function Roles({ roles, permissions }) {
                                             />
                                         )}
                                     </td>
-                                    <td className="px-6 py-4">
-                                        <div className="inline-flex px-3 py-1 bg-muted border border-border rounded-full text-sm font-bold text-foreground">
+                                    <td className="px-4 md:px-6 py-4">
+                                        <div className="inline-flex px-3 py-1 bg-muted border border-border rounded-full text-[10px] font-extrabold uppercase tracking-widest text-foreground">
                                             {role.name}
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 text-sm text-gray-600">
+                                    <td className="px-4 md:px-6 py-4 text-[11px] font-bold text-gray-500 text-center uppercase tracking-tighter">
                                         {role.name === 'admin' ? 'All Permissions' : `${role.permissions?.length || 0} permissions`}
                                     </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-3">
-                                            <button onClick={() => openEditModal(role)} className="text-primary hover:underline text-sm font-semibold">Edit</button>
+                                    <td className="px-4 md:px-6 py-4">
+                                        <div className="flex items-center justify-end gap-3 text-right">
+                                            <button onClick={() => openEditModal(role)} className="px-3 py-1.5 text-[10px] font-extrabold text-primary border border-primary/20 rounded-lg hover:bg-primary hover:text-white transition-all uppercase tracking-widest">Edit</button>
                                             {!['admin', 'mentor', 'student', 'org_admin'].includes(role.name) && (
-                                                <button onClick={() => handleDelete(role)} className="text-red-500 hover:underline text-sm font-semibold">Delete</button>
+                                                <button onClick={() => handleDelete(role)} className="px-3 py-1.5 text-[10px] font-extrabold text-red-600 border border-red-100 rounded-lg hover:bg-red-600 hover:text-white transition-all uppercase tracking-widest shadow-sm shadow-red-500/10 text-center">Delete</button>
                                             )}
                                         </div>
                                     </td>
@@ -168,12 +168,12 @@ export default function Roles({ roles, permissions }) {
                                 );
                             })}
                             {roles.length === 0 && (
-                                <tr><td colSpan="3" className="px-6 py-12 text-center text-gray-400">No roles found.</td></tr>
+                                <tr><td colSpan="4" className="px-4 md:px-6 py-12 text-center text-gray-400">No roles found.</td></tr>
                             )}
                         </tbody>
                     </table>
+                    </div>
                 </div>
-            </div>
             </div>
 
             {/* Modal */}

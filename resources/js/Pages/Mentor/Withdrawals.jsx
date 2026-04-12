@@ -53,40 +53,40 @@ export default function Withdrawals({ withdrawals, balance, totalEarnings, total
 
                 {/* Table */}
                 <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-primary/20 pb-4">
                         <table className="w-full min-w-[1000px] lg:min-w-full">
                         <thead>
                             <tr className="border-b border-gray-100 bg-gray-50/50">
-                                <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
-                                <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount</th>
-                                <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Bank</th>
-                                <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Account</th>
-                                <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                                <th className="text-left px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Notes</th>
+                                <th className="text-left px-4 md:px-6 py-4 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap">Requested Date</th>
+                                <th className="text-left px-4 md:px-6 py-4 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap">Amount (Rp)</th>
+                                <th className="text-left px-4 md:px-6 py-4 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap">Bank Info</th>
+                                <th className="text-left px-4 md:px-6 py-4 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap">Account Detail</th>
+                                <th className="text-left px-4 md:px-6 py-4 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap">Status</th>
+                                <th className="text-left px-4 md:px-6 py-4 text-[10px] font-extrabold text-foreground/60 uppercase tracking-widest whitespace-nowrap">Admin Notes</th>
                             </tr>
                         </thead>
                         <tbody>
                             {data.map(w => (
-                                <tr key={w.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
-                                    <td className="px-6 py-4 text-sm text-gray-500">
+                                <tr key={w.id} className="border-b border-border hover:bg-primary/5 transition-colors">
+                                    <td className="px-4 md:px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-tighter tabular-nums">
                                         {new Date(w.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
                                     </td>
-                                    <td className="px-6 py-4 text-sm font-semibold text-foreground">Rp {Number(w.amount).toLocaleString('id-ID')}</td>
-                                    <td className="px-6 py-4 text-sm text-gray-600">{w.bank_name}</td>
-                                    <td className="px-6 py-4">
-                                        <p className="text-sm text-foreground">{w.account_name}</p>
-                                        <p className="text-xs text-gray-400">{w.account_number}</p>
+                                    <td className="px-4 md:px-6 py-4 text-sm font-extrabold text-foreground tracking-tight">Rp {Number(w.amount).toLocaleString('id-ID')}</td>
+                                    <td className="px-4 md:px-6 py-4 text-[10px] font-extrabold text-foreground/80 uppercase tracking-widest">{w.bank_name}</td>
+                                    <td className="px-4 md:px-6 py-4">
+                                        <p className="text-sm font-bold text-foreground tracking-tight">{w.account_name}</p>
+                                        <p className="text-[11px] font-bold text-gray-400 font-mono tracking-tighter">{w.account_number}</p>
                                     </td>
-                                    <td className="px-6 py-4">
-                                        <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${statusColors[w.status]}`}>
+                                    <td className="px-4 md:px-6 py-4">
+                                        <span className={`inline-flex px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-current opacity-80 ${statusColors[w.status]}`}>
                                             {w.status}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 text-sm text-gray-500 max-w-[200px] truncate">{w.notes || '-'}</td>
+                                    <td className="px-4 md:px-6 py-4 text-[11px] font-bold text-gray-400 max-w-[200px] truncate uppercase tracking-tighter">{w.notes || '-'}</td>
                                 </tr>
                             ))}
                             {data.length === 0 && (
-                                <tr><td colSpan="6" className="px-6 py-12 text-center text-gray-400">No withdrawal history.</td></tr>
+                                <tr><td colSpan="6" className="px-4 md:px-6 py-12 text-center text-gray-400 uppercase text-[10px] font-extrabold tracking-widest">No withdrawal history.</td></tr>
                             )}
                         </tbody>
                     </table>
