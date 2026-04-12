@@ -19,10 +19,13 @@ class SubmissionController extends Controller
 
     public function index(Request $request)
     {
-        $mentorId = auth()->id();
+        $user = auth()->user();
+        $query = Submission::with(['enrollment.student', 'enrollment.course', 'quiz']);
 
-        $query = Submission::with(['enrollment.student', 'enrollment.course', 'quiz'])
-            ->whereHas('enrollment.course', fn($q) => $q->where('mentor_id', $mentorId));
+        // Filter by mentor if not an admin
+        if (!$user->hasRole('admin')) {
+            $query->whereHas('enrollment.course', fn($q) => $q->where('mentor_id', $user->id));
+        }
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
@@ -38,8 +41,10 @@ class SubmissionController extends Controller
 
     public function review(Request $request, Submission $submission)
     {
-        // Verify mentor owns the course
-        if ($submission->enrollment->course->mentor_id !== auth()->id()) {
+        $user = auth()->user();
+
+        // Verify mentor owns the course, or user is an admin
+        if (!$user->hasRole('admin') && $submission->enrollment->course->mentor_id !== $user->id) {
             abort(403);
         }
 
