@@ -31,6 +31,25 @@ class OneDriveProxyController extends Controller
             $mimeType = $item['file']['mimeType'] ?? 'application/octet-stream';
             $fileName = $item['name'] ?? 'file';
 
+            // Auto-heal: Fix missing metadata in database for existing lessons
+            try {
+                \Illuminate\Support\Facades\DB::table('lessons')
+                    ->where('file_id', $itemId)
+                    ->where(function($query) {
+                        $query->whereNull('mime_type')
+                              ->orWhereNull('file_name')
+                              ->orWhere('mime_type', 'application/octet-stream');
+                    })
+                    ->update([
+                        'mime_type' => $mimeType,
+                        'file_name' => $fileName,
+                        'updated_at' => now(),
+                    ]);
+            } catch (\Exception $e) {
+                // Silently fail database update to not block the file delivery
+                Log::debug("OneDrive Auto-Heal Failed: " . $e->getMessage());
+            }
+
             // Get a fresh signed download URL
             $url = $oneDrive->getDownloadUrl($itemId);
             
