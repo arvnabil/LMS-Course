@@ -948,7 +948,6 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                       (currentLesson?.video_id && !videoId)) ? (
                                         <div className="w-full h-full flex items-center justify-center">
                                             <video 
-                                                key={`onedrive-video-${streamVersion}`}
                                                 ref={videoRef}
                                                 src={`/onedrive/stream/${currentLesson.video_id}?v=${streamVersion}`}
                                                 className="w-full h-full outline-none"
@@ -1012,6 +1011,13 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                                         pendingResumeTime.current = current;
                                                         setVideoRetryCount(prev => prev + 1);
                                                         setStreamVersion(Date.now());
+                                                        
+                                                        // Force load with new src
+                                                        setTimeout(() => {
+                                                            if (videoRef.current) {
+                                                                videoRef.current.load();
+                                                            }
+                                                        }, 50);
                                                     } else {
                                                         setToast({ 
                                                             message: "Failed to load video. Please ensure the OneDrive link is still valid and you have permissions.", 
