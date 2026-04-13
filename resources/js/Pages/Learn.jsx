@@ -68,6 +68,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
     const progressInterval = useRef(null);
     const lastMaxTime = useRef(0);
     const pendingResumeTime = useRef(0);
+    const isRecovering = useRef(false);
 
     const [isQuizPlaying, setIsQuizPlaying] = useState(false);
     const [resumeTime, setResumeTime] = useState(0);
@@ -948,6 +949,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                       (currentLesson?.video_id && !videoId)) ? (
                                         <div className="w-full h-full flex items-center justify-center">
                                             <video 
+                                                key={`onedrive-video-${streamVersion}`}
                                                 ref={videoRef}
                                                 src={`/onedrive/stream/${currentLesson.video_id}?v=${streamVersion}`}
                                                 className="w-full h-full outline-none"
@@ -971,8 +973,9 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                                     if (pendingResumeTime.current > 0) {
                                                         const targetTime = pendingResumeTime.current;
                                                         pendingResumeTime.current = 0; 
+                                                        isRecovering.current = true;
                                                         
-                                                        // Increased delay to 500ms for stability on slow connections
+                                                        // Increased delay to 800ms for stability
                                                         setTimeout(() => {
                                                             if (e.target) {
                                                                 e.target.currentTime = targetTime;
@@ -980,16 +983,22 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                                                 if (playPromise !== undefined) {
                                                                     playPromise.catch(error => {
                                                                         console.warn("Autoplay/Resume interrupted:", error.name);
-                                                                        // Usually fine, browser will resume when ready
                                                                     });
                                                                 }
+                                                                
+                                                                // Re-enable seek protection after 5 seconds of stability
+                                                                setTimeout(() => {
+                                                                    isRecovering.current = false;
+                                                                }, 5000);
                                                             }
-                                                        }, 500);
+                                                        }, 800);
                                                     }
                                                 }}
                                                 onError={(e) => {
+                                                    const errorCode = e.target.error ? e.target.error.code : 'unknown';
                                                     console.error("Video Playback Error (OneDrive - Detailed):", {
-                                                        error: e.target.error,
+                                                        code: errorCode,
+                                                        message: e.target.error ? e.target.error.message : '',
                                                         currentTime: e.target.currentTime,
                                                         itemId: currentLesson.video_id
                                                     });
@@ -1029,7 +1038,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                                     const current = e.target.currentTime;
                                                     const dur = e.target.duration || 0;
                                                     
-                                                    if (!isAlreadyCompleted && current > lastMaxTime.current + 2) {
+                                                    if (!isAlreadyCompleted && !isRecovering.current && current > lastMaxTime.current + 2) {
                                                         e.target.currentTime = lastMaxTime.current;
                                                     } else if (isAlreadyCompleted || current > lastMaxTime.current) {
                                                         // If already completed, we allow seeking anywhere by keeping lastMaxTime ahead
