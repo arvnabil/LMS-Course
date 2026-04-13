@@ -67,47 +67,8 @@ class OneDriveStreamController extends Controller
             ]);
         }
 
-        // Optimized Hybrid Proxy (Direct Stream without Redirect)
-        // This fixes browser "Seeking" issues that happen with Redirects
-        set_time_limit(0); 
-
-        $range = request()->header('Range');
-        $opts = [
-            'http' => [
-                'method' => 'GET',
-                'header' => $range ? "Range: {$range}\r\n" : ""
-            ]
-        ];
-
-        $context = stream_context_create($opts);
-        $stream = @fopen($downloadUrl, 'rb', false, $context);
-
-        if (!$stream) {
-            return redirect()->away($downloadUrl); // Fallback to redirect if proxy fails
-        }
-
-        // Extract metadata from the stream headers
-        $meta = stream_get_meta_data($stream);
-        $headers = $meta['wrapper_data'] ?? [];
-        
-        $responseHeaders = [
-            'Content-Type' => $mimeType ?: 'video/mp4',
-            'Content-Disposition' => 'inline; filename="' . $fileName . '"',
-            'Accept-Ranges' => 'bytes',
-            'Cache-Control' => 'no-cache',
-        ];
-
-        foreach ($headers as $header) {
-            if (stripos($header, 'Content-Range:') === 0) $responseHeaders['Content-Range'] = trim(substr($header, 14));
-            if (stripos($header, 'Content-Length:') === 0) $responseHeaders['Content-Length'] = trim(substr($header, 15));
-        }
-
-        return response()->stream(function () use ($stream) {
-            while (!feof($stream)) {
-                echo fread($stream, 1024 * 128); // 128KB chunks
-                flush();
-            }
-            fclose($stream);
-        }, isset($responseHeaders['Content-Range']) ? 206 : 200, $responseHeaders);
+        // Final Stable Method: Direct Redirect
+        // Frontend CORS attribute has been removed, so this is now safe and fast.
+        return redirect()->away($downloadUrl);
     }
 }

@@ -970,9 +970,9 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                                     // Handle silent refresh resume
                                                     if (pendingResumeTime.current > 0) {
                                                         const targetTime = pendingResumeTime.current;
-                                                        pendingResumeTime.current = 0; // Clear it
+                                                        pendingResumeTime.current = 0; 
                                                         
-                                                        // Update duration first, then seek
+                                                        // Increased delay to 500ms for stability on slow connections
                                                         setTimeout(() => {
                                                             if (e.target) {
                                                                 e.target.currentTime = targetTime;
@@ -980,11 +980,11 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                                                 if (playPromise !== undefined) {
                                                                     playPromise.catch(error => {
                                                                         console.warn("Autoplay/Resume interrupted:", error.name);
-                                                                        setIsPlaying(false);
+                                                                        // Usually fine, browser will resume when ready
                                                                     });
                                                                 }
                                                             }
-                                                        }, 150);
+                                                        }, 500);
                                                     }
                                                 }}
                                                 onError={(e) => {
