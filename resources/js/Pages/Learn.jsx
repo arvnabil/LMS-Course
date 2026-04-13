@@ -1003,10 +1003,16 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                                         itemId: currentLesson.video_id
                                                     });
                                                     
-                                                    // Silent refresh mechanism for expired links
+                                                    // Silent refresh mechanism for expired links or corrupted segments
                                                     if (videoRetryCount < 3) {
-                                                        const current = videoRef.current?.currentTime || currentTime;
+                                                        let current = videoRef.current?.currentTime || currentTime;
                                                         
+                                                        // If it's a DECODE ERROR (Code 3), try to skip forward 1.5s to bypass corruption
+                                                        if (errorCode === 3) {
+                                                            console.log("Decode error detected. Skipping forward 1.5s to bypass corruption...");
+                                                            current += 1.5;
+                                                        }
+
                                                         // Prevent re-triggering if we are already at 0 or very close to it
                                                         if (current < 1 && videoRetryCount > 0) return;
 
