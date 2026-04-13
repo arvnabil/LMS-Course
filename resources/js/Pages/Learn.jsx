@@ -60,6 +60,8 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
     const [isPlaying, setIsPlaying] = useState(false);
     const [duration, setDuration] = useState(0);
     const [currentTime, setCurrentTime] = useState(0);
+    const [videoRetryCount, setVideoRetryCount] = useState(0);
+    const [streamVersion, setStreamVersion] = useState(Date.now());
     const [hasStarted, setHasStarted] = useState(false);
     const { theme, toggleTheme } = useTheme();
     const playerRef = useRef(null);
@@ -171,6 +173,10 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                 }
             }
         }
+
+        // Reset retry count when lesson changes
+        setVideoRetryCount(0);
+        setStreamVersion(Date.now());
     }, [currentLesson?.id, isAlreadyCompleted]);
 
     console.log('Enrollment Data Debug:', {
@@ -932,7 +938,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                         <div className="w-full h-full flex items-center justify-center">
                                             <video 
                                                 ref={videoRef}
-                                                src={`/onedrive/stream/${currentLesson.video_id}?t=${new Date(currentLesson.updated_at).getTime()}`}
+                                                src={`/onedrive/stream/${currentLesson.video_id}?v=${streamVersion}`}
                                                 className="w-full h-full outline-none"
                                                 playsInline
                                                 crossOrigin="anonymous"
@@ -949,13 +955,35 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                                 onLoadedMetadata={(e) => {
                                                     setDuration(e.target.duration);
                                                     setIsBuffering(false);
+                                                    setVideoRetryCount(0); // Reset retry count on success
                                                 }}
                                                 onError={(e) => {
-                                                    console.error("Video Playback Error:", e);
-                                                    setToast({ 
-                                                        message: "Failed to load video. Please ensure the OneDrive link is still valid and you have permissions.", 
-                                                        type: 'error' 
-                                                    });
+                                                    console.error("Video Playback Error (OneDrive):", e);
+                                                    
+                                                    // Silent refresh mechanism for expired links
+                                                    if (videoRetryCount < 3) {
+                                                        const current = videoRef.current?.currentTime || currentTime;
+                                                        console.log(`Attempting silent refresh (Retry ${videoRetryCount + 1})... Resuming from ${current}s`);
+                                                        
+                                                        setVideoRetryCount(prev => prev + 1);
+                                                        setStreamVersion(Date.now());
+                                                        
+                                                        // Attempt to resume after source change
+                                                        setTimeout(() => {
+                                                            if (videoRef.current) {
+                                                                videoRef.current.currentTime = current;
+                                                                videoRef.current.play().catch(() => {
+                                                                    // User interaction might be needed for play() on some browsers
+                                                                    setIsPlaying(false);
+                                                                });
+                                                            }
+                                                        }, 500);
+                                                    } else {
+                                                        setToast({ 
+                                                            message: "Failed to load video. Please ensure the OneDrive link is still valid and you have permissions.", 
+                                                            type: 'error' 
+                                                        });
+                                                    }
                                                 }}
                                                 onTimeUpdate={(e) => {
                                                     const current = e.target.currentTime;
