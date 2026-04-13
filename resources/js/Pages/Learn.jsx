@@ -953,7 +953,6 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                                 src={`/onedrive/stream/${currentLesson.video_id}?v=${streamVersion}`}
                                                 className="w-full h-full outline-none"
                                                 playsInline
-                                                crossOrigin="anonymous"
                                                 onPlay={() => {
                                                     setIsPlaying(true);
                                                     setHasStarted(true);
