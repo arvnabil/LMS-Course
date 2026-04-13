@@ -67,31 +67,42 @@ class OneDriveStreamController extends Controller
             ]);
         }
 
-        // Proxy the stream for video files with RANGE support
+        // Optimized Proxy with Single-Pass Streaming
         $range = request()->header('Range');
+        $headers = $range ? ['Range' => $range] : [];
+
+        $response = Http::withHeaders($headers)
+            ->withOptions([
+                'stream' => true,
+                'verify' => false,
+            ])->get($downloadUrl);
+
+        $status = $response->status();
+        $oneDriveHeaders = $response->headers();
+
+        // Pass through essential headers for video playback
+        $filteredHeaders = [
+            'Content-Type' => $oneDriveHeaders['Content-Type'][0] ?? ($mimeType ?: 'video/mp4'),
+            'Content-Disposition' => 'inline; filename="' . $fileName . '"',
+            'Accept-Ranges' => 'bytes',
+            'Cache-Control' => 'no-cache',
+        ];
+
+        if (isset($oneDriveHeaders['Content-Range'])) {
+            $filteredHeaders['Content-Range'] = $oneDriveHeaders['Content-Range'][0];
+        }
         
-        return response()->stream(function () use ($downloadUrl, $range) {
-            $headers = $range ? ['Range' => $range] : [];
-            
-            $response = Http::withHeaders($headers)
-                ->withOptions([
-                    'stream' => true,
-                    'verify' => false,
-                ])->get($downloadUrl);
-            
+        if (isset($oneDriveHeaders['Content-Length'])) {
+            $filteredHeaders['Content-Length'] = $oneDriveHeaders['Content-Length'][0];
+        }
+
+        return response()->stream(function () use ($response) {
             $body = $response->toPsrResponse()->getBody();
-            
             while (!$body->eof()) {
-                echo $body->read(1024 * 64); // 64KB chunks
+                echo $body->read(1024 * 64);
                 if (connection_aborted()) break;
                 flush();
             }
-        }, $range ? 206 : 200, [
-            'Content-Type' => $mimeType ?: 'video/mp4',
-            'Content-Disposition' => 'inline; filename="' . $fileName . '"',
-            'Accept-Ranges' => 'bytes',
-            'Content-Range' => $range ? (Http::withHeaders(['Range' => $range])->head($downloadUrl)->header('Content-Range')) : null,
-            'Cache-Control' => 'no-cache',
-        ]);
+        }, $status, $filteredHeaders);
     }
 }

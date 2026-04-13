@@ -938,6 +938,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                       (currentLesson?.video_id && !videoId)) ? (
                                         <div className="w-full h-full flex items-center justify-center">
                                             <video 
+                                                key={`onedrive-video-${streamVersion}`}
                                                 ref={videoRef}
                                                 src={`/onedrive/stream/${currentLesson.video_id}?v=${streamVersion}`}
                                                 className="w-full h-full outline-none"
@@ -967,9 +968,15 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                                         setTimeout(() => {
                                                             if (e.target) {
                                                                 e.target.currentTime = targetTime;
-                                                                e.target.play().catch(() => setIsPlaying(false));
+                                                                const playPromise = e.target.play();
+                                                                if (playPromise !== undefined) {
+                                                                    playPromise.catch(error => {
+                                                                        console.warn("Autoplay/Resume interrupted:", error.name);
+                                                                        setIsPlaying(false);
+                                                                    });
+                                                                }
                                                             }
-                                                        }, 50);
+                                                        }, 150);
                                                     }
                                                 }}
                                                 onError={(e) => {
@@ -983,11 +990,16 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                                     if (videoRetryCount < 3) {
                                                         const current = videoRef.current?.currentTime || currentTime;
                                                         
-                                                        // Prevent re-triggering if we are already at 0 and just started
+                                                        // Prevent re-triggering if we are already at 0 or very close to it
                                                         if (current < 1 && videoRetryCount > 0) return;
 
                                                         console.log(`Attempting silent refresh (Retry ${videoRetryCount + 1})... Resuming from ${current}s`);
                                                         
+                                                        // Stop current playback before refresh to prevent AbortError
+                                                        if (videoRef.current) {
+                                                            try { videoRef.current.pause(); } catch(e) {}
+                                                        }
+
                                                         pendingResumeTime.current = current;
                                                         setVideoRetryCount(prev => prev + 1);
                                                         setStreamVersion(Date.now());
