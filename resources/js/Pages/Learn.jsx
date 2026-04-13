@@ -539,9 +539,19 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                 setIsPlaying(true);
                 setHasStarted(true);
             } else if (videoRef.current) {
-                videoRef.current.currentTime = resumeTime;
+                // Set as pending to seek safely after metadata loads
+                pendingResumeTime.current = resumeTime;
                 lastMaxTime.current = Math.max(lastMaxTime.current, resumeTime);
-                videoRef.current.play();
+                
+                // If it's already loaded, trigger the seek manually and play
+                if (videoRef.current.readyState >= 2) {
+                    videoRef.current.currentTime = resumeTime;
+                    videoRef.current.play().catch(() => setIsPlaying(false));
+                } else {
+                    // Start loading and a fresh version if not already
+                    setStreamVersion(Date.now());
+                }
+                
                 setIsPlaying(true);
                 setHasStarted(true);
             }
