@@ -67,30 +67,34 @@ class OneDriveStreamController extends Controller
             ]);
         }
 
-        // SPEED-OPTIMIZED AUTHENTICATED REDIRECT
-        // This gives the student a direct link to Microsoft's CDN while using the server's authority.
+        // THE "HOLY GRAIL" SOLUTION: ANONYMOUS SHARING LINK
+        // This creates a public-but-hidden link that bypasses all login walls and session timeouts.
         $service = new \App\Services\OneDriveService();
         $accessToken = $service->getAccessToken();
         
         if (!$accessToken) {
-            // Fallback to direct share link if token fails
             return redirect()->away($downloadUrl);
         }
 
-        // Request a fresh, pre-authenticated download URL specifically for this session
-        $response = Http::withToken($accessToken)
-            ->withOptions(['allow_redirects' => false]) 
-            ->get("https://graph.microsoft.com/v1.0/me/drive/items/{$itemId}/content");
+        // 1. Create a sharing link (view-only, anonymous)
+        // This makes the link accessible to anyone without a Microsoft login
+        $sharingResponse = Http::withToken($accessToken)
+            ->post("https://graph.microsoft.com/v1.0/me/drive/items/{$itemId}/createLink", [
+                'type' => 'view',
+                'scope' => 'anonymous'
+            ]);
 
-        // The /content endpoint returns a 302 redirect to the actual direct file URL
-        $directUrl = $response->header('Location');
-
-        if ($directUrl) {
-            // Redirect student to the high-speed direct Microsoft CDN link
-            return redirect()->away($directUrl);
+        if ($sharingResponse->successful()) {
+            $webUrl = $sharingResponse->json()['link']['webUrl'];
+            
+            // 2. Convert raw webUrl to a Direct Download URL
+            // This is the magic trick to get a stable, fast, anonymous stream
+            $finalUrl = $webUrl . (str_contains($webUrl, '?') ? '&' : '?') . 'download=1';
+            
+            return redirect()->away($finalUrl);
         }
 
-        // Final fallback
+        // Fallback to original method if sharing link creation fails
         return redirect()->away($downloadUrl);
     }
 }
