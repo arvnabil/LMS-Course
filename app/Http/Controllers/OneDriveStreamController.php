@@ -67,9 +67,31 @@ class OneDriveStreamController extends Controller
             ]);
         }
 
-        // Redirecting to the pre-signed URL for video files
-        // (Redirect usually triggers a download for non-browser-handled types, 
-        // but for videos it's needed for Range support).
-        return redirect()->away($downloadUrl);
+        // Proxy the stream for video files with RANGE support
+        $range = request()->header('Range');
+        
+        return response()->stream(function () use ($downloadUrl, $range) {
+            $headers = $range ? ['Range' => $range] : [];
+            
+            $response = Http::withHeaders($headers)
+                ->withOptions([
+                    'stream' => true,
+                    'verify' => false,
+                ])->get($downloadUrl);
+            
+            $body = $response->toPsrResponse()->getBody();
+            
+            while (!$body->eof()) {
+                echo $body->read(1024 * 64); // 64KB chunks
+                if (connection_aborted()) break;
+                flush();
+            }
+        }, $range ? 206 : 200, [
+            'Content-Type' => $mimeType ?: 'video/mp4',
+            'Content-Disposition' => 'inline; filename="' . $fileName . '"',
+            'Accept-Ranges' => 'bytes',
+            'Content-Range' => $range ? (Http::withHeaders(['Range' => $range])->head($downloadUrl)->header('Content-Range')) : null,
+            'Cache-Control' => 'no-cache',
+        ]);
     }
 }
