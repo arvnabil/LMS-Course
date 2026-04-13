@@ -67,46 +67,30 @@ class OneDriveStreamController extends Controller
             ]);
         }
 
-        // IRONCLAD AUTHENTICATED PROXY
-        // This bypasses ALL Microsoft login/CORS/expiration issues for students.
+        // SPEED-OPTIMIZED AUTHENTICATED REDIRECT
+        // This gives the student a direct link to Microsoft's CDN while using the server's authority.
         $service = new \App\Services\OneDriveService();
         $accessToken = $service->getAccessToken();
         
         if (!$accessToken) {
-            return redirect()->away($downloadUrl); // Fallback
+            // Fallback to direct share link if token fails
+            return redirect()->away($downloadUrl);
         }
 
-        $range = request()->header('Range');
-        $graphUrl = "https://graph.microsoft.com/v1.0/me/drive/items/{$itemId}/content";
-
+        // Request a fresh, pre-authenticated download URL specifically for this session
         $response = Http::withToken($accessToken)
-            ->withHeaders($range ? ['Range' => $range] : [])
-            ->withOptions([
-                'stream' => true,
-                'verify' => false,
-            ])->get($graphUrl);
+            ->withOptions(['allow_redirects' => false]) 
+            ->get("https://graph.microsoft.com/v1.0/me/drive/items/{$itemId}/content");
 
-        $status = $response->status();
-        $headers = $response->headers();
+        // The /content endpoint returns a 302 redirect to the actual direct file URL
+        $directUrl = $response->header('Location');
 
-        $responseHeaders = [
-            'Content-Type' => $headers['Content-Type'][0] ?? ($mimeType ?: 'video/mp4'),
-            'Content-Disposition' => 'inline; filename="' . $fileName . '"',
-            'Accept-Ranges' => 'bytes',
-            'Cache-Control' => 'no-cache',
-        ];
+        if ($directUrl) {
+            // Redirect student to the high-speed direct Microsoft CDN link
+            return redirect()->away($directUrl);
+        }
 
-        if (isset($headers['Content-Range'])) $responseHeaders['Content-Range'] = $headers['Content-Range'][0];
-        if (isset($headers['Content-Length'])) $responseHeaders['Content-Length'] = $headers['Content-Length'][0];
-
-        return response()->stream(function () use ($response) {
-            $body = $response->toPsrResponse()->getBody();
-            // Using a larger buffer and direct stream for speed
-            while (!$body->eof()) {
-                echo $body->read(1024 * 512); // 512KB chunks for high performance
-                if (connection_aborted()) break;
-                flush();
-            }
-        }, $status, $responseHeaders);
+        // Final fallback
+        return redirect()->away($downloadUrl);
     }
 }
