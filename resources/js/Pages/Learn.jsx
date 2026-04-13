@@ -67,6 +67,7 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
     const playerRef = useRef(null);
     const progressInterval = useRef(null);
     const lastMaxTime = useRef(0);
+    const pendingResumeTime = useRef(0);
 
     const [isQuizPlaying, setIsQuizPlaying] = useState(false);
     const [resumeTime, setResumeTime] = useState(0);
@@ -955,29 +956,41 @@ export default function Learn({ auth, course, currentLesson, enrollment }) {
                                                 onLoadedMetadata={(e) => {
                                                     setDuration(e.target.duration);
                                                     setIsBuffering(false);
-                                                    setVideoRetryCount(0); // Reset retry count on success
+                                                    setVideoRetryCount(0); 
+                                                    
+                                                    // Handle silent refresh resume
+                                                    if (pendingResumeTime.current > 0) {
+                                                        const targetTime = pendingResumeTime.current;
+                                                        pendingResumeTime.current = 0; // Clear it
+                                                        
+                                                        // Update duration first, then seek
+                                                        setTimeout(() => {
+                                                            if (e.target) {
+                                                                e.target.currentTime = targetTime;
+                                                                e.target.play().catch(() => setIsPlaying(false));
+                                                            }
+                                                        }, 50);
+                                                    }
                                                 }}
                                                 onError={(e) => {
-                                                    console.error("Video Playback Error (OneDrive):", e);
+                                                    console.error("Video Playback Error (OneDrive - Detailed):", {
+                                                        error: e.target.error,
+                                                        currentTime: e.target.currentTime,
+                                                        itemId: currentLesson.video_id
+                                                    });
                                                     
                                                     // Silent refresh mechanism for expired links
                                                     if (videoRetryCount < 3) {
                                                         const current = videoRef.current?.currentTime || currentTime;
+                                                        
+                                                        // Prevent re-triggering if we are already at 0 and just started
+                                                        if (current < 1 && videoRetryCount > 0) return;
+
                                                         console.log(`Attempting silent refresh (Retry ${videoRetryCount + 1})... Resuming from ${current}s`);
                                                         
+                                                        pendingResumeTime.current = current;
                                                         setVideoRetryCount(prev => prev + 1);
                                                         setStreamVersion(Date.now());
-                                                        
-                                                        // Attempt to resume after source change
-                                                        setTimeout(() => {
-                                                            if (videoRef.current) {
-                                                                videoRef.current.currentTime = current;
-                                                                videoRef.current.play().catch(() => {
-                                                                    // User interaction might be needed for play() on some browsers
-                                                                    setIsPlaying(false);
-                                                                });
-                                                            }
-                                                        }, 500);
                                                     } else {
                                                         setToast({ 
                                                             message: "Failed to load video. Please ensure the OneDrive link is still valid and you have permissions.", 
