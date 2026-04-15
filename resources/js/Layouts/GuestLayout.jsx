@@ -51,7 +51,7 @@ export default function GuestLayout({ children }) {
                                                         <img src={auth.user.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
                                                     ) : (
                                                         <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-primary">
-                                                            {auth.user.name.charAt(0).toUpperCase()}
+                                                            {(auth.user.name || 'U').charAt(0).toUpperCase()}
                                                         </div>
                                                     )}
                                                 </div>
@@ -125,7 +125,7 @@ export default function GuestLayout({ children }) {
                                             <img src={auth.user.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center text-xs font-bold text-primary">
-                                                {auth.user.name.charAt(0).toUpperCase()}
+                                                {(auth.user.name || 'U').charAt(0).toUpperCase()}
                                             </div>
                                         )}
                                     </div>
